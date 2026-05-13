@@ -1,0 +1,1166 @@
+# Portfolio Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Construir portfolio personal de Giuliano Gerlo en React 19 + Vite, dual mode dark/light, deployado en Vercel con form de contacto seguro.
+
+**Architecture:** Vite SPA con React Router v6. Single-page home compone secciones desde `src/data/*.js`. Página de detalle por proyecto en `/proyectos/:slug`. Form de contacto vía Vercel serverless (`api/contact.js`) → Resend. Anti-spam con honeypot + Cloudflare Turnstile + rate limit + email obfuscation.
+
+**Tech Stack:** React 19 (Compiler activo), Vite 8, Tailwind CSS v4, shadcn/ui (manual copy), Motion, Lenis, Anime.js (hero), React Router v6, react-hook-form, zod, lucide-react, Resend, Cloudflare Turnstile, Vercel.
+
+**Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
+
+**Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
+
+---
+
+## Phase 0 — Foundation, tooling & cleanup
+
+### Task 0.1: Inicializar git + .gitignore
+
+**Files:**
+- Verify: `.gitignore` (existe)
+- Create: `.git/` via `git init`
+
+**Steps:**
+
+1. `git init`
+2. Verificar que `.gitignore` ignora `node_modules/`, `dist/`, `.env.local`, `.env*.local`. Si falta, agregar.
+3. `git add -A && git status` para confirmar.
+4. Commit inicial:
+   ```bash
+   git commit -m "chore: initial commit (Vite + React 19 + React Compiler base)"
+   ```
+
+### Task 0.2: Limpiar template Vite
+
+**Files:**
+- Modify: `src/App.jsx` → vaciar a componente mínimo
+- Modify: `src/App.css` → vaciar
+- Modify: `src/index.css` → reset mínimo
+- Delete: `src/assets/react.svg`, `src/assets/vite.svg`, `src/assets/hero.png`
+
+**Steps:**
+
+1. Reemplazar `src/App.jsx`:
+   ```jsx
+   function App() {
+     return <div>Portfolio en construcción</div>;
+   }
+   export default App;
+   ```
+2. Vaciar `src/App.css` (queda vacío).
+3. Reemplazar `src/index.css` con reset:
+   ```css
+   *, *::before, *::after { box-sizing: border-box; }
+   * { margin: 0; padding: 0; }
+   html { font-family: system-ui, -apple-system, sans-serif; }
+   body { min-height: 100vh; }
+   img, picture, svg { display: block; max-width: 100%; }
+   button { font: inherit; cursor: pointer; background: none; border: none; }
+   a { color: inherit; text-decoration: none; }
+   ```
+4. Borrar assets viejos.
+5. `npm run dev` → verificar página dice "Portfolio en construcción".
+6. Commit:
+   ```bash
+   git add -A
+   git commit -m "chore: limpiar template Vite default"
+   ```
+
+### Task 0.3: Instalar Tailwind CSS v4
+
+**Files:**
+- Create: `tailwind.config.js`
+- Create: `postcss.config.js`
+- Modify: `src/index.css` → agregar directivas Tailwind
+- Modify: `package.json` (vía npm install)
+
+**Steps:**
+
+1. Instalar:
+   ```bash
+   npm install -D tailwindcss@next @tailwindcss/postcss@next postcss autoprefixer
+   ```
+2. Crear `postcss.config.js`:
+   ```js
+   export default {
+     plugins: {
+       '@tailwindcss/postcss': {},
+       autoprefixer: {},
+     },
+   };
+   ```
+3. Crear `tailwind.config.js`:
+   ```js
+   /** @type {import('tailwindcss').Config} */
+   export default {
+     content: ['./index.html', './src/**/*.{js,jsx}'],
+     darkMode: ['class', '[data-theme="dark"]'],
+     theme: {
+       extend: {
+         fontFamily: {
+           sans: ['Inter', 'system-ui', 'sans-serif'],
+           mono: ['JetBrains Mono', 'monospace'],
+         },
+         colors: {
+           bg: 'var(--bg)',
+           'bg-elevated': 'var(--bg-elevated)',
+           border: 'var(--border)',
+           'text-primary': 'var(--text-primary)',
+           'text-muted': 'var(--text-muted)',
+           accent: 'var(--accent)',
+           'accent-hover': 'var(--accent-hover)',
+           'accent-bg': 'var(--accent-bg)',
+         },
+       },
+     },
+   };
+   ```
+4. Reemplazar `src/index.css`:
+   ```css
+   @import 'tailwindcss';
+
+   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+   :root[data-theme='dark'] {
+     --bg: #0a0a0a;
+     --bg-elevated: #141414;
+     --border: #262626;
+     --text-primary: #fafafa;
+     --text-muted: #a1a1aa;
+     --accent: #04773b;
+     --accent-hover: #06a352;
+     --accent-bg: rgba(4, 119, 59, 0.1);
+   }
+
+   :root[data-theme='light'] {
+     --bg: #ffffff;
+     --bg-elevated: #f5f5f5;
+     --border: #e5e5e5;
+     --text-primary: #0a0a0a;
+     --text-muted: #525252;
+     --accent: #04773b;
+     --accent-hover: #035c2d;
+     --accent-bg: rgba(4, 119, 59, 0.08);
+   }
+
+   :root { color-scheme: dark; }
+   :root[data-theme='light'] { color-scheme: light; }
+
+   body {
+     background: var(--bg);
+     color: var(--text-primary);
+     font-family: 'Inter', system-ui, sans-serif;
+     transition: background 0.2s, color 0.2s;
+   }
+   ```
+5. Asegurar `<html data-theme="dark">` en `index.html`.
+6. Reemplazar `src/App.jsx`:
+   ```jsx
+   function App() {
+     return (
+       <div className="min-h-screen flex items-center justify-center">
+         <h1 className="text-4xl font-bold text-accent">Tailwind OK</h1>
+       </div>
+     );
+   }
+   export default App;
+   ```
+7. `npm run dev` → verificar que dice "Tailwind OK" en verde grande.
+8. Commit:
+   ```bash
+   git add -A
+   git commit -m "feat: setup Tailwind CSS v4 con CSS vars dark/light"
+   ```
+
+**Explicar al usuario:** Tailwind v4 usa import directo (`@import 'tailwindcss'`) en lugar de `@tailwind base/components/utilities` de v3. Las CSS vars permiten que `bg-bg` o `text-accent` cambien automáticamente al togglear tema.
+
+### Task 0.4: Instalar React Router v6
+
+**Files:**
+- Modify: `src/main.jsx` → wrap con `<BrowserRouter>`
+- Modify: `src/App.jsx` → usar `<Routes>`
+- Create: `src/pages/Home.jsx`
+- Create: `src/pages/NotFound.jsx`
+
+**Steps:**
+
+1. `npm install react-router-dom`
+2. Modificar `src/main.jsx`:
+   ```jsx
+   import { StrictMode } from 'react';
+   import { createRoot } from 'react-dom/client';
+   import { BrowserRouter } from 'react-router-dom';
+   import App from './App.jsx';
+   import './index.css';
+
+   createRoot(document.getElementById('root')).render(
+     <StrictMode>
+       <BrowserRouter>
+         <App />
+       </BrowserRouter>
+     </StrictMode>
+   );
+   ```
+3. Crear `src/pages/Home.jsx`:
+   ```jsx
+   export default function Home() {
+     return <div className="p-8">Home page</div>;
+   }
+   ```
+4. Crear `src/pages/NotFound.jsx`:
+   ```jsx
+   import { Link } from 'react-router-dom';
+
+   export default function NotFound() {
+     return (
+       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+         <h1 className="text-6xl font-bold">404</h1>
+         <p className="text-text-muted">Página no encontrada</p>
+         <Link to="/" className="text-accent hover:underline">← Volver al inicio</Link>
+       </div>
+     );
+   }
+   ```
+5. Reemplazar `src/App.jsx`:
+   ```jsx
+   import { Routes, Route } from 'react-router-dom';
+   import Home from './pages/Home.jsx';
+   import NotFound from './pages/NotFound.jsx';
+
+   function App() {
+     return (
+       <Routes>
+         <Route path="/" element={<Home />} />
+         <Route path="*" element={<NotFound />} />
+       </Routes>
+     );
+   }
+   export default App;
+   ```
+6. `npm run dev` → ir a `/` (ver "Home page") y a `/asdf` (ver 404).
+7. Commit:
+   ```bash
+   git add -A
+   git commit -m "feat: setup React Router v6 con Home + NotFound"
+   ```
+
+**Explicar al usuario:** `<BrowserRouter>` provee contexto de routing. `<Routes>` define qué componente renderizar según URL. `<Route path="*">` matchea cualquier ruta no definida = 404. `<Link>` cambia URL sin recargar página (SPA).
+
+### Task 0.5: Instalar librerías core restantes
+
+**Steps:**
+
+1. Instalar:
+   ```bash
+   npm install motion lenis lucide-react react-hook-form zod @hookform/resolvers
+   npm install -D animejs
+   ```
+2. Verificar que no rompió nada: `npm run dev`.
+3. Commit:
+   ```bash
+   git add package.json package-lock.json
+   git commit -m "chore: install motion, lenis, lucide-react, react-hook-form, zod, animejs"
+   ```
+
+**Explicar al usuario:**
+- `motion` (ex framer-motion): animaciones declarativas con `<motion.div>`.
+- `lenis`: smooth scroll global.
+- `lucide-react`: librería de íconos como componentes.
+- `react-hook-form` + `zod` + `@hookform/resolvers`: form con validación type-safe.
+- `animejs`: animaciones JS imperativas (la usaremos para hero typewriter).
+
+### Task 0.6: Setup Vitest para tests críticos
+
+**Files:**
+- Modify: `package.json` → script test
+- Create: `vitest.config.js`
+- Create: `src/test/setup.js`
+
+**Steps:**
+
+1. Instalar:
+   ```bash
+   npm install -D vitest @vitest/ui jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event
+   ```
+2. Crear `vitest.config.js`:
+   ```js
+   import { defineConfig } from 'vitest/config';
+   import react from '@vitejs/plugin-react';
+
+   export default defineConfig({
+     plugins: [react()],
+     test: {
+       environment: 'jsdom',
+       setupFiles: ['./src/test/setup.js'],
+       globals: true,
+     },
+   });
+   ```
+3. Crear `src/test/setup.js`:
+   ```js
+   import '@testing-library/jest-dom/vitest';
+   ```
+4. Agregar scripts en `package.json`:
+   ```json
+   "test": "vitest",
+   "test:run": "vitest run",
+   "test:ui": "vitest --ui"
+   ```
+5. Test smoke en `src/App.test.jsx`:
+   ```jsx
+   import { render, screen } from '@testing-library/react';
+   import { MemoryRouter } from 'react-router-dom';
+   import App from './App.jsx';
+
+   test('renders Home on /', () => {
+     render(
+       <MemoryRouter initialEntries={['/']}>
+         <App />
+       </MemoryRouter>
+     );
+     expect(screen.getByText(/Home page/i)).toBeInTheDocument();
+   });
+
+   test('renders 404 on unknown route', () => {
+     render(
+       <MemoryRouter initialEntries={['/no-existe']}>
+         <App />
+       </MemoryRouter>
+     );
+     expect(screen.getByText('404')).toBeInTheDocument();
+   });
+   ```
+6. Run: `npm run test:run` → ambos pasan.
+7. Commit:
+   ```bash
+   git add -A
+   git commit -m "test: setup Vitest + Testing Library con smoke tests de routing"
+   ```
+
+---
+
+## Phase 1 — Theme system + layout shell
+
+### Task 1.1: Hook `useTheme`
+
+**Files:**
+- Create: `src/hooks/useTheme.js`
+- Create: `src/hooks/useTheme.test.js`
+
+**Step 1: Failing test**
+
+```js
+import { renderHook, act } from '@testing-library/react';
+import { useTheme } from './useTheme.js';
+
+test('default theme is dark', () => {
+  const { result } = renderHook(() => useTheme());
+  expect(result.current.theme).toBe('dark');
+});
+
+test('toggle switches dark → light', () => {
+  const { result } = renderHook(() => useTheme());
+  act(() => result.current.toggle());
+  expect(result.current.theme).toBe('light');
+});
+
+test('persists to localStorage', () => {
+  const { result } = renderHook(() => useTheme());
+  act(() => result.current.toggle());
+  expect(localStorage.getItem('theme')).toBe('light');
+});
+```
+
+**Step 2: Verify fail**
+
+Run: `npm run test:run -- useTheme` → FAIL.
+
+**Step 3: Implement**
+
+```js
+import { useState, useEffect } from 'react';
+
+const STORAGE_KEY = 'theme';
+
+function getInitialTheme() {
+  if (typeof window === 'undefined') return 'dark';
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored === 'dark' || stored === 'light') return stored;
+  return 'dark';
+}
+
+export function useTheme() {
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(STORAGE_KEY, theme);
+  }, [theme]);
+
+  const toggle = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+
+  return { theme, toggle };
+}
+```
+
+**Step 4: Pass**
+
+Run: `npm run test:run -- useTheme` → PASS.
+
+**Step 5: Commit**
+
+```bash
+git add src/hooks/useTheme.js src/hooks/useTheme.test.js
+git commit -m "feat: useTheme hook con persistencia localStorage"
+```
+
+**Explicar al usuario:** `useState` con función inicializadora corre 1 vez (lazy init). `useEffect` corre después del render → sincroniza DOM y localStorage cada vez que `theme` cambia. Custom hook = función que usa hooks de React, reutilizable entre componentes.
+
+### Task 1.2: Componente `ThemeToggle`
+
+**Files:**
+- Create: `src/components/ui/ThemeToggle.jsx`
+- Create: `src/components/ui/ThemeToggle.test.jsx`
+
+**Step 1: Failing test**
+
+```jsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import ThemeToggle from './ThemeToggle.jsx';
+
+test('toggles theme on click', async () => {
+  const user = userEvent.setup();
+  render(<ThemeToggle />);
+  const btn = screen.getByRole('button', { name: /tema/i });
+  expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+  await user.click(btn);
+  expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+});
+```
+
+**Step 2: Implement**
+
+```jsx
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '../../hooks/useTheme.js';
+
+export default function ThemeToggle() {
+  const { theme, toggle } = useTheme();
+  const Icon = theme === 'dark' ? Sun : Moon;
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label="Cambiar tema"
+      title="Cambiar tema"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-text-primary transition-colors hover:border-accent hover:text-accent"
+    >
+      <Icon size={16} />
+    </button>
+  );
+}
+```
+
+**Step 3: Run test → PASS.**
+
+**Step 4: Commit**
+
+```bash
+git add -A
+git commit -m "feat: ThemeToggle component"
+```
+
+### Task 1.3: Componente `Navbar`
+
+**Files:**
+- Create: `src/components/layout/Navbar.jsx`
+- Create: `src/components/layout/Navbar.test.jsx`
+
+**Steps:**
+
+1. Implement (caveman: keep concise):
+   ```jsx
+   import { Github, Linkedin } from 'lucide-react';
+   import { NavLink } from 'react-router-dom';
+   import ThemeToggle from '../ui/ThemeToggle.jsx';
+   import { socials } from '../../data/socials.js';
+
+   const links = [
+     { to: '/#about', label: 'Sobre mí' },
+     { to: '/#skills', label: 'Skills' },
+     { to: '/#projects', label: 'Proyectos' },
+     { to: '/#experience', label: 'Experiencia' },
+     { to: '/#contact', label: 'Contacto' },
+   ];
+
+   export default function Navbar() {
+     return (
+       <header className="sticky top-0 z-50 border-b border-border bg-bg/70 backdrop-blur-md">
+         <nav className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-4 md:px-8">
+           <NavLink to="/" className="font-mono text-base font-semibold">
+             giuliano<span className="text-accent">.dev</span>
+           </NavLink>
+           <ul className="hidden gap-7 md:flex">
+             {links.map((l) => (
+               <li key={l.to}>
+                 <a href={l.to} className="text-sm font-medium text-text-muted transition-colors hover:text-accent">
+                   {l.label}
+                 </a>
+               </li>
+             ))}
+           </ul>
+           <div className="flex items-center gap-2">
+             <a href={socials.github} target="_blank" rel="noreferrer noopener" aria-label="GitHub"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border hover:border-accent hover:text-accent">
+               <Github size={16} />
+             </a>
+             <a href={socials.linkedin} target="_blank" rel="noreferrer noopener" aria-label="LinkedIn"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border hover:border-accent hover:text-accent">
+               <Linkedin size={16} />
+             </a>
+             <ThemeToggle />
+           </div>
+         </nav>
+       </header>
+     );
+   }
+   ```
+2. Crear `src/data/socials.js` placeholder (Task 2.1 lo completa):
+   ```js
+   export const socials = {
+     github: 'https://github.com/GiuGerlo',
+     linkedin: 'https://www.linkedin.com/in/giuliano-gerlo-21a7b8221/',
+     email: 'ggiuliano526@gmail.com',
+     whatsapp: '5493468536422',
+     location: 'Rosario, Santa Fe — Argentina',
+   };
+   ```
+3. Smoke test que renderiza con Router context.
+4. Commit:
+   ```bash
+   git add -A
+   git commit -m "feat: Navbar component con links y theme toggle"
+   ```
+
+### Task 1.4: Componente `Footer`
+
+**Files:**
+- Create: `src/components/layout/Footer.jsx`
+
+**Steps:**
+
+1. Implement con 3 columnas (brand, nav, redes) según design doc.
+2. Bottom line con copyright dinámico:
+   ```jsx
+   <span>© {new Date().getFullYear()} Giuliano Gerlo</span>
+   ```
+3. Commit:
+   ```bash
+   git add -A
+   git commit -m "feat: Footer component"
+   ```
+
+### Task 1.5: `Layout` wrapper
+
+**Files:**
+- Create: `src/components/layout/Layout.jsx`
+
+**Steps:**
+
+1. Implement:
+   ```jsx
+   import { Outlet } from 'react-router-dom';
+   import Navbar from './Navbar.jsx';
+   import Footer from './Footer.jsx';
+
+   export default function Layout() {
+     return (
+       <>
+         <Navbar />
+         <main className="min-h-screen">
+           <Outlet />
+         </main>
+         <Footer />
+       </>
+     );
+   }
+   ```
+2. Modificar `App.jsx` para usar nested routes:
+   ```jsx
+   <Routes>
+     <Route element={<Layout />}>
+       <Route path="/" element={<Home />} />
+       <Route path="/proyectos/:slug" element={<ProjectDetail />} />
+       <Route path="*" element={<NotFound />} />
+     </Route>
+   </Routes>
+   ```
+3. Crear stub `src/pages/ProjectDetail.jsx`:
+   ```jsx
+   import { useParams } from 'react-router-dom';
+   export default function ProjectDetail() {
+     const { slug } = useParams();
+     return <div className="p-8">Proyecto: {slug}</div>;
+   }
+   ```
+4. `npm run dev` → ver Navbar + Footer en `/` y `/proyectos/clovertecno`.
+5. Commit:
+   ```bash
+   git add -A
+   git commit -m "feat: Layout con Outlet + nested routes"
+   ```
+
+**Explicar al usuario:** `<Outlet />` es donde se renderiza el componente hijo de la ruta. `useParams()` lee parámetros dinámicos de URL (`:slug`).
+
+---
+
+## Phase 2 — Data layer
+
+### Task 2.1: Datos completos
+
+**Files:**
+- Create: `src/data/projects.js`
+- Create: `src/data/skills.js`
+- Create: `src/data/experience.js`
+- Create: `src/data/education.js`
+- Modify: `src/data/socials.js` (ya creado)
+
+**Steps:**
+
+1. Poblar `projects.js` con 5 proyectos según shape del design doc. URLs reales pendientes (placeholder `null`).
+2. Poblar `skills.js`:
+   ```js
+   export const skillGroups = [
+     { id: 'frontend', title: 'Frontend', icon: 'Layout',
+       items: ['HTML', 'CSS', 'JavaScript', 'React', 'Bootstrap', 'jQuery'] },
+     { id: 'backend', title: 'Backend', icon: 'Server',
+       items: ['PHP', 'Laravel', 'API REST', 'Node.js'] },
+     { id: 'database', title: 'Base de datos', icon: 'Database',
+       items: ['MySQL', 'Modelado', 'Optimización'] },
+     { id: 'devops', title: 'DevOps / Tools', icon: 'Wrench',
+       items: ['Git', 'GitHub', 'Docker', 'Postman', 'Figma', 'VS Code'] },
+     { id: 'soft', title: 'Soft Skills', icon: 'Heart',
+       items: ['Trabajo en equipo', 'Comunicación', 'Autonomía', 'Aprendizaje rápido'] },
+   ];
+
+   export const aiSkills = [
+     { id: 'claude-code', title: 'claude_code',
+       desc: 'CLI agéntico para desarrollo asistido. Refactors, generación de features, debugging.' },
+     { id: 'mcp', title: 'mcp_servers',
+       desc: 'Model Context Protocol — conexión de Claude con herramientas propias y APIs externas.' },
+     { id: 'api', title: 'anthropic_api',
+       desc: 'Integración del SDK de Anthropic en apps: tool use, prompt caching, streaming.' },
+     { id: 'agent', title: 'agent_sdk',
+       desc: 'Construcción de agentes custom con loops, tool use y manejo de contexto.' },
+     { id: 'prompt', title: 'prompt_engineering',
+       desc: 'Diseño de prompts efectivos: few-shot, chain-of-thought, structured output.' },
+     { id: 'workflows', title: 'ai_workflows',
+       desc: 'Automatización de procesos dev con IA: code review, docs, testing asistido.' },
+   ];
+   ```
+3. Poblar `experience.js` con datos del CV (RAMCC, Inmobiliaria NZ, Clovertecno, etc.).
+4. Poblar `education.js` con 4 entries (Brigadier López, DigitalHouse, CoderHouse x2). `certUrl: null` por ahora.
+5. Tests de shape:
+   ```js
+   // src/data/projects.test.js
+   import { projects } from './projects.js';
+
+   test('cada proyecto tiene slug único', () => {
+     const slugs = projects.map((p) => p.slug);
+     expect(new Set(slugs).size).toBe(slugs.length);
+   });
+
+   test('cada proyecto tiene fields requeridos', () => {
+     projects.forEach((p) => {
+       expect(p.slug).toBeTruthy();
+       expect(p.title).toBeTruthy();
+       expect(p.stack).toBeInstanceOf(Array);
+     });
+   });
+   ```
+6. Commit:
+   ```bash
+   git add src/data/
+   git commit -m "feat: data layer con projects, skills, experience, education, socials"
+   ```
+
+---
+
+## Phase 3 — UI primitives
+
+### Task 3.1: `Button` component
+
+**Files:**
+- Create: `src/components/ui/Button.jsx`
+- Create: `src/components/ui/Button.test.jsx`
+- Create: `src/lib/cn.js`
+
+**Steps:**
+
+1. `npm install clsx tailwind-merge`
+2. Crear `src/lib/cn.js`:
+   ```js
+   import { clsx } from 'clsx';
+   import { twMerge } from 'tailwind-merge';
+
+   export function cn(...inputs) {
+     return twMerge(clsx(inputs));
+   }
+   ```
+3. Implementar `Button.jsx`:
+   ```jsx
+   import { cn } from '../../lib/cn.js';
+
+   const variants = {
+     primary: 'bg-accent text-white hover:bg-accent-hover hover:shadow-[0_0_24px_rgba(4,119,59,0.3)]',
+     secondary: 'border border-border text-text-primary hover:border-accent hover:text-accent',
+     ghost: 'text-text-muted hover:text-accent',
+   };
+
+   export default function Button({ variant = 'primary', className, children, ...rest }) {
+     return (
+       <button
+         {...rest}
+         className={cn(
+           'inline-flex items-center gap-2 rounded-md px-5 py-2.5 text-sm font-medium transition-all',
+           variants[variant],
+           className
+         )}
+       >
+         {children}
+       </button>
+     );
+   }
+   ```
+4. Test cubre variants + click handler.
+5. Commit.
+
+**Explicar al usuario:** `cn()` resuelve clases Tailwind duplicadas (`px-2 px-4` → `px-4`). `{...rest}` reenvía cualquier prop al `<button>` (onClick, disabled, type, etc.).
+
+### Task 3.2-3.5: `Input`, `Textarea`, `Chip`, `SectionHeading`
+
+Similar pattern. Cada uno: componente + test mínimo + commit.
+
+---
+
+## Phase 4 — Home sections (en orden)
+
+### Task 4.1: `Hero` section
+
+**Files:**
+- Create: `src/components/sections/Hero.jsx`
+
+**Steps:**
+
+1. Implementar según mockup: `$ whoami` prompt, nombre 72px, rol, ubicación, 2 CTAs, gradient verde radial detrás.
+2. Botones usan `<Button>` primitive.
+3. Smoke test renderiza nombre.
+4. Importar en `Home.jsx`, ver en dev.
+5. Commit.
+
+### Task 4.2: `About` section
+
+Layout grid 2 columnas (texto + foto). Foto placeholder con gradient (Tasa 4.2 del usuario subir real).
+
+### Task 4.3: `Skills` section
+
+Grid de `SkillCard` mapeando `skillGroups`. Resolver íconos por nombre vía lookup en objeto Lucide.
+
+### Task 4.4: `AISection`
+
+Bloque destacado con background radial. Grid de 6 `aiSkills` con border-left accent.
+
+### Task 4.5: `Projects` section
+
+Grid de `ProjectCard`. Cada card linkea a `/proyectos/${slug}`.
+
+```jsx
+<Link to={`/proyectos/${project.slug}`} className="block ...">
+  {/* card content */}
+</Link>
+```
+
+### Task 4.6: `Experience` section
+
+Timeline vertical con `TimelineItem`. Item con `current: true` tiene punto sólido + halo.
+
+### Task 4.7: `Education` section
+
+Grid de `EduCard`. Si `certUrl` existe → `<a>` con "Ver certificado ↗". Si `status === 'in-progress'` → texto "Certificado al finalizar".
+
+### Task 4.8: `Contact` section (UI only)
+
+Grid 2 columnas: form (placeholder action — `console.log`) + 4 contact links.
+
+Cada link usa Lucide icon en cuadrado verde-bg.
+
+**Email obfuscation** — crear `src/lib/obfuscate-email.js`:
+
+```js
+// Encoded en base64 para no quedar plano en HTML
+export function obfuscateEmail(email) {
+  return btoa(email);
+}
+export function decodeEmail(encoded) {
+  return atob(encoded);
+}
+```
+
+Usar en `Contact.jsx`:
+```jsx
+const [revealed, setRevealed] = useState(false);
+const encoded = 'Z2dpdWxpYW5vNTI2QGdtYWlsLmNvbQ=='; // ggiuliano526@gmail.com en base64
+
+<button onClick={() => setRevealed(true)}>
+  {revealed ? atob(encoded) : 'Click para ver email'}
+</button>
+```
+
+Commit por cada sección. Después de cada commit, `npm run dev` y verificar visualmente.
+
+### Task 4.9: Composer `Home.jsx`
+
+```jsx
+import Hero from '../components/sections/Hero.jsx';
+import About from '../components/sections/About.jsx';
+// ... resto
+
+export default function Home() {
+  return (
+    <>
+      <Hero />
+      <About />
+      <Skills />
+      <AISection />
+      <Projects />
+      <Experience />
+      <Education />
+      <Contact />
+    </>
+  );
+}
+```
+
+Commit final phase 4.
+
+---
+
+## Phase 5 — Project detail page
+
+### Task 5.1: `ProjectDetail` page
+
+**Files:**
+- Modify: `src/pages/ProjectDetail.jsx`
+
+**Steps:**
+
+1. Buscar proyecto por slug:
+   ```jsx
+   import { useParams, Navigate } from 'react-router-dom';
+   import { projects } from '../data/projects.js';
+
+   export default function ProjectDetail() {
+     const { slug } = useParams();
+     const project = projects.find((p) => p.slug === slug);
+     if (!project) return <Navigate to="/404" replace />;
+     // render según mockup
+   }
+   ```
+2. Renderizar: back link, hero, mi rol, stack, gallery, challenges.
+3. Set document title vía effect:
+   ```jsx
+   useEffect(() => {
+     document.title = `${project.title} — Giuliano Gerlo`;
+     return () => { document.title = 'Giuliano Gerlo — Full-Stack Developer'; };
+   }, [project.title]);
+   ```
+4. Smoke test con MemoryRouter en ruta de proyecto válido + inválido.
+5. Commit.
+
+---
+
+## Phase 6 — Animaciones + polish
+
+### Task 6.1: Scroll reveals con Motion
+
+Wrapper component `<Reveal>`:
+```jsx
+import { motion } from 'motion/react';
+
+export default function Reveal({ children, delay = 0 }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.5, delay, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+```
+
+Envolver cada section heading + cards.
+
+**Reduced motion:** ya viene out-of-the-box con Motion si el usuario lo tiene activo.
+
+Commit.
+
+### Task 6.2: Smooth scroll con Lenis
+
+`src/hooks/useLenis.js`:
+```js
+import { useEffect } from 'react';
+import Lenis from 'lenis';
+
+export function useLenis() {
+  useEffect(() => {
+    const lenis = new Lenis();
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+    return () => lenis.destroy();
+  }, []);
+}
+```
+
+Llamar en `Layout`.
+
+Commit.
+
+### Task 6.3: Hero typewriter con Anime.js
+
+Animar el nombre con stagger de chars al mount.
+
+Commit.
+
+---
+
+## Phase 7 — Contact form backend
+
+### Task 7.1: Form con react-hook-form + zod
+
+Reemplazar form placeholder con validación real.
+
+Mostrar errores por campo.
+
+Commit.
+
+### Task 7.2: Honeypot field
+
+Campo `website` con CSS `position: absolute; left: -9999px; opacity: 0; pointer-events: none;` + `tabIndex={-1}` + `autoComplete="off"`.
+
+Commit.
+
+### Task 7.3: Cloudflare Turnstile widget
+
+**Pre-requisito usuario:** crear cuenta Cloudflare, obtener SITE KEY + SECRET KEY (ver `TODO-USUARIO.md`).
+
+Instalar:
+```bash
+npm install @marsidev/react-turnstile
+```
+
+Agregar widget al form, capturar token en estado.
+
+Commit.
+
+### Task 7.4: Serverless function `api/contact.js`
+
+`npm install resend`
+
+Implementar según design doc:
+- Verify method POST
+- Honeypot check
+- Turnstile verify
+- Resend send
+- HTML escape inputs
+
+Commit.
+
+### Task 7.5: Wire form → /api/contact
+
+`fetch('/api/contact', { method: 'POST', body: JSON.stringify(...) })`
+
+Loading / success / error states.
+
+Commit.
+
+### Task 7.6: Rate limiting
+
+Opción simple: Vercel Edge Config o `@vercel/kv` (gratis tier).
+
+```bash
+npm install @vercel/kv
+```
+
+Verificar IP en `api/contact.js`, max 3 / hora.
+
+Commit.
+
+---
+
+## Phase 8 — SEO + meta + performance
+
+### Task 8.1: Meta tags base
+
+Modificar `index.html` con title, description, OG tags, twitter card.
+
+### Task 8.2: OG image
+
+Generar 1200x630 PNG con título + foto (puede ser Figma o Canva). Pone en `public/og-image.png`.
+
+### Task 8.3: Title dinámico por ruta
+
+`useEffect` en `Home.jsx` y `ProjectDetail.jsx`.
+
+### Task 8.4: `robots.txt` y `sitemap.xml`
+
+`public/robots.txt`:
+```
+User-agent: *
+Allow: /
+Sitemap: https://giulianogerlo.vercel.app/sitemap.xml
+```
+
+`public/sitemap.xml` generado por script en build (`scripts/generate-sitemap.js` lee `projects.js`).
+
+### Task 8.5: Image optimization
+
+Convertir screenshots a WebP. Lazy load con `loading="lazy"`. Sizes/srcset si fuera necesario.
+
+### Task 8.6: Headers de seguridad
+
+`vercel.json`:
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    }
+  ]
+}
+```
+
+Commit cada paso.
+
+---
+
+## Phase 9 — Deploy a Vercel
+
+### Task 9.1: Crear repo GitHub
+
+**Usuario:** crear repo público `giulianogerlo-portfolio` en GitHub (sin README inicial).
+
+Local:
+```bash
+git remote add origin git@github.com:GiuGerlo/giulianogerlo-portfolio.git
+git branch -M main
+git push -u origin main
+```
+
+### Task 9.2: Conectar Vercel
+
+**Usuario** sigue checklist en `TODO-USUARIO.md` sección Vercel.
+
+### Task 9.3: Configurar env vars en Vercel
+
+**Usuario** pega en dashboard:
+- `RESEND_API_KEY`
+- `TURNSTILE_SECRET`
+- `VITE_TURNSTILE_SITE_KEY`
+- `CONTACT_EMAIL_TO`
+
+### Task 9.4: Deploy inicial
+
+Click "Deploy" en Vercel. Esperar 2 min. Verificar URL live.
+
+### Task 9.5: Test form en producción
+
+Enviar mensaje desde el form deployado. Verificar que llega a `ggiuliano526@gmail.com`.
+
+Si falla:
+- Logs en Vercel dashboard → Functions tab
+- Verificar env vars
+- Verificar Turnstile domain en Cloudflare
+
+### Task 9.6: Vercel Analytics
+
+Dashboard → Analytics → Enable.
+
+Verificar que tracking script se agregó al bundle.
+
+---
+
+## Phase 10 — Cleanup final
+
+### Task 10.1: Borrar `mockup.html`
+
+Ya no es necesario. Quitar.
+
+```bash
+rm mockup.html
+git add -A
+git commit -m "chore: remove mockup.html — diseño implementado"
+```
+
+### Task 10.2: Actualizar `CLAUDE.md`
+
+Sumar:
+- Comandos: `npm run test`, `npm run test:run`
+- Stack añadido: Tailwind v4, Motion, Lenis, React Router, shadcn primitives, Resend
+- Mencionar `src/data/` como punto único de edición de contenido
+
+### Task 10.3: README final
+
+Reemplazar `README.md` con descripción real del proyecto + screenshots + link live.
+
+### Task 10.4: Lighthouse audit
+
+`npm run build && npm run preview` → Chrome DevTools → Lighthouse → run.
+
+Target 95+ todas categorías. Arreglar lo que falle (típicamente alt en imágenes, contraste, etc.).
+
+Commit fixes.
+
+---
+
+## Riesgos y mitigaciones
+
+| Riesgo | Mitigación |
+|--------|------------|
+| Tailwind v4 todavía es relativamente nuevo, edge cases | Bloquear versión en package.json una vez funcionando |
+| React Compiler peleando con Motion (rare) | Si pasa, marcar componente con `"use no memo"` |
+| Turnstile bloqueando tests | Mockear en test env, key real solo en runtime |
+| API key Resend filtrada | Solo en env vars, nunca en client bundle, `.env.local` en `.gitignore` |
+| Vercel deploy falla por límite serverless | Function `api/contact.js` < 10s timeout, suficiente |
+
+---
+
+## Definition of Done
+
+- [ ] Todos los tests passing (`npm run test:run`)
+- [ ] `npm run lint` sin errores
+- [ ] `npm run build` exitoso
+- [ ] Lighthouse 95+ todas categorías
+- [ ] Form de contacto recibe email en `ggiuliano526@gmail.com`
+- [ ] Theme toggle funciona y persiste
+- [ ] Todas las rutas funcionan (`/`, `/proyectos/clovertecno`, etc.)
+- [ ] 404 funciona en rutas inválidas
+- [ ] Deploy live en Vercel
+- [ ] Todo en `TODO-USUARIO.md` resuelto
+- [ ] `mockup.html` borrado
+- [ ] README + CLAUDE.md actualizados
