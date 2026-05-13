@@ -61,7 +61,7 @@
    a { color: inherit; text-decoration: none; }
    ```
 4. Borrar assets viejos.
-5. `npm run dev` → verificar página dice "Portfolio en construcción".
+5. `pnpm dev` → verificar página dice "Portfolio en construcción".
 6. Commit:
    ```bash
    git add -A
@@ -74,13 +74,13 @@
 - Create: `tailwind.config.js`
 - Create: `postcss.config.js`
 - Modify: `src/index.css` → agregar directivas Tailwind
-- Modify: `package.json` (vía npm install)
+- Modify: `package.json` (vía pnpm install)
 
 **Steps:**
 
 1. Instalar:
    ```bash
-   npm install -D tailwindcss@next @tailwindcss/postcss@next postcss autoprefixer
+   pnpm install -D tailwindcss@next @tailwindcss/postcss@next postcss autoprefixer
    ```
 2. Crear `postcss.config.js`:
    ```js
@@ -167,7 +167,7 @@
    }
    export default App;
    ```
-7. `npm run dev` → verificar que dice "Tailwind OK" en verde grande.
+7. `pnpm dev` → verificar que dice "Tailwind OK" en verde grande.
 8. Commit:
    ```bash
    git add -A
@@ -186,7 +186,7 @@
 
 **Steps:**
 
-1. `npm install react-router-dom`
+1. `pnpm install react-router-dom`
 2. Modificar `src/main.jsx`:
    ```jsx
    import { StrictMode } from 'react';
@@ -239,7 +239,7 @@
    }
    export default App;
    ```
-6. `npm run dev` → ir a `/` (ver "Home page") y a `/asdf` (ver 404).
+6. `pnpm dev` → ir a `/` (ver "Home page") y a `/asdf` (ver 404).
 7. Commit:
    ```bash
    git add -A
@@ -254,10 +254,10 @@
 
 1. Instalar:
    ```bash
-   npm install motion lenis lucide-react react-hook-form zod @hookform/resolvers
-   npm install -D animejs
+   pnpm install motion lenis lucide-react react-hook-form zod @hookform/resolvers
+   pnpm install -D animejs
    ```
-2. Verificar que no rompió nada: `npm run dev`.
+2. Verificar que no rompió nada: `pnpm dev`.
 3. Commit:
    ```bash
    git add package.json package-lock.json
@@ -282,7 +282,7 @@
 
 1. Instalar:
    ```bash
-   npm install -D vitest @vitest/ui jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event
+   pnpm install -D vitest @vitest/ui jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event
    ```
 2. Crear `vitest.config.js`:
    ```js
@@ -332,7 +332,7 @@
      expect(screen.getByText('404')).toBeInTheDocument();
    });
    ```
-6. Run: `npm run test:run` → ambos pasan.
+6. Run: `pnpm test:run` → ambos pasan.
 7. Commit:
    ```bash
    git add -A
@@ -375,7 +375,7 @@ test('persists to localStorage', () => {
 
 **Step 2: Verify fail**
 
-Run: `npm run test:run -- useTheme` → FAIL.
+Run: `pnpm test:run -- useTheme` → FAIL.
 
 **Step 3: Implement**
 
@@ -407,7 +407,7 @@ export function useTheme() {
 
 **Step 4: Pass**
 
-Run: `npm run test:run -- useTheme` → PASS.
+Run: `pnpm test:run -- useTheme` → PASS.
 
 **Step 5: Commit**
 
@@ -607,7 +607,7 @@ git commit -m "feat: ThemeToggle component"
      return <div className="p-8">Proyecto: {slug}</div>;
    }
    ```
-4. `npm run dev` → ver Navbar + Footer en `/` y `/proyectos/clovertecno`.
+4. `pnpm dev` → ver Navbar + Footer en `/` y `/proyectos/clovertecno`.
 5. Commit:
    ```bash
    git add -A
@@ -701,7 +701,7 @@ git commit -m "feat: ThemeToggle component"
 
 **Steps:**
 
-1. `npm install clsx tailwind-merge`
+1. `pnpm install clsx tailwind-merge`
 2. Crear `src/lib/cn.js`:
    ```js
    import { clsx } from 'clsx';
@@ -820,7 +820,7 @@ const encoded = 'Z2dpdWxpYW5vNTI2QGdtYWlsLmNvbQ=='; // ggiuliano526@gmail.com en
 </button>
 ```
 
-Commit por cada sección. Después de cada commit, `npm run dev` y verificar visualmente.
+Commit por cada sección. Después de cada commit, `pnpm dev` y verificar visualmente.
 
 ### Task 4.9: Composer `Home.jsx`
 
@@ -965,7 +965,7 @@ Commit.
 
 Instalar:
 ```bash
-npm install @marsidev/react-turnstile
+pnpm install @marsidev/react-turnstile
 ```
 
 Agregar widget al form, capturar token en estado.
@@ -974,7 +974,7 @@ Commit.
 
 ### Task 7.4: Serverless function `api/contact.js`
 
-`npm install resend`
+`pnpm install resend`
 
 Implementar según design doc:
 - Verify method POST
@@ -998,7 +998,7 @@ Commit.
 Opción simple: Vercel Edge Config o `@vercel/kv` (gratis tier).
 
 ```bash
-npm install @vercel/kv
+pnpm install @vercel/kv
 ```
 
 Verificar IP en `api/contact.js`, max 3 / hora.
@@ -1183,7 +1183,7 @@ git commit -m "chore: remove mockup.html — diseño implementado"
 ### Task 10.2: Actualizar `CLAUDE.md`
 
 Sumar:
-- Comandos: `npm run test`, `npm run test:run`
+- Comandos: `pnpm test`, `pnpm test:run`, `pnpm dev`, `pnpm build`, `pnpm lint`
 - Stack añadido: Tailwind v4, Motion, Lenis, React Router, shadcn primitives, Resend
 - Mencionar `src/data/` como punto único de edición de contenido
 
@@ -1193,7 +1193,7 @@ Reemplazar `README.md` con descripción real del proyecto + screenshots + link l
 
 ### Task 10.4: Lighthouse audit
 
-`npm run build && npm run preview` → Chrome DevTools → Lighthouse → run.
+`pnpm build && pnpm preview` → Chrome DevTools → Lighthouse → run.
 
 Target 95+ todas categorías. Arreglar lo que falle (típicamente alt en imágenes, contraste, etc.).
 
@@ -1215,9 +1215,9 @@ Commit fixes.
 
 ## Definition of Done
 
-- [ ] Todos los tests passing (`npm run test:run`)
-- [ ] `npm run lint` sin errores
-- [ ] `npm run build` exitoso
+- [ ] Todos los tests passing (`pnpm test:run`)
+- [ ] `pnpm lint` sin errores
+- [ ] `pnpm build` exitoso
 - [ ] Lighthouse 95+ todas categorías
 - [ ] Form de contacto recibe email en `ggiuliano526@gmail.com`
 - [ ] Theme toggle funciona y persiste

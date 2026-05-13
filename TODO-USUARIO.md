@@ -77,7 +77,7 @@ Opciones para hostearlos:
 
 ## 🚀 Pre-deploy (cuando esté listo)
 
-- [ ] Probar build local: `npm run build` y `npm run preview`
+- [ ] Probar build local: `pnpm build` y `pnpm preview`
 - [ ] Conectar repo GitHub a Vercel
 - [ ] Configurar variables de entorno en Vercel dashboard:
   - `RESEND_API_KEY` = (tu key de Resend)

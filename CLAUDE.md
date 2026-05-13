@@ -6,12 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Personal portfolio site for Giuliano Gerlo. Built with React 19 + Vite 8. Goal: production-quality showcase to deploy and use for self-marketing.
 
+## Package manager
+
+**pnpm 11+** (no npm). Razón: defaults seguros contra supply chain attacks (TanStack/Mistral/etc. ataques de 2025). Config en `.npmrc`:
+- `minimum-release-age=1440` — no instala paquetes publicados hace menos de 24hs.
+- `auto-install-peers=true`.
+
+Lockfile: `pnpm-lock.yaml` (commiteado). `package-lock.json` NO existe.
+
 ## Commands
 
-- `npm run dev` — Vite dev server with HMR
-- `npm run build` — production build to `dist/`
-- `npm run preview` — serve built output locally
-- `npm run lint` — ESLint over entire repo (`eslint .`)
+- `pnpm dev` — Vite dev server with HMR
+- `pnpm build` — production build to `dist/`
+- `pnpm preview` — serve built output locally
+- `pnpm lint` — ESLint over entire repo (`eslint .`)
+- `pnpm add <pkg>` — add dependency
+- `pnpm add -D <pkg>` — add dev dependency
 
 No test runner configured yet.
 
