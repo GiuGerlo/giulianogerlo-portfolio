@@ -1105,6 +1105,69 @@ Verificar que tracking script se agregó al bundle.
 
 ---
 
+## Phase 11 — Bonus AI Chatbot RAG (post-MVP)
+
+**Goal:** Construir chatbot embebido en portfolio "Pregúntale a Giuliano" usando RAG sobre CV + proyectos. Legitima skills AI declaradas.
+
+**Stack:**
+- Front: componente Chat en React (`src/components/Chat.jsx`)
+- Vector DB: Upstash Vector (gratis 10k vectors) o pgvector vía Vercel Postgres
+- Embeddings: `text-embedding-3-small` de OpenAI (barato) o Voyage AI
+- LLM: Claude Haiku (rápido + barato)
+- Agentic flow: LangGraph.js con nodo retrieval + nodo respuesta
+- Backend: Vercel function `api/chat.js`
+
+**Tasks (alto nivel):**
+
+### Task 11.1: Generar embeddings de data
+Script `scripts/build-embeddings.js` que lee CV + projects.js + experience.js, los chunkea, genera embeddings, sube a vector DB.
+
+### Task 11.2: API endpoint `api/chat.js`
+Recibe pregunta → embedea query → busca top-3 chunks similares → arma prompt con contexto → llama Claude → devuelve respuesta streaming.
+
+### Task 11.3: LangGraph workflow
+Nodo 1: clasifica si pregunta necesita RAG o no.
+Nodo 2: retrieval (si aplica).
+Nodo 3: respuesta final con contexto.
+
+### Task 11.4: Chat UI component
+Input + stream de mensajes. Bubble user / bot. Loading state. Markdown render con `react-markdown`.
+
+### Task 11.5: Embed en Home
+Botón flotante "💬 Preguntale a Giuliano" abajo-derecha. Click abre drawer con chat.
+
+### Task 11.6: Cambiar labels Grupo 2 → "✓ implementado"
+Una vez deployado, mover de "🌱 explorando" a "✓ activo" las skills usadas.
+
+---
+
+## AI Skills — actualización de Phase 2
+
+Modificar `src/data/skills.js` para incluir `status` field:
+
+```js
+export const aiSkills = [
+  // Grupo 1 — activo
+  { id: 'claude-code', title: 'claude_code', status: 'active', desc: '...' },
+  { id: 'mcp', title: 'mcp_servers', status: 'active', desc: '...' },
+  { id: 'api', title: 'anthropic_api', status: 'active', desc: '...' },
+  { id: 'agent', title: 'agent_sdk', status: 'active', desc: '...' },
+  { id: 'prompt', title: 'prompt_engineering', status: 'active', desc: '...' },
+  { id: 'workflows', title: 'ai_workflows', status: 'active', desc: '...' },
+  // Grupo 2 — explorando (legitimadas post Phase 11)
+  { id: 'rag', title: 'rag_pipelines', status: 'exploring',
+    desc: 'Retrieval-Augmented Generation: embeddings, vector DBs, búsqueda semántica.' },
+  { id: 'langgraph', title: 'langgraph', status: 'exploring',
+    desc: 'Agentes como grafo de estados. Loops, tool use, branching condicional.' },
+  { id: 'vector-db', title: 'vector_databases', status: 'exploring',
+    desc: 'pgvector, Upstash Vector. Storage y similarity search semántica.' },
+];
+```
+
+Render visual: Grupo 1 con badge verde `✓ activo`. Grupo 2 con badge amarillo `🌱 explorando`.
+
+---
+
 ## Phase 10 — Cleanup final
 
 ### Task 10.1: Borrar `mockup.html`
