@@ -28,11 +28,17 @@ export default function Chip({ variant = 'default', className, children }) {
         className,
       )}
     >
-      {/* El punto va antes del texto, color accent. Solo en variant 'dot'. */}
+      {/* El punto va antes del texto, color accent. Solo en variant 'dot'.
+          Antes usábamos el carácter Unicode "●" pero la regla del proyecto
+          (CLAUDE.md) prohíbe glifos Unicode en UI — los reemplaza un
+          <span> circular renderizado con CSS: alto/ancho fijo, bg accent
+          y border-radius full. Escala con la tipografía vía em. */}
       {variant === 'dot' && (
-        <span aria-hidden="true" className="text-accent">
-          ●
-        </span>
+        <span
+          aria-hidden="true"
+          data-testid="chip-dot"
+          className="inline-block h-2 w-2 rounded-full bg-accent"
+        />
       )}
       {children}
     </span>

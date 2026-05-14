@@ -9,13 +9,14 @@ describe('Chip', () => {
   });
 
   test('variant default no muestra punto', () => {
-    const { container } = render(<Chip>Texto</Chip>);
-    // Buscamos el punto "●" — debería NO existir en variant default.
-    expect(container.textContent).not.toContain('●');
+    // El punto se renderiza como <span data-testid="chip-dot">.
+    // En variant default no debe existir.
+    render(<Chip>Texto</Chip>);
+    expect(screen.queryByTestId('chip-dot')).not.toBeInTheDocument();
   });
 
   test('variant dot muestra punto verde antes del texto', () => {
-    const { container } = render(<Chip variant="dot">Activo</Chip>);
-    expect(container.textContent).toContain('●');
+    render(<Chip variant="dot">Activo</Chip>);
+    expect(screen.getByTestId('chip-dot')).toBeInTheDocument();
   });
 });

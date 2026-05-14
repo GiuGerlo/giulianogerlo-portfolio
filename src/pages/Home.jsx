@@ -1,5 +1,6 @@
 // Sections del Home. Se van sumando en orden Phase 4.1 → 4.8.
 import Hero from '../components/sections/Hero.jsx';
+import About from '../components/sections/About.jsx';
 
 /**
  * Home — landing page. Composición de las secciones del portfolio.
@@ -12,6 +13,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <About />
     </>
   );
 }
