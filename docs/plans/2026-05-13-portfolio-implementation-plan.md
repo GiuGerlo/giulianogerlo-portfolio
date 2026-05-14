@@ -6,7 +6,12 @@
 
 **Architecture:** Vite SPA con React Router v6. Single-page home compone secciones desde `src/data/*.js`. Página de detalle por proyecto en `/proyectos/:slug`. Form de contacto vía Vercel serverless (`api/contact.js`) → Resend. Anti-spam con honeypot + Cloudflare Turnstile + rate limit + email obfuscation.
 
-**Tech Stack:** React 19 (Compiler activo), Vite 8, Tailwind CSS v4, shadcn/ui (manual copy), Motion, Lenis, Anime.js (hero), React Router v6, react-hook-form, zod, lucide-react, Resend, Cloudflare Turnstile, Vercel.
+**Tech Stack:** React 19 (Compiler activo), Vite 8, Tailwind CSS v4 (CSS-first config, sin `tailwind.config.js`), shadcn/ui (manual copy), Motion, Lenis, Anime.js (hero), React Router v7, react-hook-form, zod, lucide-react, Resend, Cloudflare Turnstile, Vercel.
+
+## Log de cambios al plan
+
+- **2026-05-14**: Task 0.3 reescrito — Tailwind v4 estable usa **CSS-first config**, no `tailwind.config.js` (sintaxis v3). Config dentro de `src/index.css` con `@theme inline` y `@custom-variant dark`. Versiones reales instaladas: `tailwindcss@4.3.0`, `@tailwindcss/postcss@4.3.0`.
+- **2026-05-14**: Task 0.4 actualizado — se instaló `react-router-dom@7.15.0` (v7), no v6. APIs idénticas para el uso del plan.
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
@@ -16,7 +21,7 @@
 
 ## Phase 0 — Foundation, tooling & cleanup
 
-### Task 0.1: Inicializar git + .gitignore
+### Task 0.1: Inicializar git + .gitignore ✅ (2026-05-13)
 
 **Files:**
 - Verify: `.gitignore` (existe)
@@ -32,7 +37,7 @@
    git commit -m "chore: initial commit (Vite + React 19 + React Compiler base)"
    ```
 
-### Task 0.2: Limpiar template Vite
+### Task 0.2: Limpiar template Vite ✅ (2026-05-13)
 
 **Files:**
 - Modify: `src/App.jsx` → vaciar a componente mínimo
@@ -68,20 +73,24 @@
    git commit -m "chore: limpiar template Vite default"
    ```
 
-### Task 0.3: Instalar Tailwind CSS v4
+### Task 0.3: Instalar Tailwind CSS v4 ✅ (2026-05-14)
+
+**IMPORTANTE:** Tailwind v4 estable usa **CSS-first config** — NO existe `tailwind.config.js`. Toda la configuración (colores custom, fuentes, variantes) vive en `src/index.css` con `@theme inline` y `@custom-variant`. La sintaxis original de este task (con `tailwind.config.js`, `content`, `darkMode`, `theme.extend`) era v3 y se reescribió.
 
 **Files:**
-- Create: `tailwind.config.js`
 - Create: `postcss.config.js`
-- Modify: `src/index.css` → agregar directivas Tailwind
+- Modify: `src/index.css` → import Tailwind + config CSS-first + CSS vars
+- Modify: `index.html` → `data-theme="dark"`, `lang="es"`, title
+- Modify: `src/App.jsx` → cartel "Tailwind OK"
 - Modify: `package.json` (vía pnpm install)
 
-**Steps:**
+**Steps reales ejecutados:**
 
-1. Instalar:
+1. Instalar (versiones reales que se resolvieron):
    ```bash
-   pnpm install -D tailwindcss@next @tailwindcss/postcss@next postcss autoprefixer
+   pnpm install -D tailwindcss@latest @tailwindcss/postcss@latest postcss autoprefixer
    ```
+   Quedó: `tailwindcss@4.3.0`, `@tailwindcss/postcss@4.3.0`, `postcss@8.5.14`, `autoprefixer@10.5.0`.
 2. Crear `postcss.config.js`:
    ```js
    export default {
@@ -91,38 +100,28 @@
      },
    };
    ```
-3. Crear `tailwind.config.js`:
-   ```js
-   /** @type {import('tailwindcss').Config} */
-   export default {
-     content: ['./index.html', './src/**/*.{js,jsx}'],
-     darkMode: ['class', '[data-theme="dark"]'],
-     theme: {
-       extend: {
-         fontFamily: {
-           sans: ['Inter', 'system-ui', 'sans-serif'],
-           mono: ['JetBrains Mono', 'monospace'],
-         },
-         colors: {
-           bg: 'var(--bg)',
-           'bg-elevated': 'var(--bg-elevated)',
-           border: 'var(--border)',
-           'text-primary': 'var(--text-primary)',
-           'text-muted': 'var(--text-muted)',
-           accent: 'var(--accent)',
-           'accent-hover': 'var(--accent-hover)',
-           'accent-bg': 'var(--accent-bg)',
-         },
-       },
-     },
-   };
-   ```
+3. **NO crear `tailwind.config.js`** — no es necesario en v4. Si en el futuro hace falta override avanzado, se hace todo dentro del CSS con `@theme`.
 4. Reemplazar `src/index.css`:
    ```css
    @import 'tailwindcss';
-
    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
+   @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+   @theme inline {
+     --color-bg: var(--bg);
+     --color-bg-elevated: var(--bg-elevated);
+     --color-border: var(--border);
+     --color-text-primary: var(--text-primary);
+     --color-text-muted: var(--text-muted);
+     --color-accent: var(--accent);
+     --color-accent-hover: var(--accent-hover);
+     --color-accent-bg: var(--accent-bg);
+     --font-sans: 'Inter', system-ui, sans-serif;
+     --font-mono: 'JetBrains Mono', monospace;
+   }
+
+   :root,
    :root[data-theme='dark'] {
      --bg: #0a0a0a;
      --bg-elevated: #141414;
@@ -132,6 +131,7 @@
      --accent: #04773b;
      --accent-hover: #06a352;
      --accent-bg: rgba(4, 119, 59, 0.1);
+     color-scheme: dark;
    }
 
    :root[data-theme='light'] {
@@ -143,19 +143,25 @@
      --accent: #04773b;
      --accent-hover: #035c2d;
      --accent-bg: rgba(4, 119, 59, 0.08);
+     color-scheme: light;
    }
 
-   :root { color-scheme: dark; }
-   :root[data-theme='light'] { color-scheme: light; }
+   *, *::before, *::after { box-sizing: border-box; }
+   * { margin: 0; padding: 0; }
 
    body {
+     min-height: 100vh;
      background: var(--bg);
      color: var(--text-primary);
      font-family: 'Inter', system-ui, sans-serif;
      transition: background 0.2s, color 0.2s;
    }
+
+   img, picture, svg { display: block; max-width: 100%; }
+   button { font: inherit; cursor: pointer; background: none; border: none; }
+   a { color: inherit; text-decoration: none; }
    ```
-5. Asegurar `<html data-theme="dark">` en `index.html`.
+5. Modificar `index.html` → `<html lang="es" data-theme="dark">` + title.
 6. Reemplazar `src/App.jsx`:
    ```jsx
    function App() {
@@ -167,16 +173,18 @@
    }
    export default App;
    ```
-7. `pnpm dev` → verificar que dice "Tailwind OK" en verde grande.
-8. Commit:
-   ```bash
-   git add -A
-   git commit -m "feat: setup Tailwind CSS v4 con CSS vars dark/light"
-   ```
+7. `pnpm dev` → "Tailwind OK" en verde grande sobre fondo casi negro.
+8. Commit: `feat: setup Tailwind CSS v4 con CSS vars dark/light`.
 
-**Explicar al usuario:** Tailwind v4 usa import directo (`@import 'tailwindcss'`) en lugar de `@tailwind base/components/utilities` de v3. Las CSS vars permiten que `bg-bg` o `text-accent` cambien automáticamente al togglear tema.
+**Conceptos clave introducidos:**
+- `@import 'tailwindcss'` reemplaza los 3 `@tailwind base/components/utilities` de v3.
+- `@theme inline { --color-bg: var(--bg) }` mapea tokens de Tailwind a CSS vars custom; el `inline` deja `var(--bg)` literal en el output (no hardcodea valor), permitiendo runtime swap.
+- `@custom-variant dark (...)` define cuándo se activa la variante `dark:` (cualquier hijo de `[data-theme='dark']`).
+- Toggle dark/light futuro (hook `useTheme`, Phase 1.1): cambia `data-theme` en `<html>` y todas las clases Tailwind responden sin tocar JSX.
 
-### Task 0.4: Instalar React Router v6
+### Task 0.4: Instalar React Router v7 ✅ (2026-05-14)
+
+**Nota:** El plan original decía "v6" pero `pnpm install react-router-dom` resolvió a `react-router-dom@7.15.0` (v7 ya es estable; v6 quedó como legacy). Las APIs usadas (`BrowserRouter`, `Routes`, `Route`, `Link`, `NavLink`, `useParams`, `Navigate`, `Outlet`) **son idénticas** a v6 para nuestro uso.
 
 **Files:**
 - Modify: `src/main.jsx` → wrap con `<BrowserRouter>`
@@ -186,7 +194,7 @@
 
 **Steps:**
 
-1. `pnpm install react-router-dom`
+1. `pnpm install react-router-dom` (resolvió a v7.15.0)
 2. Modificar `src/main.jsx`:
    ```jsx
    import { StrictMode } from 'react';
@@ -243,7 +251,7 @@
 7. Commit:
    ```bash
    git add -A
-   git commit -m "feat: setup React Router v6 con Home + NotFound"
+   git commit -m "feat: setup React Router v7 con Home + NotFound"
    ```
 
 **Explicar al usuario:** `<BrowserRouter>` provee contexto de routing. `<Routes>` define qué componente renderizar según URL. `<Route path="*">` matchea cualquier ruta no definida = 404. `<Link>` cambia URL sin recargar página (SPA).

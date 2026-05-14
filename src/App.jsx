@@ -1,8 +1,13 @@
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/Home.jsx';
+import NotFound from './pages/NotFound.jsx';
+
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <h1 className="text-4xl font-bold text-accent">Tailwind OK</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 

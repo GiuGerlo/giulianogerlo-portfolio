@@ -24,7 +24,7 @@ Construir portfolio personal profesional para deploy público y uso como herrami
 - **Estilos**: Tailwind CSS v4 + variables CSS custom
 - **Componentes UI**: shadcn/ui (primitivos accesibles, copy-paste a `src/components/ui/`)
 - **Íconos**: Lucide React
-- **Routing**: React Router v6
+- **Routing**: React Router v7 (v6 ya es legacy a 2026-05; APIs `BrowserRouter`/`Routes`/`Route`/`Link`/`NavLink`/`useParams`/`Navigate`/`Outlet` son idénticas a v6 para nuestro uso)
 - **Theme toggle**: hook custom + `next-themes` pattern, persistido en `localStorage`
 - **Animaciones**: Motion (ex Framer Motion) + Anime.js (puntual hero) + Lenis (smooth scroll)
 - **Componentes "wow"**: Magic UI + React Bits (copy-paste)
