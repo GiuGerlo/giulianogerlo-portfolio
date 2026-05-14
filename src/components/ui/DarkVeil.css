@@ -1,0 +1,9 @@
+/* DarkVeil — canvas WebGL que cubre todo su contenedor.
+   El padre define el tamaño (width/height) y position: relative.
+   Adaptado de reactbits.dev. */
+
+.darkveil-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

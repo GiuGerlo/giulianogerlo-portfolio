@@ -13,6 +13,9 @@ import { NavLink } from 'react-router-dom';
 // El toggle de tema vive como componente independiente — lo armamos en Task 1.2.
 import ThemeToggle from '../ui/ThemeToggle.jsx';
 
+// Logo de marca — swappea PNG según theme actual.
+import Logo from '../ui/Logo.jsx';
+
 // "Single source of truth" para datos de contacto / redes.
 import { socials } from '../../data/socials.js';
 
@@ -77,13 +80,10 @@ export default function Navbar() {
           px-4 sm:px-6 lg:px-8 → padding lateral progresivo según viewport. */}
       <nav className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
 
-        {/* Logo. NavLink a "/" → click te lleva al home. */}
-        <NavLink
-          to="/"
-          onClick={closeMenu}
-          className="font-mono text-base font-semibold"
-        >
-          giuliano<span className="text-accent">.dev</span>
+        {/* Logo. NavLink a "/" → click te lleva al home.
+            Usa la imagen {gg}.dev que swappea según theme. */}
+        <NavLink to="/" onClick={closeMenu} aria-label="Inicio">
+          <Logo className="h-8 w-auto md:h-9" />
         </NavLink>
 
         {/* Menú desktop: oculto en mobile (hidden), visible en md+ (≥768px).

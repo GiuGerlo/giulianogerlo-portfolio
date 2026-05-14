@@ -2,10 +2,11 @@ import { render, screen } from '@testing-library/react';
 import { expect, test } from 'vitest';
 import Footer from './Footer.jsx';
 
-test('muestra el brand "giuliano.dev"', () => {
+test('muestra el logo {gg}.dev como imagen', () => {
   render(<Footer />);
-  const brand = screen.getByText((_, el) => el?.textContent === 'giuliano.dev');
-  expect(brand).toBeInTheDocument();
+  // El brand del Footer ahora es <img>. Buscamos por alt accesible.
+  const logo = screen.getByAltText('Giuliano Gerlo');
+  expect(logo).toBeInTheDocument();
 });
 
 test('muestra el año actual en el copyright', () => {

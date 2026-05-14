@@ -4,6 +4,7 @@ import { Mail, MapPin } from 'lucide-react';
 // `Link` de React Router para anchors que también funcionan desde rutas hijas.
 // Para links dentro del Home usamos <a href="/#x"> nativo igual que en Navbar.
 import { socials } from '../../data/socials.js';
+import Logo from '../ui/Logo.jsx';
 
 /**
  * Helper interno (mismo patrón que en Navbar): renderiza un símbolo del
@@ -49,9 +50,13 @@ export default function Footer() {
 
           {/* Columna 1 — Brand + tagline + ubicación. */}
           <div className="space-y-3">
-            <p className="font-mono text-lg font-semibold">
-              giuliano<span className="text-accent">.dev</span>
-            </p>
+            {/* Logo de marca como imagen (swappea según theme). El
+                wrapper `inline-flex` + `justify-center md:justify-start`
+                centra en mobile y alinea izquierda en md+, igual que
+                el resto de la columna. */}
+            <div className="flex justify-center md:justify-start">
+              <Logo className="h-10 w-auto" />
+            </div>
             <p className="text-sm text-text-muted">
               Full-Stack Developer enfocado en construir productos
               robustos con PHP/Laravel, React y workflows asistidos con IA.

@@ -24,12 +24,14 @@ function renderNavbar() {
   );
 }
 
-test('muestra el logo "giuliano.dev"', () => {
+test('muestra el logo {gg}.dev como imagen', () => {
   renderNavbar();
-  // El texto está partido en dos nodos por el <span> del .dev.
-  // getByText con función custom evalúa el textContent completo del elemento.
-  const logo = screen.getByText((_, element) => element?.textContent === 'giuliano.dev');
+  // El logo dejó de ser texto y pasó a ser <img>. Lo buscamos por su
+  // alt accesible. El src apunta a /logo-original.png o /logo-secundario.png
+  // según theme (default 'dark' en tests → logo-original).
+  const logo = screen.getByAltText('Giuliano Gerlo');
   expect(logo).toBeInTheDocument();
+  expect(logo.getAttribute('src')).toMatch(/logo-(original|secundario)\.png/);
 });
 
 test('renderiza los 5 links del menú desktop', () => {

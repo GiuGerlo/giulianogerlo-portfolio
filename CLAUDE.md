@@ -42,6 +42,7 @@ Referencia completa de comandos en [docs/comandos.md](docs/comandos.md) (incluye
 - ES modules (`"type": "module"` in package.json).
 - JSX files use `.jsx` extension.
 - Assets imported from `src/assets/` are bundled; files under `public/` are served at root unchanged.
+- **NO emojis Unicode en UI** (📍, 🇪🇸, ☾, ●, etc.). Para íconos usar siempre `lucide-react` (`<MapPin size={14} />`, `<Mail />`, `<Github />`, etc.) o el sprite `public/icons.svg` para marcas no incluidas en lucide. Razón: emojis se renderizan distinto por OS/font (verde en Apple, plano en Windows, color random en Linux), rompen consistencia visual y no escalan con tipografía. Lucide es SVG vectorial, hereda `currentColor` y respeta `size`. Aplica a todo el proyecto retroactivamente — si veo un emoji en un componente existente, lo reemplazo.
 
 ## Estilo de código (override de defaults Claude Code)
 

@@ -13,7 +13,10 @@ test('renders Home on /', () => {
       <App />
     </MemoryRouter>
   );
-  expect(screen.getByText(/Home page/i)).toBeInTheDocument();
+  // Home ahora compone <Hero /> — chequeamos el h1 con el nombre.
+  expect(
+    screen.getByRole('heading', { level: 1, name: /Giuliano Gerlo/i }),
+  ).toBeInTheDocument();
 });
 
 test('renders ProjectDetail with slug on /proyectos/:slug', () => {
@@ -38,12 +41,13 @@ test('renders 404 on unknown route', () => {
 
 test('Layout renders Navbar + Footer on every page', () => {
   render(
-    <MemoryRouter initialEntries={['/']}>
+    <MemoryRouter initialEntries={['/proyectos/clovertecno']}>
       <App />
     </MemoryRouter>
   );
-  // Navbar tiene el brand "giuliano.dev" como link al home.
-  // getAllByText porque también puede aparecer en el Footer.
+  // Navbar tiene el brand "giuliano.dev". Lo testeamos en /proyectos/...
+  // para evitar colisión con el h1 "Giuliano Gerlo" del Hero (que solo
+  // está en /). En esta ruta el brand aparece único en Navbar.
   expect(screen.getAllByText(/giuliano/i).length).toBeGreaterThan(0);
   // Footer tiene el copyright con el año actual.
   const year = new Date().getFullYear();
