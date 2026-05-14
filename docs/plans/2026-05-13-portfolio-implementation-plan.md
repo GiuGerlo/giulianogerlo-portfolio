@@ -20,6 +20,7 @@
 - **2026-05-14**: Task 1.3 refinado — bug encontrado: el reset `* { margin: 0; padding: 0 }` en `src/index.css` venía DESPUÉS de `@import 'tailwindcss'` y con misma especificidad → sobreescribía `mx-auto` (margin: auto) rompiendo centrado de containers. Tailwind v4 preflight ya hace los resets correctos; el universal `*` reset es **innecesario y dañino**. Removido. Navbar refactor: agregado menú hamburguesa mobile-first con useState + íconos Menu/X de lucide. Backfilled comentarios pedagógicos en archivos previos (useTheme, ThemeToggle, App, main, Home, NotFound, index.css). 15 tests passing.
 - **2026-05-14**: Task 1.4 ✅ — Footer con 3 columnas responsive + copyright dinámico. Helper `<Icon>` del sprite duplicado de Navbar (TODO refactor a primitive compartido). 20 tests passing.
 - **2026-05-14**: Style override registrado en CLAUDE.md y memoria — código en este proyecto va con indentación impecable + comentarios pedagógicos en español. Es herramienta de aprendizaje para Giuliano (principiante React).
+- **2026-05-14**: Task 1.5 ✅ — Layout wrapper con `<Outlet />` envolviendo todas las rutas. Removido el `<Navbar />` / `<Footer />` temporal de `Home.jsx` (preview de Task 1.3). `ProjectDetail.jsx` stub creado leyendo `:slug` con `useParams()`. App.test.jsx sumó 2 tests: ruta `/proyectos/:slug` y smoke de Layout (brand + copyright año). 22 tests passing. **Phase 1 completa.**
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
@@ -606,7 +607,11 @@ git commit -m "feat: ThemeToggle component"
    git commit -m "feat: Footer component"
    ```
 
-### Task 1.5: `Layout` wrapper
+### Task 1.5: `Layout` wrapper ✅ (2026-05-14)
+
+**Implementado según plan, sin desvíos.** Layout con `<Navbar /> + <main className="min-h-screen"><Outlet /></main> + <Footer />`. App.jsx pasó a usar layout route (`<Route element={<Layout />}>` envolviendo las 3 rutas hijas). Home.jsx volvió a su versión limpia (sin Navbar/Footer temporal). ProjectDetail.jsx stub mínimo leyendo `:slug` con `useParams()`. Tests: 2 nuevos en App.test.jsx (ruta `/proyectos/:slug` matchea + smoke de Layout con brand y año). 22 tests passing.
+
+
 
 **Files:**
 - Create: `src/components/layout/Layout.jsx`
