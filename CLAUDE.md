@@ -66,6 +66,25 @@ Cuando agregue/modifique código en este repo, siempre con este estilo.
 - **Email contacto público**: ggiuliano526@gmail.com
 - **Email cuenta de trabajo (RAMCC)**: desarrolloramcc25@gmail.com
 
+## Reference skills en .agents/skills/
+
+Antes de trabajar en cualquier tarea, leer el `SKILL.md` de la skill correspondiente en `.agents/skills/`:
+
+| Tarea | Skill a leer |
+|-------|-------------|
+| Componentes React, composición, props | `.agents/skills/composition-patterns/SKILL.md` |
+| Estilos, layout, animaciones | `.agents/skills/tailwind-css-patterns/SKILL.md` |
+| Diseño visual, UI/UX | `.agents/skills/frontend-design/SKILL.md` |
+| Accesibilidad | `.agents/skills/accessibility/SKILL.md` |
+| Formularios | `.agents/skills/react-hook-form/SKILL.md` |
+| Vite config, build, plugins | `.agents/skills/vite/SKILL.md` |
+| Tests | `.agents/skills/vitest/SKILL.md` |
+| SEO, meta tags | `.agents/skills/seo/SKILL.md` |
+| Node/backend scripts | `.agents/skills/nodejs-best-practices/SKILL.md` |
+| Brainstorming / diseño de feature | `.agents/skills/brainstorming/SKILL.md` |
+
+Cada skill puede tener una carpeta `references/` con docs detallados — leerlos cuando la tarea lo requiera.
+
 ## Source of truth for the project
 
 - [docs/plans/2026-05-13-portfolio-design.md](docs/plans/2026-05-13-portfolio-design.md) — design doc aprobado (sistema visual, arquitectura, decisiones técnicas).

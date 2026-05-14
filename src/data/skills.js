@@ -54,13 +54,26 @@ export const skillGroups = [
 // AI skills — sección destacada. `status` define el badge visual:
 //   'active'    → verde, "✓ activo"
 //   'exploring' → amarillo, "🌱 explorando" (Grupo 2, legitimadas en Phase 11)
+//
+// Algunas entries tienen `items[]` cuando agrupan varias herramientas
+// relacionadas (ej: 'ai_dev_tooling' = Claude Code + Codex + Copilot...).
+// El render de AISection (Phase 4.4) muestra esos items como chips chicos
+// debajo del desc. Si la entry NO tiene `items`, solo se renderiza el desc.
 export const aiSkills = [
   // Grupo 1 — activas (ya las uso en day-to-day dev).
   {
-    id: 'claude-code',
-    title: 'claude_code',
+    id: 'ai-dev-tooling',
+    title: 'ai_dev_tooling',
     status: 'active',
-    desc: 'CLI agéntico para desarrollo asistido. Refactors, generación de features, debugging.',
+    desc: 'Agentes y asistentes de coding IA usados en el día a día: CLI agéntico, autocomplete en editor, extensiones especializadas. Combino varios según la tarea (refactors largos vs. snippet rápido vs. workflow custom).',
+    items: [
+      'Claude Code',
+      'OpenAI Codex',
+      'GitHub Copilot',
+      'OpenCode',
+      'Claude Skills',
+      'Claude Plugins',
+    ],
   },
   {
     id: 'mcp',
