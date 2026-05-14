@@ -15,6 +15,7 @@
 - **2026-05-14**: Task 0.5 — `animejs` resolvió a v4.4.1, API muy distinta a v3. Adaptar Task 6.3 (hero typewriter) al patrón v4 (`animate(target, options)` en vez de `anime({ targets })`). Corregido también el commit step que decía `package-lock.json` (estamos en pnpm → `pnpm-lock.yaml`).
 - **2026-05-14**: Task 0.6 ✅ — Vitest 4.1.6 + Testing Library funcionando. 2 smoke tests de routing pasan. **Phase 0 completa.**
 - **2026-05-14**: Task 1.1 ✅ — hook `useTheme` con 5 tests (los 3 del plan eran flaky por falta de cleanup de localStorage entre tests; se agregó `beforeEach` + 2 tests extras).
+- **2026-05-14**: Task 1.2 ✅ — componente `ThemeToggle` con 3 tests (renders + toggle + persist). Mismo patrón `beforeEach` que useTheme.
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
@@ -437,7 +438,11 @@ git commit -m "feat: useTheme hook con persistencia localStorage"
 
 **Explicar al usuario:** `useState` con función inicializadora corre 1 vez (lazy init). `useEffect` corre después del render → sincroniza DOM y localStorage cada vez que `theme` cambia. Custom hook = función que usa hooks de React, reutilizable entre componentes.
 
-### Task 1.2: Componente `ThemeToggle`
+### Task 1.2: Componente `ThemeToggle` ✅ (2026-05-14)
+
+**Cambios al plan original:** mismo `beforeEach` que `useTheme.test` para evitar contaminación entre tests. Se pasó de 1 test a 3 (renderiza con aria-label / toggle data-theme on click / persiste en localStorage). 10 tests totales en el proyecto, todos passing.
+
+
 
 **Files:**
 - Create: `src/components/ui/ThemeToggle.jsx`
