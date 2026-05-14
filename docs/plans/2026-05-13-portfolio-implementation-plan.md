@@ -16,6 +16,9 @@
 - **2026-05-14**: Task 0.6 ✅ — Vitest 4.1.6 + Testing Library funcionando. 2 smoke tests de routing pasan. **Phase 0 completa.**
 - **2026-05-14**: Task 1.1 ✅ — hook `useTheme` con 5 tests (los 3 del plan eran flaky por falta de cleanup de localStorage entre tests; se agregó `beforeEach` + 2 tests extras).
 - **2026-05-14**: Task 1.2 ✅ — componente `ThemeToggle` con 3 tests (renders + toggle + persist). Mismo patrón `beforeEach` que useTheme.
+- **2026-05-14**: Task 1.3 ✅ — Navbar. lucide-react v1 sacó brand icons → migración a sprite `public/icons.svg` con `fill="currentColor"`. Agregado `linkedin-icon` al sprite. 14 tests passing en total.
+- **2026-05-14**: Task 1.3 refinado — bug encontrado: el reset `* { margin: 0; padding: 0 }` en `src/index.css` venía DESPUÉS de `@import 'tailwindcss'` y con misma especificidad → sobreescribía `mx-auto` (margin: auto) rompiendo centrado de containers. Tailwind v4 preflight ya hace los resets correctos; el universal `*` reset es **innecesario y dañino**. Removido. Navbar refactor: agregado menú hamburguesa mobile-first con useState + íconos Menu/X de lucide. Backfilled comentarios pedagógicos en archivos previos (useTheme, ThemeToggle, App, main, Home, NotFound, index.css). 15 tests passing.
+- **2026-05-14**: Style override registrado en CLAUDE.md y memoria — código en este proyecto va con indentación impecable + comentarios pedagógicos en español. Es herramienta de aprendizaje para Giuliano (principiante React).
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
@@ -498,7 +501,17 @@ git add -A
 git commit -m "feat: ThemeToggle component"
 ```
 
-### Task 1.3: Componente `Navbar`
+### Task 1.3: Componente `Navbar` ✅ (2026-05-14)
+
+**Cambios al plan original:**
+- `lucide-react@1.x` **removió los brand icons** (`Github`, `Linkedin`) por trademark. Cambiado a usar el sprite `public/icons.svg` (convención del proyecto declarada en CLAUDE.md) vía `<svg><use href="/icons.svg#id" /></svg>`.
+- Modificado `public/icons.svg`: `github-icon` cambió `fill="#08060d"` → `fill="currentColor"` para que tome el color del tema. Agregado nuevo símbolo `linkedin-icon` con `fill="currentColor"`.
+- Sumado helper `<Icon id="..." size={16} />` dentro de Navbar.jsx para no repetir el patrón `<svg><use>`.
+- Test sumó assertions de target=_blank + rel anti-tabnabbing (4 tests vs 1 del plan).
+- `socials.js` placeholder ya tiene los datos reales (no quedaron vacíos como decía el plan).
+- Preview temporal: `<Navbar />` agregado a `Home.jsx` para verificación visual. Se quita en Task 1.5 cuando el Layout lo envuelva.
+
+
 
 **Files:**
 - Create: `src/components/layout/Navbar.jsx`

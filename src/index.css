@@ -1,82 +1,75 @@
+/**
+ * Hoja de estilos global del portfolio.
+ *
+ * Estructura:
+ *  1. Import de Tailwind (incluye preflight = reset moderno).
+ *  2. Import de las dos familias tipográficas (Inter + JetBrains Mono).
+ *  3. Definición de la variante `dark:` basada en data-theme.
+ *  4. Mapeo de tokens Tailwind → CSS vars custom (@theme inline).
+ *  5. Valores de las CSS vars para cada tema.
+ *  6. Estilos del <body>.
+ *
+ * IMPORTANTE: Tailwind v4 preflight ya hace box-sizing border-box y
+ * reset de márgenes en headings/p/listas. NO repetimos un `* { margin: 0 }`
+ * porque rompe utilities como mx-auto (margin: auto) en flex/grid children.
+ */
+
 @import 'tailwindcss';
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
+/* Variante `dark:` activada cuando el elemento o un ancestro tiene data-theme="dark".
+   Sin esto la variante "dark:" no sabría cuándo aplicar. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
+/* Tokens del design system mapeados a CSS vars.
+   El `inline` deja la `var(--bg)` literal en el output (no hardcodea el valor),
+   permitiendo que cambie en runtime al togglear el tema. */
 @theme inline {
-  --color-bg: var(--bg);
-  --color-bg-elevated: var(--bg-elevated);
-  --color-border: var(--border);
-  --color-text-primary: var(--text-primary);
-  --color-text-muted: var(--text-muted);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-bg: var(--accent-bg);
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --color-bg:             var(--bg);
+  --color-bg-elevated:    var(--bg-elevated);
+  --color-border:         var(--border);
+  --color-text-primary:   var(--text-primary);
+  --color-text-muted:     var(--text-muted);
+  --color-accent:         var(--accent);
+  --color-accent-hover:   var(--accent-hover);
+  --color-accent-bg:      var(--accent-bg);
+  --font-sans:            'Inter', system-ui, sans-serif;
+  --font-mono:            'JetBrains Mono', monospace;
 }
 
+/* Tema oscuro (default). El selector :root también lo cubre por si JS
+   todavía no escribió data-theme. */
 :root,
 :root[data-theme='dark'] {
-  --bg: #0a0a0a;
-  --bg-elevated: #141414;
-  --border: #262626;
-  --text-primary: #fafafa;
-  --text-muted: #a1a1aa;
-  --accent: #04773b;
-  --accent-hover: #06a352;
-  --accent-bg: rgba(4, 119, 59, 0.1);
-  color-scheme: dark;
+  --bg:             #0a0a0a;
+  --bg-elevated:    #141414;
+  --border:         #262626;
+  --text-primary:   #fafafa;
+  --text-muted:     #a1a1aa;
+  --accent:         #04773b;
+  --accent-hover:   #06a352;
+  --accent-bg:      rgba(4, 119, 59, 0.1);
+  color-scheme:     dark;
 }
 
+/* Tema claro. */
 :root[data-theme='light'] {
-  --bg: #ffffff;
-  --bg-elevated: #f5f5f5;
-  --border: #e5e5e5;
-  --text-primary: #0a0a0a;
-  --text-muted: #525252;
-  --accent: #04773b;
-  --accent-hover: #035c2d;
-  --accent-bg: rgba(4, 119, 59, 0.08);
-  color-scheme: light;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-* {
-  margin: 0;
-  padding: 0;
+  --bg:             #ffffff;
+  --bg-elevated:    #f5f5f5;
+  --border:         #e5e5e5;
+  --text-primary:   #0a0a0a;
+  --text-muted:     #525252;
+  --accent:         #04773b;
+  --accent-hover:   #035c2d;
+  --accent-bg:      rgba(4, 119, 59, 0.08);
+  color-scheme:     light;
 }
 
 body {
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--text-primary);
-  font-family: 'Inter', system-ui, sans-serif;
-  transition:
-    background 0.2s,
-    color 0.2s;
-}
-
-img,
-picture,
-svg {
-  display: block;
-  max-width: 100%;
-}
-
-button {
-  font: inherit;
-  cursor: pointer;
-  background: none;
-  border: none;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
+  min-height:   100vh;
+  background:   var(--bg);
+  color:        var(--text-primary);
+  font-family:  'Inter', system-ui, sans-serif;
+  /* Transición suave al togglear tema → evita el "flash" entre dark y light. */
+  transition:   background 0.2s, color 0.2s;
 }

@@ -31,6 +31,7 @@ Referencia completa de comandos en [docs/comandos.md](docs/comandos.md) (incluye
 ## Architecture
 
 - **React 19 + React Compiler**: enabled via `@rolldown/plugin-babel` + `babel-plugin-react-compiler` in [vite.config.js](vite.config.js). Do not manually add `useMemo`/`useCallback` for referential stability — the compiler handles memoization. Reserve those hooks for semantic dependencies only. Note: compiler impacts dev/build perf.
+- **Tailwind v4 CSS-first, no `tailwind.config.js`**: toda la config vive en [src/index.css](src/index.css) con `@theme inline` (CSS vars mapeadas a tokens Tailwind) y `@custom-variant dark` (data-theme attribute). NO agregar reset universal tipo `* { margin: 0; padding: 0 }` después de `@import 'tailwindcss'` — sobreescribe utilities como `mx-auto`. Preflight ya hace el reset moderno necesario.
 - **Entry**: [index.html](index.html) → [src/main.jsx](src/main.jsx) → [src/App.jsx](src/App.jsx).
 - **Static SVG sprite**: [public/icons.svg](public/icons.svg) is referenced via `<use href="/icons.svg#id">`. Add new icons as `<symbol id="...">` entries there rather than importing individual SVGs.
 - **Styling**: plain CSS — global [src/index.css](src/index.css), component [src/App.css](src/App.css). No CSS framework installed yet.
@@ -41,6 +42,20 @@ Referencia completa de comandos en [docs/comandos.md](docs/comandos.md) (incluye
 - ES modules (`"type": "module"` in package.json).
 - JSX files use `.jsx` extension.
 - Assets imported from `src/assets/` are bundled; files under `public/` are served at root unchanged.
+
+## Estilo de código (override de defaults Claude Code)
+
+**Este proyecto es herramienta de aprendizaje React para Giuliano (principiante).** Por eso el código va con:
+
+1. **Indentación impecable**: 2 espacios consistente. Props JSX largas alineadas verticalmente cuando ayuda a leer. Separación visual entre bloques lógicos.
+2. **Comentarios pedagógicos abundantes en español rioplatense**:
+   - Cada hook (`useState`, `useEffect`, custom) lleva comentario explicando qué hace.
+   - Cada decisión no-obvia (ternarios con lógica de producto, side effects, destructurings complejos) se explica en línea.
+   - Bloques de imports agrupados (React core / libs externas / componentes propios / data) con comentario de grupo cuando ayuda.
+   - **NO** comentar lo obvio (`import React from 'react'`, returns triviales).
+3. **Override explícito**: este es el opuesto a mi default "no comments". Aplica SOLO a este proyecto.
+
+Cuando agregue/modifique código en este repo, siempre con este estilo.
 
 ## Owner profile & communication
 
