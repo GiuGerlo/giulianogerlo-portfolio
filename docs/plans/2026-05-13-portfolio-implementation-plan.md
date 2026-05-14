@@ -12,6 +12,7 @@
 
 - **2026-05-14**: Task 0.3 reescrito — Tailwind v4 estable usa **CSS-first config**, no `tailwind.config.js` (sintaxis v3). Config dentro de `src/index.css` con `@theme inline` y `@custom-variant dark`. Versiones reales instaladas: `tailwindcss@4.3.0`, `@tailwindcss/postcss@4.3.0`.
 - **2026-05-14**: Task 0.4 actualizado — se instaló `react-router-dom@7.15.0` (v7), no v6. APIs idénticas para el uso del plan.
+- **2026-05-14**: Task 0.5 — `animejs` resolvió a v4.4.1, API muy distinta a v3. Adaptar Task 6.3 (hero typewriter) al patrón v4 (`animate(target, options)` en vez de `anime({ targets })`). Corregido también el commit step que decía `package-lock.json` (estamos en pnpm → `pnpm-lock.yaml`).
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
@@ -256,7 +257,11 @@
 
 **Explicar al usuario:** `<BrowserRouter>` provee contexto de routing. `<Routes>` define qué componente renderizar según URL. `<Route path="*">` matchea cualquier ruta no definida = 404. `<Link>` cambia URL sin recargar página (SPA).
 
-### Task 0.5: Instalar librerías core restantes
+### Task 0.5: Instalar librerías core restantes ✅ (2026-05-14)
+
+**Versiones reales instaladas:** `motion@12.38.0`, `lenis@1.3.23`, `lucide-react@1.14.0`, `react-hook-form@7.75.0`, `zod@4.4.3`, `@hookform/resolvers@5.2.2`, `animejs@4.4.1` (dev).
+
+**⚠️ Atención animejs v4:** La API cambió drásticamente respecto a v3 (que es la que muchos tutoriales/docs viejas usan). En v4 las animaciones se crean con `animate(target, options)` en vez del builder `anime({ targets, ... })`. Adaptar Task 6.3 (hero typewriter) al patrón v4.
 
 **Steps:**
 
@@ -265,10 +270,10 @@
    pnpm install motion lenis lucide-react react-hook-form zod @hookform/resolvers
    pnpm install -D animejs
    ```
-2. Verificar que no rompió nada: `pnpm dev`.
+2. Verificar que no rompió nada: `pnpm build` (o `pnpm dev`).
 3. Commit:
    ```bash
-   git add package.json package-lock.json
+   git add package.json pnpm-lock.yaml
    git commit -m "chore: install motion, lenis, lucide-react, react-hook-form, zod, animejs"
    ```
 
@@ -277,7 +282,7 @@
 - `lenis`: smooth scroll global.
 - `lucide-react`: librería de íconos como componentes.
 - `react-hook-form` + `zod` + `@hookform/resolvers`: form con validación type-safe.
-- `animejs`: animaciones JS imperativas (la usaremos para hero typewriter).
+- `animejs@4`: animaciones JS imperativas (hero typewriter). API distinta a v3.
 
 ### Task 0.6: Setup Vitest para tests críticos
 
