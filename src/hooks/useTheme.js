@@ -58,6 +58,40 @@ export function useTheme() {
   }, [theme]);
 
   /**
+   * Sincroniza este hook con cambios externos al atributo data-theme.
+   *
+   * Problema: cada llamada a useTheme() crea state LOCAL independiente.
+   * Si ThemeToggle togglea, su propia instancia se entera, pero otras
+   * instancias del hook (Logo, Hero, etc.) NO — quedan con el theme
+   * viejo y muestran cosas inconsistentes (logo dark sobre fondo light).
+   *
+   * Fix: MutationObserver sobre <html data-theme>. Cuando alguien (otra
+   * instancia, devtools, manual override) cambia el atributo, todas las
+   * instancias del hook reciben el nuevo valor y se re-renderizan.
+   *
+   * Cuando la instancia que togglea actualiza data-theme, el observer
+   * dispara setTheme(current) → mismo valor → React lo trata como no-op,
+   * no hay re-render extra ni loop.
+   *
+   * Cleanup: disconnect() del observer al desmontar.
+   */
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const current = document.documentElement.getAttribute('data-theme');
+      if (current === 'dark' || current === 'light') {
+        setTheme(current);
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  /**
    * Toggle: alterna entre 'dark' y 'light'.
    *
    * Usamos el "functional updater" `setTheme((t) => ...)` en vez de

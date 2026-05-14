@@ -1,5 +1,6 @@
 import { MapPin } from 'lucide-react';
 
+import { useTheme } from '../../hooks/useTheme.js';
 import Button from '../ui/Button.jsx';
 import DarkVeil from '../ui/DarkVeil.jsx';
 
@@ -25,6 +26,24 @@ function scrollToSection(id) {
 }
 
 export default function Hero() {
+  // Tomamos el theme actual para tunear el veil. En dark queda lindo
+  // con verde brillante. En light el mismo verde lavado por el overlay
+  // claro queda gris/sucio → cambiamos hueShift + subimos overlay para
+  // un look más limpio.
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  // Props del veil por theme.
+  // Dark: verde aurora vibrante (hueShift 110), overlay sutil 55%.
+  // Light: hueShift 215 → tonos azul/violeta lavanda suaves sobre
+  // fondo claro. Overlay más opaco (75%) para que el veil sea solo
+  // un acento sutil, no protagonice.
+  const veilProps = isDark
+    ? { hueShift: 110, speed: 0.45, noiseIntensity: 0.02, warpAmount: 0.04 }
+    : { hueShift: 215, speed: 0.35, noiseIntensity: 0.015, warpAmount: 0.03 };
+
+  const overlayClass = isDark ? 'bg-bg/55' : 'bg-bg/75';
+
   return (
     <section
       id="hero"
@@ -32,35 +51,28 @@ export default function Hero() {
     >
       {/* Fondo WebGL — cubre toda la sección (inset-0 = top/right/
           bottom/left:0). z-0 para que quede DETRÁS del contenido.
-          aria-hidden porque es decoración pura. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 z-0"
-      >
+          aria-hidden porque es decoración pura.
+          key={theme} fuerza remount del DarkVeil al cambiar theme,
+          para que el useEffect del shader se reinicialice con los
+          nuevos uniforms. Sin esto, el canvas seguiría con los
+          valores del theme anterior hasta que el RAF loop reaplique. */}
+      <div aria-hidden="true" className="absolute inset-0 z-0">
         <DarkVeil
-          // hueShift en grados rota el color del CPPN. Tuneable.
-          // 0 = colores originales (azul/rojo). Probá 80-140 para verdes,
-          // 200-260 para morados. Para portfolio verde accent: ~110.
-          hueShift={110}
-          speed={0.45}
-          // Granito sutil para textura — alto = muy ruidoso.
-          noiseIntensity={0.02}
-          // Scanlines apagadas (visuales tipo CRT). 0 = off.
+          key={theme}
+          hueShift={veilProps.hueShift}
+          speed={veilProps.speed}
+          noiseIntensity={veilProps.noiseIntensity}
           scanlineIntensity={0}
           scanlineFrequency={0}
-          // Warp leve para vida — 0 = imagen estable, 0.05 = ondulación
-          // sutil del CPPN, valores altos distorsionan mucho.
-          warpAmount={0.04}
+          warpAmount={veilProps.warpAmount}
         />
       </div>
 
-      {/* Overlay oscuro encima del veil. Baja el brillo del fondo para
-          que el texto blanco/muted contraste sin necesidad de
-          text-shadow. Opacity tuneada para ver el veil pero no que
-          tape el texto. */}
+      {/* Overlay encima del veil. Baja el brillo del fondo para que
+          el texto contraste. Opacity ajustada por theme. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-[1] bg-bg/55"
+        className={`absolute inset-0 z-[1] ${overlayClass}`}
       />
 
       {/* Container con z-20 — queda por encima del veil y del overlay. */}

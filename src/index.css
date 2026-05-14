@@ -70,6 +70,31 @@ body {
   background:   var(--bg);
   color:        var(--text-primary);
   font-family:  'Inter', system-ui, sans-serif;
-  /* Transición suave al togglear tema → evita el "flash" entre dark y light. */
-  transition:   background 0.2s, color 0.2s;
+}
+
+/* Transición global al togglear tema.
+ *
+ * Antes solo el <body> animaba bg/color. Header, footer, cards, borders,
+ * íconos y todo lo demás snappeaba sin animación porque cada uno lee
+ * sus CSS vars y al cambiar `data-theme` los valores cambian de golpe.
+ *
+ * Soluciones evaluadas:
+ *  1. Aplicar `transition-colors` (Tailwind) en cada componente → pasa
+ *     por agregar la clase 1 por 1 en navbar/footer/card/etc. Frágil.
+ *  2. Universal selector → todos los elementos animan automáticamente.
+ *     Elegida por simplicidad. Riesgo: animar hover/focus state changes
+ *     que querríamos snappy. Mitigación: duración corta (250ms) + lista
+ *     de propiedades acotada (color/bg/border/fill/stroke) — utilities
+ *     como `transform`, `opacity`, `box-shadow` no entran y siguen
+ *     respondiendo al instante.
+ *
+ * Si en algún momento un componente con hover muy frecuente se siente
+ * "perezoso", la salida es agregarle `transition-none` ahí puntual.
+ */
+*,
+*::before,
+*::after {
+  transition-property:        background-color, color, border-color, fill, stroke;
+  transition-duration:        250ms;
+  transition-timing-function: ease;
 }
