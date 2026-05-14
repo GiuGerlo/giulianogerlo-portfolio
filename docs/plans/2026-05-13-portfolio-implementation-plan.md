@@ -21,6 +21,8 @@
 - **2026-05-14**: Task 1.4 ✅ — Footer con 3 columnas responsive + copyright dinámico. Helper `<Icon>` del sprite duplicado de Navbar (TODO refactor a primitive compartido). 20 tests passing.
 - **2026-05-14**: Style override registrado en CLAUDE.md y memoria — código en este proyecto va con indentación impecable + comentarios pedagógicos en español. Es herramienta de aprendizaje para Giuliano (principiante React).
 - **2026-05-14**: Task 1.5 ✅ — Layout wrapper con `<Outlet />` envolviendo todas las rutas. Removido el `<Navbar />` / `<Footer />` temporal de `Home.jsx` (preview de Task 1.3). `ProjectDetail.jsx` stub creado leyendo `:slug` con `useParams()`. App.test.jsx sumó 2 tests: ruta `/proyectos/:slug` y smoke de Layout (brand + copyright año). 22 tests passing. **Phase 1 completa.**
+- **2026-05-14**: Tasks 3.2-3.5 ✅ — Input, Textarea, Chip, SectionHeading. Input/Textarea con label + error + a11y (aria-invalid, aria-describedby, role="alert", htmlFor/id auto-generado para que click en label enfoque el control). Chip con 2 variantes (default / dot con punto verde). SectionHeading = eyebrow mono accent + h2 + subtitle muted opcional, con `id` prop para anclas (`<a href="#about">`). Home.jsx ahora renderiza showcase temporal de los primitives (se borra en Phase 4). 15 tests nuevos (Input 4, Textarea 3, Chip 3, SectionHeading 5). 51 tests passing. **Phase 3 completa.**
+- **2026-05-14**: Task 3.1 ✅ — Button primitive. Instalado `clsx@2.1.1` + `tailwind-merge@3.6.0`. Helper `src/lib/cn.js` exporta `cn(...inputs)` (clsx → twMerge). `Button.jsx` con 3 variantes (primary/secondary/ghost), spread `{...rest}` para reenviar props nativas, `type="button"` default para evitar submit accidental en forms. 6 tests (render, onClick, default variant, secondary, override className vía twMerge, disabled). 36 tests passing.
 - **2026-05-14**: Task 2.1 ✅ — Data layer. 4 archivos en `src/data/`: `projects.js` (5 proyectos: Inmobiliaria NZ, Clovertecno, RAMCC, ALPA, CENARB — datos del mockup), `skills.js` (5 skillGroups + 6 aiSkills con `status: 'active'`), `experience.js` (4 items, 2 con `current: true`), `education.js` (4 items: Brigadier López, DigitalHouse en curso, CoderHouse x2). URLs (`liveUrl`/`repoUrl`/`certUrl`) y assets (`image`/`gallery`) quedan `null` — los completa Giuliano (TODO-USUARIO.md). `challenges[]` arranca vacío, se llena en Phase 4/5. 8 tests de shape sumados (slug único, campos requeridos, formato fecha YYYY-MM, slug kebab-case URL-safe, status válido). 30 tests passing. **Phase 2 completa.**
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
@@ -744,7 +746,11 @@ git commit -m "feat: ThemeToggle component"
 
 ## Phase 3 — UI primitives
 
-### Task 3.1: `Button` component
+### Task 3.1: `Button` component ✅ (2026-05-14)
+
+**Sin desvíos**. `type="button"` agregado como default (no estaba en el plan) — previene submit accidental cuando el botón está dentro de un `<form>`. El caller puede overrideear pasando `type="submit"` vía `{...rest}` (va antes del spread propio del componente, así el caller gana).
+
+
 
 **Files:**
 - Create: `src/components/ui/Button.jsx`
@@ -793,7 +799,9 @@ git commit -m "feat: ThemeToggle component"
 
 **Explicar al usuario:** `cn()` resuelve clases Tailwind duplicadas (`px-2 px-4` → `px-4`). `{...rest}` reenvía cualquier prop al `<button>` (onClick, disabled, type, etc.).
 
-### Task 3.2-3.5: `Input`, `Textarea`, `Chip`, `SectionHeading`
+### Task 3.2-3.5: `Input`, `Textarea`, `Chip`, `SectionHeading` ✅ (2026-05-14)
+
+**Hecho en bloque (1 commit).** Inputs con a11y completa (label htmlFor/id, aria-invalid + aria-describedby cuando hay error, role="alert" en mensaje). Chip variantes 'default' y 'dot' (punto verde adelante para estados activos). SectionHeading acepta `id` prop para que las secciones del Home funcionen como anclas. Preview visual temporal agregado a Home.jsx (se elimina cuando arranque Phase 4).
 
 Similar pattern. Cada uno: componente + test mínimo + commit.
 
