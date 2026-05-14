@@ -20,10 +20,13 @@ Lockfile: `pnpm-lock.yaml` (commiteado). `package-lock.json` NO existe.
 - `pnpm build` — production build to `dist/`
 - `pnpm preview` — serve built output locally
 - `pnpm lint` — ESLint over entire repo (`eslint .`)
+- `pnpm test` — Vitest watch mode
+- `pnpm test:run` — Vitest single run (CI-style)
+- `pnpm test:ui` — Vitest web UI
 - `pnpm add <pkg>` — add dependency
 - `pnpm add -D <pkg>` — add dev dependency
 
-No test runner configured yet.
+Referencia completa de comandos en [docs/comandos.md](docs/comandos.md) (incluye troubleshooting, convención de commits, estructura del repo).
 
 ## Architecture
 
