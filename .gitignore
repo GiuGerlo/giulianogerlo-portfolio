@@ -38,3 +38,9 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Skills/agents
+.kiro
+.agents
+skills-lock.json
+.claude
