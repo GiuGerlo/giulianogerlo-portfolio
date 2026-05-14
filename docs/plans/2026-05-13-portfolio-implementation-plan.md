@@ -21,6 +21,7 @@
 - **2026-05-14**: Task 1.4 ✅ — Footer con 3 columnas responsive + copyright dinámico. Helper `<Icon>` del sprite duplicado de Navbar (TODO refactor a primitive compartido). 20 tests passing.
 - **2026-05-14**: Style override registrado en CLAUDE.md y memoria — código en este proyecto va con indentación impecable + comentarios pedagógicos en español. Es herramienta de aprendizaje para Giuliano (principiante React).
 - **2026-05-14**: Task 1.5 ✅ — Layout wrapper con `<Outlet />` envolviendo todas las rutas. Removido el `<Navbar />` / `<Footer />` temporal de `Home.jsx` (preview de Task 1.3). `ProjectDetail.jsx` stub creado leyendo `:slug` con `useParams()`. App.test.jsx sumó 2 tests: ruta `/proyectos/:slug` y smoke de Layout (brand + copyright año). 22 tests passing. **Phase 1 completa.**
+- **2026-05-14**: Task 2.1 ✅ — Data layer. 4 archivos en `src/data/`: `projects.js` (5 proyectos: Inmobiliaria NZ, Clovertecno, RAMCC, ALPA, CENARB — datos del mockup), `skills.js` (5 skillGroups + 6 aiSkills con `status: 'active'`), `experience.js` (4 items, 2 con `current: true`), `education.js` (4 items: Brigadier López, DigitalHouse en curso, CoderHouse x2). URLs (`liveUrl`/`repoUrl`/`certUrl`) y assets (`image`/`gallery`) quedan `null` — los completa Giuliano (TODO-USUARIO.md). `challenges[]` arranca vacío, se llena en Phase 4/5. 8 tests de shape sumados (slug único, campos requeridos, formato fecha YYYY-MM, slug kebab-case URL-safe, status válido). 30 tests passing. **Phase 2 completa.**
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
@@ -667,7 +668,11 @@ git commit -m "feat: ThemeToggle component"
 
 ## Phase 2 — Data layer
 
-### Task 2.1: Datos completos
+### Task 2.1: Datos completos ✅ (2026-05-14)
+
+**Implementado sin desvíos.** Datos extraídos del mockup.html (5 proyectos, 4 jobs, 4 educación). Slugs kebab-case URL-safe: `inmobiliaria-nz`, `clovertecno`, `ramcc`, `alpa`, `cenarb`. Fechas en formato `'YYYY-MM'` (string) en vez de `Date` — más simple para comparar y compatible con JSON serialization futura. `challenges[]` arranca vacío en cada proyecto (TODO Phase 4/5 con desafíos técnicos reales). 8 tests de shape (4 projects + 4 skills/aiSkills).
+
+
 
 **Files:**
 - Create: `src/data/projects.js`
