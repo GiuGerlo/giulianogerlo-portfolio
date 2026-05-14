@@ -14,6 +14,7 @@
 - **2026-05-14**: Task 0.4 actualizado — se instaló `react-router-dom@7.15.0` (v7), no v6. APIs idénticas para el uso del plan.
 - **2026-05-14**: Task 0.5 — `animejs` resolvió a v4.4.1, API muy distinta a v3. Adaptar Task 6.3 (hero typewriter) al patrón v4 (`animate(target, options)` en vez de `anime({ targets })`). Corregido también el commit step que decía `package-lock.json` (estamos en pnpm → `pnpm-lock.yaml`).
 - **2026-05-14**: Task 0.6 ✅ — Vitest 4.1.6 + Testing Library funcionando. 2 smoke tests de routing pasan. **Phase 0 completa.**
+- **2026-05-14**: Task 1.1 ✅ — hook `useTheme` con 5 tests (los 3 del plan eran flaky por falta de cleanup de localStorage entre tests; se agregó `beforeEach` + 2 tests extras).
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
@@ -357,7 +358,11 @@
 
 ## Phase 1 — Theme system + layout shell
 
-### Task 1.1: Hook `useTheme`
+### Task 1.1: Hook `useTheme` ✅ (2026-05-14)
+
+**Cambios al plan original:** los 3 tests del plan no limpiaban `localStorage` entre tests → eran flaky (el toggle del test 2 dejaba `'light'` en storage, contaminando tests posteriores). Se agregó `beforeEach(() => { localStorage.clear(); document.documentElement.removeAttribute('data-theme'); })` y se sumaron 2 tests más: "reads existing theme from localStorage on mount" y "writes data-theme attribute to <html>". 5 tests totales, todos passing.
+
+
 
 **Files:**
 - Create: `src/hooks/useTheme.js`
