@@ -18,6 +18,7 @@
 - **2026-05-14**: Task 1.2 ✅ — componente `ThemeToggle` con 3 tests (renders + toggle + persist). Mismo patrón `beforeEach` que useTheme.
 - **2026-05-14**: Task 1.3 ✅ — Navbar. lucide-react v1 sacó brand icons → migración a sprite `public/icons.svg` con `fill="currentColor"`. Agregado `linkedin-icon` al sprite. 14 tests passing en total.
 - **2026-05-14**: Task 1.3 refinado — bug encontrado: el reset `* { margin: 0; padding: 0 }` en `src/index.css` venía DESPUÉS de `@import 'tailwindcss'` y con misma especificidad → sobreescribía `mx-auto` (margin: auto) rompiendo centrado de containers. Tailwind v4 preflight ya hace los resets correctos; el universal `*` reset es **innecesario y dañino**. Removido. Navbar refactor: agregado menú hamburguesa mobile-first con useState + íconos Menu/X de lucide. Backfilled comentarios pedagógicos en archivos previos (useTheme, ThemeToggle, App, main, Home, NotFound, index.css). 15 tests passing.
+- **2026-05-14**: Task 1.4 ✅ — Footer con 3 columnas responsive + copyright dinámico. Helper `<Icon>` del sprite duplicado de Navbar (TODO refactor a primitive compartido). 20 tests passing.
 - **2026-05-14**: Style override registrado en CLAUDE.md y memoria — código en este proyecto va con indentación impecable + comentarios pedagógicos en español. Es herramienta de aprendizaje para Giuliano (principiante React).
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
@@ -583,7 +584,11 @@ git commit -m "feat: ThemeToggle component"
    git commit -m "feat: Navbar component con links y theme toggle"
    ```
 
-### Task 1.4: Componente `Footer`
+### Task 1.4: Componente `Footer` ✅ (2026-05-14)
+
+**Implementado siguiendo el design doc**: 3 columnas responsive (brand+tagline+ubicación / nav rápido / redes con GitHub+LinkedIn+Email mailto). Bottom bar con copyright dinámico (`new Date().getFullYear()`) y "Hecho con React + Tailwind". Misma helper `<Icon>` que Navbar para el sprite SVG (duplicada por ahora; se podría extraer a `src/components/ui/Icon.jsx` en una refactor futura). 5 tests passing (brand / año / GitHub+LinkedIn+Email / mailto / 5 nav links). 20 tests totales.
+
+
 
 **Files:**
 - Create: `src/components/layout/Footer.jsx`
