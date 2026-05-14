@@ -13,6 +13,7 @@
 - **2026-05-14**: Task 0.3 reescrito — Tailwind v4 estable usa **CSS-first config**, no `tailwind.config.js` (sintaxis v3). Config dentro de `src/index.css` con `@theme inline` y `@custom-variant dark`. Versiones reales instaladas: `tailwindcss@4.3.0`, `@tailwindcss/postcss@4.3.0`.
 - **2026-05-14**: Task 0.4 actualizado — se instaló `react-router-dom@7.15.0` (v7), no v6. APIs idénticas para el uso del plan.
 - **2026-05-14**: Task 0.5 — `animejs` resolvió a v4.4.1, API muy distinta a v3. Adaptar Task 6.3 (hero typewriter) al patrón v4 (`animate(target, options)` en vez de `anime({ targets })`). Corregido también el commit step que decía `package-lock.json` (estamos en pnpm → `pnpm-lock.yaml`).
+- **2026-05-14**: Task 0.6 ✅ — Vitest 4.1.6 + Testing Library funcionando. 2 smoke tests de routing pasan. **Phase 0 completa.**
 
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
@@ -284,7 +285,7 @@
 - `react-hook-form` + `zod` + `@hookform/resolvers`: form con validación type-safe.
 - `animejs@4`: animaciones JS imperativas (hero typewriter). API distinta a v3.
 
-### Task 0.6: Setup Vitest para tests críticos
+### Task 0.6: Setup Vitest para tests críticos ✅ (2026-05-14)
 
 **Files:**
 - Modify: `package.json` → script test
