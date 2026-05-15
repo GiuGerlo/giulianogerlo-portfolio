@@ -37,6 +37,8 @@
 - **2026-05-14**: Task 3.1 ✅ — Button primitive. Instalado `clsx@2.1.1` + `tailwind-merge@3.6.0`. Helper `src/lib/cn.js` exporta `cn(...inputs)` (clsx → twMerge). `Button.jsx` con 3 variantes (primary/secondary/ghost), spread `{...rest}` para reenviar props nativas, `type="button"` default para evitar submit accidental en forms. 6 tests (render, onClick, default variant, secondary, override className vía twMerge, disabled). 36 tests passing.
 - **2026-05-14**: Task 2.1 ✅ — Data layer. 4 archivos en `src/data/`: `projects.js` (5 proyectos: Inmobiliaria NZ, Clovertecno, RAMCC, ALPA, CENARB — datos del mockup), `skills.js` (5 skillGroups + 6 aiSkills con `status: 'active'`), `experience.js` (4 items, 2 con `current: true`), `education.js` (4 items: Brigadier López, DigitalHouse en curso, CoderHouse x2). URLs (`liveUrl`/`repoUrl`/`certUrl`) y assets (`image`/`gallery`) quedan `null` — los completa Giuliano (TODO-USUARIO.md). `challenges[]` arranca vacío, se llena en Phase 4/5. 8 tests de shape sumados (slug único, campos requeridos, formato fecha YYYY-MM, slug kebab-case URL-safe, status válido). 30 tests passing. **Phase 2 completa.**
 
+- **2026-05-15**: Task 4.5 ✅ — `Projects` section. Grid de cards de proyecto; cada card entera es un `<Link>` a `/proyectos/:slug`. Links live/repo movidos al detalle (evita `<a>` anidado). Placeholder de imagen con gradiente hasta tener screenshots. 5 tests sumados. 74 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -852,9 +854,19 @@ Grid de `SkillCard` mapeando `skillGroups`. Resolver íconos por nombre vía loo
 
 Bloque destacado `bg-bg-elevated` rounded-2xl con glow radial verde decorativo + grid de 6 features (border-left accent). Render condicional de `items[]` para entries que agrupan herramientas. 5 tests. 69 passing.
 
-### Task 4.5: `Projects` section
+### Task 4.5: `Projects` section ✅ (2026-05-15)
 
 Grid de `ProjectCard`. Cada card linkea a `/proyectos/${slug}`.
+
+Implementado en `Projects.jsx` (sección 04). Eyebrow `// 04 — projects`,
+título "Proyectos destacados". Grid `auto-fit minmax(340px,1fr)` gap-5.
+La card **entera** es UN solo `<Link>` de react-router-dom a
+`/proyectos/:slug` — los links a sitio live / repo NO van acá (anidar
+`<a>` dentro de `<a>` es HTML inválido); viven en la página de detalle.
+La card muestra el afford "Ver caso" como texto + ícono `ArrowRight`
+(no anchor). Imagen del proyecto: placeholder con gradiente + título mono
+mientras `project.image` siga `null` (faltan screenshots, TODO-USUARIO).
+5 tests (heading, id, card por proyecto, href por slug, stack). 74 passing.
 
 ```jsx
 <Link to={`/proyectos/${project.slug}`} className="block ...">
