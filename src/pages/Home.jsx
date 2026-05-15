@@ -5,6 +5,7 @@ import Skills from '../components/sections/Skills.jsx';
 import AISection from '../components/sections/AISection.jsx';
 import Projects from '../components/sections/Projects.jsx';
 import Experience from '../components/sections/Experience.jsx';
+import Education from '../components/sections/Education.jsx';
 
 /**
  * Home — landing page. Composición de las secciones del portfolio.
@@ -22,6 +23,7 @@ export default function Home() {
       <AISection />
       <Projects />
       <Experience />
+      <Education />
     </>
   );
 }

@@ -41,6 +41,8 @@
 
 - **2026-05-15**: Task 4.6 ✅ — `Experience` section. Timeline vertical; línea + puntos hechos con elementos `absolute` reales (no `::before`). Item `current` con punto sólido + halo. 5 tests sumados. 79 passing.
 
+- **2026-05-15**: Task 4.7 ✅ — `Education` section. Grid de cards; 3 casos según `status`/`certUrl`. Card no es `<a>` entera (evita link muerto). 5 tests sumados. 85 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -898,9 +900,18 @@ existe, el contenido del item se envuelve en `<Link>` a /proyectos/<slug>
 ramcc-alpa-cenarb → sin link (agrupa 3 proyectos). Test extra de href.
 80 passing.
 
-### Task 4.7: `Education` section
+### Task 4.7: `Education` section ✅ (2026-05-15)
 
 Grid de `EduCard`. Si `certUrl` existe → `<a>` con "Ver certificado ↗". Si `status === 'in-progress'` → texto "Certificado al finalizar".
+
+Implementado en `Education.jsx` (sección 06). Grid `auto-fit minmax(280px,1fr)`.
+3 casos por card: (1) `in-progress` → badge "En curso" inline + texto muted
+"Certificado al finalizar"; (2) `certUrl` existe → `<a target="_blank">`
+"Ver certificado" con ícono lucide `ExternalLink` (no flecha Unicode);
+(3) `completed` sin `certUrl` → slot vacío, sin link. La card NO es un
+`<a>` entera (a diferencia de ProjectCard): el único destino útil es el
+cert y muchas cards aún no lo tienen → link muerto evitado. Hoy todos los
+`certUrl` son `null`, así que solo se ven casos 1 y 3. 5 tests. 85 passing.
 
 ### Task 4.8: `Contact` section (UI only)
 
