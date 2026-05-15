@@ -2,6 +2,7 @@
 import Hero from '../components/sections/Hero.jsx';
 import About from '../components/sections/About.jsx';
 import Skills from '../components/sections/Skills.jsx';
+import AISection from '../components/sections/AISection.jsx';
 
 /**
  * Home — landing page. Composición de las secciones del portfolio.
@@ -16,6 +17,7 @@ export default function Home() {
       <Hero />
       <About />
       <Skills />
+      <AISection />
     </>
   );
 }
