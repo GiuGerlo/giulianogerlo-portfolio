@@ -39,6 +39,8 @@
 
 - **2026-05-15**: Task 4.5 ✅ — `Projects` section. Grid de cards de proyecto; cada card entera es un `<Link>` a `/proyectos/:slug`. Links live/repo movidos al detalle (evita `<a>` anidado). Placeholder de imagen con gradiente hasta tener screenshots. 5 tests sumados. 74 passing.
 
+- **2026-05-15**: Task 4.6 ✅ — `Experience` section. Timeline vertical; línea + puntos hechos con elementos `absolute` reales (no `::before`). Item `current` con punto sólido + halo. 5 tests sumados. 79 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -874,9 +876,27 @@ mientras `project.image` siga `null` (faltan screenshots, TODO-USUARIO).
 </Link>
 ```
 
-### Task 4.6: `Experience` section
+### Task 4.6: `Experience` section ✅ (2026-05-15)
 
 Timeline vertical con `TimelineItem`. Item con `current: true` tiene punto sólido + halo.
+
+Implementado en `Experience.jsx` (sección 05, eyebrow `// 05 — experience`,
+sin subtitle). La línea vertical y los puntos del mockup (que usaban
+`::before` de CSS) se rehicieron con `<div>`/`<span>` `absolute` reales:
+contenedor `relative pl-8`, línea `absolute left-2 w-0.5 bg-border`, cada
+punto `absolute -left-8`. Item `current` → punto sólido `bg-accent` +
+halo `ring-4 ring-accent-bg`; resto → punto hueco `bg-bg`. NO se extrajo
+`TimelineItem` aparte (item chico, uso único). `data-testid` en el punto
+para testearlo. 5 tests. 79 passing.
+
+**Ajuste post-review (2026-05-15):** (1) Fecha de `ramcc-dev` corregida
+de NOV 2025 a NOV 2024 (estaba mal en el CV). (2) Items del timeline
+ahora linkean: campo opcional `projectSlug` en `experience.js`. Si
+existe, el contenido del item se envuelve en `<Link>` a /proyectos/<slug>
+(hover → rol en accent); si no, va en `<div>` plano. Mapeo: ramcc-dev →
+`ramcc`, inmobiliaria-nz → `inmobiliaria-nz`, clovertecno → `clovertecno`,
+ramcc-alpa-cenarb → sin link (agrupa 3 proyectos). Test extra de href.
+80 passing.
 
 ### Task 4.7: `Education` section
 

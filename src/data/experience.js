@@ -14,18 +14,23 @@
  *  - desc        → 1-2 oraciones describiendo el trabajo
  *  - current     → boolean. Si true, la card recibe estilo destacado
  *                  (punto sólido + halo verde en el timeline).
+ *  - projectSlug → string opcional. Si existe, el item del timeline es
+ *                  clickeable y linkea a /proyectos/<projectSlug>. Si
+ *                  no, el item se muestra sin link (ej. roles que
+ *                  agrupan varios proyectos).
  */
 
 export const experience = [
   {
     id: 'ramcc-dev',
-    dateLabel: 'NOV 2025 — ACTUALIDAD',
-    dateStart: '2025-11',
+    dateLabel: 'NOV 2024 — ACTUALIDAD',
+    dateStart: '2024-11',
     dateEnd: null,
     role: 'Asistente de Desarrollo',
     company: 'RAMCC',
     desc: 'Desarrollo de software a medida, mantenimiento de sistemas y creación de nuevas funcionalidades en front-end y back-end.',
     current: true,
+    projectSlug: 'ramcc',
   },
   {
     id: 'inmobiliaria-nz',
@@ -36,6 +41,7 @@ export const experience = [
     company: 'Inmobiliaria NZ',
     desc: 'Catálogo de propiedades y panel de gestión.',
     current: false,
+    projectSlug: 'inmobiliaria-nz',
   },
   {
     id: 'clovertecno',
@@ -46,6 +52,7 @@ export const experience = [
     company: 'Clovertecno',
     desc: 'Sistema de compras, integración Mercado Pago, módulo de productos.',
     current: false,
+    projectSlug: 'clovertecno',
   },
   {
     id: 'ramcc-alpa-cenarb',
@@ -56,5 +63,6 @@ export const experience = [
     company: 'RAMCC · ALPA · CENARB',
     desc: 'Front-end y back-end de sitios corporativos, gestores y app de censo arbolado.',
     current: true,
+    // Sin projectSlug: agrupa 3 proyectos, no linkea a uno solo.
   },
 ];
