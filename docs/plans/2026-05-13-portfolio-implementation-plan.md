@@ -45,6 +45,10 @@
 
 - **2026-05-15**: Task 4.8 ✅ — `Contact` section (UI only). Form con primitives + `console.log` placeholder; 4 cards de contacto; email obfuscado con base64 (`obfuscate-email.js`). 6 tests sumados. 91 passing.
 
+- **2026-05-16**: Task 4.9 ✅ — Composer `Home.jsx`. Las 8 secciones ya estaban montadas (se fueron sumando task a task); solo se limpió el comentario stale del archivo. **Phase 4 cerrada.** 91 passing.
+
+- **2026-05-16**: Fuera de plan — fondo del Hero: se reemplazó `DarkVeil` (shader CPPN que trababa el scroll) por `Plasma` verde optimizado (pausa por viewport/visibilidad, `prefers-reduced-motion`). Se integró `BorderGlow` en las cards de Skills (5 en fila), AI y Education. Card de WhatsApp sin número visible.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -961,7 +965,12 @@ console.log). 91 passing.
 en texto plano — la obfuscation de Contact es parcial mientras eso siga
 así. Decidir en review si se obfusca el footer también.
 
-### Task 4.9: Composer `Home.jsx`
+### Task 4.9: Composer `Home.jsx` ✅ (2026-05-16)
+
+> Las 8 secciones se fueron montando en `Home.jsx` a medida que se
+> creaban (Tasks 4.1–4.8), así que el composer ya estaba completo. Esta
+> task solo verificó el orden y limpió el comentario stale del archivo.
+> Con esto **Phase 4 queda cerrada**.
 
 ```jsx
 import Hero from '../components/sections/Hero.jsx';
