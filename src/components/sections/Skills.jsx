@@ -85,7 +85,9 @@ export default function Skills() {
                 className="h-full"
               >
                 <BorderGlow className="h-full">
-                <div className="p-6">
+                {/* flex h-full flex-col → el contenido ocupa toda la
+                    card; las 5 cards de la fila quedan parejas. */}
+                <div className="flex h-full flex-col p-6">
                   {/* Cuadrado 36x36 con bg accent-bg (verde tenue) e
                       ícono accent. inline-flex centra el SVG dentro. */}
                   {Icon && (

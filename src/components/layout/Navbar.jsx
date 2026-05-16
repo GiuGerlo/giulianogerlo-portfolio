@@ -19,13 +19,17 @@ import Logo from '../ui/Logo.jsx';
 // "Single source of truth" para datos de contacto / redes.
 import { socials } from '../../data/socials.js';
 
+// Helper de scroll suave (Lenis). Mismo motor que el resto del sitio.
+import { lenisScrollTo } from '../../hooks/useLenis.js';
+
 /**
  * Lista de links del menú principal.
  *
- * Los `to` apuntan a anchors HTML dentro del Home (`/#about`...). Como son
- * anchors estándar usamos <a>, no <Link>, así el navegador hace scroll
- * automático al elemento con ese id. Phase 6.2 va a sumar smooth-scroll
- * con Lenis encima.
+ * Los `to` apuntan a anchors HTML dentro del Home (`/#about`...). Son
+ * anchors estándar (<a>) — sirven de fallback y para navegar al Home
+ * desde otra ruta. Pero cuando ya estás EN el Home, interceptamos el
+ * click (ver handleNavClick) y scrolleamos con Lenis para que la
+ * transición sea suave, igual que el resto del scroll del sitio.
  *
  * Tenerlos como array (en vez de 5 <li> hardcodeados) permite que para
  * sumar/quitar una sección solo modifiquemos este array.
@@ -67,6 +71,19 @@ export default function Navbar() {
   // Si no la usáramos, el menú quedaría abierto tras navegar — mala UX.
   const closeMenu = () => setOpen(false);
 
+  // Click en un link del navbar.
+  //  - Si estamos en el Home: prevenimos el salto nativo del <a> y
+  //    scrolleamos con Lenis (suave) a la sección.
+  //  - Si estamos en otra ruta: NO prevenimos → el <a href="/#..."> hace
+  //    su trabajo y navega al Home posicionado en esa sección.
+  const handleNavClick = (event, to) => {
+    closeMenu();
+    if (window.location.pathname !== '/') return;
+    event.preventDefault();
+    // 'to' viene como '/#about' → nos quedamos con '#about'.
+    lenisScrollTo(to.slice(to.indexOf('#')));
+  };
+
   return (
     // <header> = elemento semántico HTML para el encabezado del sitio.
     // - sticky top-0 z-50:  queda pegado arriba al scrollear, sobre todo lo demás.
@@ -105,6 +122,7 @@ export default function Navbar() {
             <li key={link.to}>
               <a
                 href={link.to}
+                onClick={(event) => handleNavClick(event, link.to)}
                 className="text-sm font-medium text-text-muted transition-colors hover:text-accent"
               >
                 {link.label}
@@ -166,7 +184,7 @@ export default function Navbar() {
             <li key={link.to}>
               <a
                 href={link.to}
-                onClick={closeMenu}
+                onClick={(event) => handleNavClick(event, link.to)}
                 className="block rounded-md px-3 py-2 text-base font-medium text-text-muted transition-colors hover:bg-bg-elevated hover:text-accent"
               >
                 {link.label}

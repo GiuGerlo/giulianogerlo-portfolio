@@ -1,6 +1,7 @@
 import { MapPin } from 'lucide-react';
 
 import { useTheme } from '../../hooks/useTheme.js';
+import { lenisScrollTo } from '../../hooks/useLenis.js';
 import Button from '../ui/Button.jsx';
 import Plasma from '../ui/Plasma.jsx';
 
@@ -14,16 +15,15 @@ import Plasma from '../ui/Plasma.jsx';
  *    no compita con el texto.
  *  - Contenido: "$ whoami" + h1 + rol + ubicación + 2 CTAs.
  *
- * Los CTAs hacen scroll suave a las secciones objetivo. En Phase 6.2
- * vamos a sumar Lenis para smooth scroll global; por ahora basta con
- * scrollIntoView nativo con behavior: 'smooth'.
+ * Los CTAs hacen scroll suave a las secciones objetivo vía `lenisScrollTo`
+ * — el mismo motor de scroll suave global (Lenis). Si usáramos el
+ * `scrollIntoView` nativo, su animación pelearía con la de Lenis.
  */
 
 function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  // lenisScrollTo acepta un selector CSS; si Lenis no está activo
+  // (reduced-motion), internamente cae a scroll nativo.
+  lenisScrollTo(`#${id}`);
 }
 
 export default function Hero() {

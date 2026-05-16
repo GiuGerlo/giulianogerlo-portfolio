@@ -46,10 +46,17 @@ export default function Projects() {
         <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-5">
           {projects.map((project, index) => (
             // Reveal: fade-up al scrollear, escalonado por index.
-            <Reveal key={project.slug} delay={index * 0.06}>
+            // h-full → la card estira a la altura de la fila.
+            <Reveal
+              key={project.slug}
+              delay={index * 0.06}
+              className="h-full"
+            >
+            {/* flex flex-col + h-full → la card ocupa toda la altura
+                disponible; así todas las cards de la fila quedan parejas. */}
             <Link
               to={`/proyectos/${project.slug}`}
-              className="group block overflow-hidden rounded-xl border border-border bg-bg-elevated shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent"
+              className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-bg-elevated shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent"
             >
               {/* Placeholder de imagen — gradiente bg → accent-bg con el
                   título en mono. Se reemplaza por <img> cuando haya
@@ -58,8 +65,10 @@ export default function Projects() {
                 [ {project.title} ]
               </div>
 
-              {/* Body de la card. p-6 (24px). */}
-              <div className="p-6">
+              {/* Body de la card. p-6 (24px). flex flex-1 flex-col →
+                  ocupa el alto restante después de la imagen; permite
+                  empujar el "Ver caso" al fondo con mt-auto. */}
+              <div className="flex flex-1 flex-col p-6">
                 {/* Tag de categoría — mono chico, accent sobre accent-bg. */}
                 <span className="mb-3 inline-block rounded bg-accent-bg px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-accent">
                   {project.category}
@@ -92,8 +101,10 @@ export default function Projects() {
 
                 {/* Afford "Ver caso". NO es un <a> (la card entera ya es
                     link) — es texto + ícono. group-hover desplaza la
-                    flecha a la derecha como feedback visual. */}
-                <span className="inline-flex items-center gap-1 text-sm font-medium text-accent">
+                    flecha a la derecha como feedback visual.
+                    mt-auto → lo empuja al fondo de la card, así queda
+                    alineado entre todas las cards de la fila. */}
+                <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-accent">
                   Ver caso
                   <ArrowRight
                     size={14}

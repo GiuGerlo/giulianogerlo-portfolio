@@ -6,6 +6,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
 import ScrollToTop from './ScrollToTop.jsx';
+import { useLenis } from '../../hooks/useLenis.js';
 
 /**
  * Layout — wrapper común de todas las páginas del sitio.
@@ -18,6 +19,9 @@ import ScrollToTop from './ScrollToTop.jsx';
  * el Footer no se "pegue" arriba (queda al final del viewport).
  */
 export default function Layout() {
+  // Activa el scroll suave global (Lenis) para todo el sitio.
+  useLenis();
+
   return (
     <>
       {/* Resetea el scroll al tope en cada cambio de ruta. */}

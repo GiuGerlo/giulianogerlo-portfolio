@@ -57,6 +57,10 @@
 
 - **2026-05-16**: Task 6.1 ✅ — Scroll reveals con Motion. `<Reveal>` (fade-up `whileInView`), horneado en `SectionHeading` + cards con stagger en todas las secciones. Mock de `IntersectionObserver` en el setup de tests. 94 passing.
 
+- **2026-05-16**: Fuera de plan — optimización de perf: BorderGlow en reposo usa `display:none` en las capas de glow, `pointermove` throttleado con rAF, Navbar `backdrop-blur-md` → `sm`.
+
+- **2026-05-16**: Task 6.2 ✅ — Smooth scroll con Lenis. Hook `useLenis` en `Layout` + helper `lenisScrollTo`; CTAs del Hero y `ScrollToTop` migrados al helper. Guard de reduced-motion. Mock de `ResizeObserver` en el setup. 94 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1088,7 +1092,16 @@ Envolver cada section heading + cards.
 
 Commit.
 
-### Task 6.2: Smooth scroll con Lenis
+### Task 6.2: Smooth scroll con Lenis ✅ (2026-05-16)
+
+> Implementado. `pnpm add lenis`; hook `src/hooks/useLenis.js` llamado
+> en `Layout`. Extras sobre el snippet del plan: guard de
+> `prefers-reduced-motion` (no activa Lenis si está), `cancelAnimationFrame`
+> en el cleanup, e instancia singleton a nivel módulo + helper
+> `lenisScrollTo()`. Los scrolls programáticos se migraron a ese helper
+> (CTAs del Hero y `ScrollToTop`) para que no peleen con la animación
+> de Lenis. Mock de `ResizeObserver` agregado al setup de tests (Lenis
+> lo usa y jsdom no lo trae). 94 passing.
 
 `src/hooks/useLenis.js`:
 ```js

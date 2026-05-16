@@ -23,3 +23,14 @@ class IntersectionObserverMock {
 }
 
 globalThis.IntersectionObserver = IntersectionObserverMock;
+
+// jsdom tampoco implementa ResizeObserver. Lo usa Lenis (scroll suave),
+// que se monta en Layout → cualquier test que renderice una página
+// crashearía sin este mock. Mismo patrón no-op.
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+globalThis.ResizeObserver = ResizeObserverMock;

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 // useLocation devuelve el objeto de ubicación actual de React Router.
 import { useLocation } from 'react-router-dom';
+import { lenisScrollTo } from '../../hooks/useLenis.js';
 
 /**
  * ScrollToTop — sube el scroll al tope cada vez que cambia la ruta.
@@ -19,8 +20,11 @@ export default function ScrollToTop() {
   const { pathname } = useLocation();
 
   // Effect: cada vez que pathname cambia, scrolleamos al tope.
+  // `immediate: true` → salto instantáneo (sin animación de inercia):
+  // al cambiar de página querés aparecer arriba, no ver el scroll
+  // deslizarse. lenisScrollTo cae a window.scrollTo si Lenis no está.
   useEffect(() => {
-    window.scrollTo(0, 0);
+    lenisScrollTo(0, { immediate: true });
   }, [pathname]);
 
   return null;

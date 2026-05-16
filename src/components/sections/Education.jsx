@@ -78,9 +78,11 @@ export default function Education() {
                     {item.org}
                   </div>
 
-                  {/* Slot del certificado — caso 1, 2 o nada. */}
+                  {/* Slot del certificado — caso 1, 2 o nada.
+                      mt-auto lo empuja al fondo de la card → el slot
+                      queda alineado entre todas las cards de la grilla. */}
                   {isInProgress && (
-                    <span className="mt-3 font-mono text-xs text-text-muted">
+                    <span className="mt-auto pt-3 font-mono text-xs text-text-muted">
                       Certificado al finalizar
                     </span>
                   )}
@@ -90,7 +92,7 @@ export default function Education() {
                       href={item.certUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 inline-flex items-center gap-1 font-mono text-xs font-medium text-accent hover:underline"
+                      className="mt-auto inline-flex items-center gap-1 pt-3 font-mono text-xs font-medium text-accent hover:underline"
                     >
                       Ver certificado
                       <ExternalLink size={12} aria-hidden="true" />

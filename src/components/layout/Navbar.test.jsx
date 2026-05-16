@@ -27,11 +27,11 @@ function renderNavbar() {
 test('muestra el logo {gg}.dev como imagen', () => {
   renderNavbar();
   // El logo dejó de ser texto y pasó a ser <img>. Lo buscamos por su
-  // alt accesible. El src apunta a /logo-original.png o /logo-secundario.png
+  // alt accesible. El src apunta a /logo-original.svg o /logo-secundario.svg
   // según theme (default 'dark' en tests → logo-original).
   const logo = screen.getByAltText('Giuliano Gerlo');
   expect(logo).toBeInTheDocument();
-  expect(logo.getAttribute('src')).toMatch(/logo-(original|secundario)\.png/);
+  expect(logo.getAttribute('src')).toMatch(/logo-(original|secundario)\.svg/);
 });
 
 test('renderiza los 5 links del menú desktop', () => {
