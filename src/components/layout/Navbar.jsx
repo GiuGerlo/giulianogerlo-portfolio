@@ -80,9 +80,18 @@ export default function Navbar() {
           px-4 sm:px-6 lg:px-8 → padding lateral progresivo según viewport. */}
       <nav className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
 
-        {/* Logo. NavLink a "/" → click te lleva al home.
-            Usa la imagen {gg}.dev que swappea según theme. */}
-        <NavLink to="/" onClick={closeMenu} aria-label="Inicio">
+        {/* Logo. NavLink a "/" → click te lleva al home. El onClick
+            cierra el menú mobile y fuerza el scroll al tope: si ya
+            estás en "/", el pathname no cambia y ScrollToTop no se
+            dispara solo. */}
+        <NavLink
+          to="/"
+          onClick={() => {
+            closeMenu();
+            window.scrollTo(0, 0);
+          }}
+          aria-label="Inicio"
+        >
           <Logo className="h-8 w-auto md:h-9" />
         </NavLink>
 

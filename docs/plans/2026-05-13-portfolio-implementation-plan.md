@@ -49,6 +49,10 @@
 
 - **2026-05-16**: Fuera de plan — fondo del Hero: se reemplazó `DarkVeil` (shader CPPN que trababa el scroll) por `Plasma` verde optimizado (pausa por viewport/visibilidad, `prefers-reduced-motion`). Se integró `BorderGlow` en las cards de Skills (5 en fila), AI y Education. Card de WhatsApp sin número visible.
 
+- **2026-05-16**: Se documentó **Phase 12 — Backend dinámico + admin (post-MVP)** (Supabase). Es post-MVP: arranca recién con el sitio completo y deployado.
+
+- **2026-05-16**: Task 5.1 ✅ — `ProjectDetail` page (`/proyectos/:slug`). Lookup por slug, redirect a `/404`, `document.title` por effect. Galería/desafíos/acciones condicionales (vacíos hoy). 3 tests + fix de smoke test stale. 94 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -999,7 +1003,17 @@ Commit final phase 4.
 
 ## Phase 5 — Project detail page
 
-### Task 5.1: `ProjectDetail` page
+### Task 5.1: `ProjectDetail` page ✅ (2026-05-16)
+
+> Implementado: busca el proyecto por slug, redirige a `/404` si no
+> existe, setea `document.title` vía effect. Renderiza back link, hero
+> (categoría + título + meta con fechas/rol), resumen, mi rol y stack.
+> Galería y desafíos son condicionales — solo se renderizan si el
+> proyecto tiene `gallery`/`challenges` cargados (hoy vacíos para
+> todos). Los botones de acción (live/repo) también condicionales.
+> Helpers `formatMonth`/`formatDateRange` para las fechas 'YYYY-MM'.
+> 3 tests sumados + se actualizó el smoke test stale de `App.test.jsx`.
+> 94 passing.
 
 **Files:**
 - Modify: `src/pages/ProjectDetail.jsx`
@@ -1286,6 +1300,71 @@ Botón flotante "💬 Preguntale a Giuliano" abajo-derecha. Click abre drawer co
 
 ### Task 11.6: Cambiar labels Grupo 2 → "✓ implementado"
 Una vez deployado, mover de "🌱 explorando" a "✓ activo" las skills usadas.
+
+---
+
+## Phase 12 — Backend dinámico + admin (post-MVP)
+
+**Goal:** Hacer la data del portfolio (proyectos, timeline, educación,
+skills) editable vía un panel admin — crear / editar / eliminar sin
+tocar código ni hacer deploy a mano.
+
+**Pre-requisito duro:** esta fase arranca SOLO cuando el sitio esté
+completo y deployado con data estática (Phases 5–9 cerradas). Primero
+el sitio funciona; después se le pone el backend.
+
+### Por qué Vercel solo no alcanza
+
+Hoy la data vive en `src/data/*.js` — se hornea dentro del build.
+Vercel sirve ese sitio estático, pero **no persiste cambios**: un admin
+necesita dónde guardar lo que se edita. Vercel hostea, no es base de
+datos. Hacen falta 3 piezas: base de datos + API + panel admin con login.
+
+### Decisión de stack: Supabase
+
+El front se queda en Vercel (hosting del SPA Vite + funciones
+serverless `/api` si hicieran falta). La persistencia va en **Supabase**:
+Postgres + Auth + API REST auto-generada + editor de tablas, todo en el
+tier gratis.
+
+Alternativas evaluadas y descartadas para este caso:
+- **Git-based CMS** (Decap, TinaCMS): gratis y sin DB, pero cada edición
+  dispara un rebuild — no es data dinámica real.
+- **Headless CMS** (Sanity, Contentful): buen panel, pero es otra
+  plataforma más para mantener.
+- **Vercel Postgres/Neon + API propia**: posible ("todo en Vercel"),
+  pero hay que construir la API y el admin a mano. Supabase ya da Auth
+  + API + editor hechos.
+
+### Tasks (alto nivel)
+
+#### Task 12.1: Setup Supabase + schema
+Crear proyecto Supabase. Definir tablas espejando los `src/data/*.js`
+actuales: `projects`, `experience`, `education`, `skill_groups`,
+`ai_skills`. **Pre-requisito usuario:** crear cuenta Supabase, anotar
+credenciales en `TODO-USUARIO.md`.
+
+#### Task 12.2: Seed de data
+Script que migra el contenido de los `src/data/*.js` a las tablas
+(carga inicial). Los archivos `.js` quedan como referencia hasta
+verificar la migración.
+
+#### Task 12.3: Capa de acceso a datos
+Instalar `@supabase/supabase-js`. Reemplazar los imports estáticos de
+`src/data/` por lecturas al cliente Supabase. Definir si las secciones
+fetchean en runtime o se pre-renderiza (decisión de performance).
+
+#### Task 12.4: Auth + Row Level Security
+Login de admin con Supabase Auth (solo Giuliano). RLS: lectura pública
+de todas las tablas, escritura solo para el usuario autenticado.
+
+#### Task 12.5: Panel admin
+Ruta `/admin` protegida. Formularios CRUD por entidad usando
+`react-hook-form` (ya en el stack). Listado + crear + editar + borrar.
+
+#### Task 12.6: Supabase Storage para imágenes
+Mover screenshots de proyectos y certificados de `public/` a Supabase
+Storage, para poder subirlos desde el admin sin redeploy.
 
 ---
 

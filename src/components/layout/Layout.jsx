@@ -5,6 +5,7 @@ import { Outlet } from 'react-router-dom';
 
 import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
+import ScrollToTop from './ScrollToTop.jsx';
 
 /**
  * Layout — wrapper común de todas las páginas del sitio.
@@ -19,6 +20,9 @@ import Footer from './Footer.jsx';
 export default function Layout() {
   return (
     <>
+      {/* Resetea el scroll al tope en cada cambio de ruta. */}
+      <ScrollToTop />
+
       <Navbar />
 
       <main className="min-h-screen">

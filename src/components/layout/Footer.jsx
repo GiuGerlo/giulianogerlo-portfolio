@@ -1,8 +1,9 @@
 // Íconos no-brand de lucide. El Mail SÍ existe en v1 (solo se sacaron brand icons).
 import { Mail, MapPin } from 'lucide-react';
 
-// `Link` de React Router para anchors que también funcionan desde rutas hijas.
-// Para links dentro del Home usamos <a href="/#x"> nativo igual que en Navbar.
+// `Link` de React Router — navegación interna sin recargar la página.
+import { Link } from 'react-router-dom';
+
 import { socials } from '../../data/socials.js';
 import Logo from '../ui/Logo.jsx';
 
@@ -50,12 +51,18 @@ export default function Footer() {
 
           {/* Columna 1 — Brand + tagline + ubicación. */}
           <div className="space-y-3">
-            {/* Logo de marca como imagen (swappea según theme). El
-                wrapper `inline-flex` + `justify-center md:justify-start`
-                centra en mobile y alinea izquierda en md+, igual que
-                el resto de la columna. */}
+            {/* Logo de marca como imagen (swappea según theme).
+                Envuelto en <Link to="/"> → click vuelve al Home. El
+                onClick fuerza el scroll al tope: si ya estás en "/",
+                el pathname no cambia y ScrollToTop no se dispara solo. */}
             <div className="flex justify-center md:justify-start">
-              <Logo className="h-10 w-auto" />
+              <Link
+                to="/"
+                aria-label="Ir al inicio"
+                onClick={() => window.scrollTo(0, 0)}
+              >
+                <Logo className="h-10 w-auto" />
+              </Link>
             </div>
             <p className="text-sm text-text-muted">
               Full-Stack Developer enfocado en construir productos

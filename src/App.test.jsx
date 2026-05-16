@@ -25,9 +25,11 @@ test('renders ProjectDetail with slug on /proyectos/:slug', () => {
       <App />
     </MemoryRouter>
   );
-  // El slug se muestra dinámicamente — confirmamos que la ruta matchea
-  // y que useParams() leyó correctamente el segmento de URL.
-  expect(screen.getByText(/Proyecto: clovertecno/i)).toBeInTheDocument();
+  // ProjectDetail busca el proyecto por slug y renderiza su título como
+  // h1 — confirmamos que la ruta matcheó y resolvió el proyecto.
+  expect(
+    screen.getByRole('heading', { level: 1, name: /clovertecno/i }),
+  ).toBeInTheDocument();
 });
 
 test('renders 404 on unknown route', () => {
