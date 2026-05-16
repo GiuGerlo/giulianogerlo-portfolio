@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import { Mail, MessageCircle, Send } from 'lucide-react';
+// react-hook-form maneja el estado del formulario; zodResolver conecta
+// el schema de validación de zod con react-hook-form.
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
 import Reveal from '../ui/Reveal.jsx';
@@ -13,11 +18,11 @@ import { socials } from '../../data/socials.js';
  * Contact — sección 07 del portfolio. Dos columnas: formulario de
  * contacto a la izquierda, links de contacto directo a la derecha.
  *
- * IMPORTANTE — esta task es "UI only":
- *   El form todavía NO envía nada a ningún lado. El `onSubmit` solo
- *   previene el reload de la página y hace `console.log` de los datos.
- *   La integración real (validación con react-hook-form + envío a un
- *   servicio de email) llega en una Phase posterior.
+ * Estado del formulario:
+ *   La VALIDACIÓN ya es real — react-hook-form + zod chequean los
+ *   campos y muestran errores por campo. Lo que todavía NO está es el
+ *   ENVÍO: `onSubmit` solo loguea los datos (placeholder). Conectar el
+ *   form a un servicio de email es una task posterior de esta Phase.
  *
  * Email obfuscation (anti-scraping):
  *   El email NO está en texto plano en el código. Se guarda codificado
@@ -73,21 +78,48 @@ const ENCODED_EMAIL = 'Z2dpdWxpYW5vNTI2QGdtYWlsLmNvbQ==';
 const cardClass =
   'flex w-full items-center gap-4 rounded-lg border border-border bg-bg-elevated p-4 text-left transition-colors hover:border-accent';
 
+// Schema de validación del formulario (zod). Cada campo define sus
+// reglas y el mensaje que se muestra si no se cumplen. zod corre estas
+// reglas en cada submit; react-hook-form pinta los errores por campo.
+const contactSchema = z.object({
+  nombre: z
+    .string()
+    .trim()
+    .min(2, 'Ingresá tu nombre (mínimo 2 caracteres).'),
+  // z.email valida formato Y exige que no esté vacío — un string vacío
+  // también falla esta regla con el mismo mensaje.
+  email: z.email('Ingresá un email válido.'),
+  mensaje: z
+    .string()
+    .trim()
+    .min(10, 'Contame un poco más (mínimo 10 caracteres).'),
+});
+
 export default function Contact() {
   // Estado del email: false = oculto ("Click para ver email"),
   // true = revelado (se muestra la dirección y la card es mailto).
   const [revealed, setRevealed] = useState(false);
 
-  // Handler del submit. UI only: no se envía nada todavía.
-  function handleSubmit(event) {
-    // preventDefault evita que el navegador recargue la página (el
-    // comportamiento nativo de un <form>).
-    event.preventDefault();
+  // react-hook-form:
+  //  - register  → conecta cada input al form (name, onChange, ref...).
+  //  - handleSubmit → valida con el schema y, si pasa, llama onSubmit.
+  //  - errors    → mensajes de error por campo (los pinta cada Input).
+  //  - isSubmitting / isSubmitSuccessful → estados para el botón y el
+  //    mensaje de éxito.
+  //  - reset     → limpia el form después de enviar.
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = useForm({ resolver: zodResolver(contactSchema) });
 
-    // FormData lee todos los campos del form por su atributo `name`.
-    // Object.fromEntries lo convierte a un objeto plano para loguearlo.
-    const data = Object.fromEntries(new FormData(event.target));
+  // onSubmit — solo corre si la validación pasó. Por ahora es
+  // placeholder: loguea los datos. El envío real a un servicio de
+  // email se conecta en una task posterior de esta Phase.
+  function onSubmit(data) {
     console.log('Formulario de contacto (placeholder, sin envío):', data);
+    reset();
   }
 
   return (
@@ -109,34 +141,57 @@ export default function Contact() {
         <Reveal>
         <div className="grid items-start gap-14 md:grid-cols-2">
           {/* ── Columna 1: formulario ── */}
+          {/* handleSubmit(onSubmit) valida primero; onSubmit corre solo
+              si pasa. noValidate desactiva la validación nativa del
+              browser para que mande zod (mensajes en español + estilo
+              propio). */}
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
             className="rounded-xl border border-border bg-bg-elevated p-8"
           >
+            {/* {...register(campo)} aporta name/onChange/onBlur/ref al
+                input. error pinta el borde rojo + el mensaje debajo. */}
             <Input
               label="Nombre"
-              name="nombre"
               type="text"
               placeholder="Tu nombre"
+              error={errors.nombre?.message}
+              {...register('nombre')}
             />
             <Input
               label="Email"
-              name="email"
               type="email"
               placeholder="tu@email.com"
+              error={errors.email?.message}
+              {...register('email')}
             />
             <Textarea
               label="Mensaje"
-              name="mensaje"
               placeholder="Contame en qué estás trabajando..."
+              error={errors.mensaje?.message}
+              {...register('mensaje')}
             />
 
-            {/* type="submit" pisa el type="button" default del primitive
-                (el spread {...rest} de Button va después de su default). */}
-            <Button type="submit" className="w-full justify-center">
+            {/* type="submit" pisa el type="button" default del primitive.
+                disabled mientras envía evita doble submit. */}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full justify-center"
+            >
               Enviar mensaje
               <Send size={16} aria-hidden="true" />
             </Button>
+
+            {/* Mensaje de éxito tras un submit válido. role="status"
+                hace que el lector de pantalla lo anuncie. */}
+            {isSubmitSuccessful && (
+              <p role="status" className="mt-3 text-sm text-accent">
+                ¡Mensaje recibido! (Por ahora es un placeholder — el
+                envío real se conecta en la próxima task.)
+              </p>
+            )}
           </form>
 
           {/* ── Columna 2: links de contacto directo ── */}

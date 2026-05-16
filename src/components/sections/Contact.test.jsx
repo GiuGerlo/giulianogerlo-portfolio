@@ -27,19 +27,42 @@ describe('Contact', () => {
     ).toBeInTheDocument();
   });
 
-  test('el submit hace preventDefault + console.log (UI only, sin envío)', async () => {
+  test('submit válido: corre onSubmit (console.log, UI only)', async () => {
     const user = userEvent.setup();
     // Espiamos console.log para verificar que el handler corre.
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     render(<Contact />);
 
-    await user.type(screen.getByLabelText(/nombre/i), 'Juan');
+    // Completamos los 3 campos con valores válidos según el schema.
+    await user.type(screen.getByLabelText(/nombre/i), 'Juan Pérez');
+    await user.type(
+      screen.getByLabelText(/email/i),
+      'juan@example.com',
+    );
+    await user.type(
+      screen.getByLabelText(/mensaje/i),
+      'Hola, quiero contactarte por un proyecto.',
+    );
     await user.click(
       screen.getByRole('button', { name: /enviar mensaje/i }),
     );
 
     expect(logSpy).toHaveBeenCalled();
     logSpy.mockRestore();
+  });
+
+  test('submit inválido: muestra errores de validación por campo', async () => {
+    const user = userEvent.setup();
+    render(<Contact />);
+
+    // Submit con el form vacío → zod falla → se muestran los errores.
+    await user.click(
+      screen.getByRole('button', { name: /enviar mensaje/i }),
+    );
+
+    // Cada error es un <p role="alert"> debajo del campo.
+    const errores = await screen.findAllByRole('alert');
+    expect(errores.length).toBeGreaterThan(0);
   });
 
   test('email obfuscado: oculto hasta el click', async () => {

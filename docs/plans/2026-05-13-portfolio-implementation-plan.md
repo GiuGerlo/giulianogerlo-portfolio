@@ -65,6 +65,8 @@
 
 - **2026-05-16**: Task 6.3 ✅ — Typewriter del Hero con Anime.js. `AnimatedName` anima el `<h1>` con stagger de chars al montar. **Phase 6 cerrada.** 94 passing.
 
+- **2026-05-16**: Task 7.1 ✅ — Form de contacto con react-hook-form + zod. Validación real por campo. Envío sigue placeholder (Task 7.4/7.5). 95 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1148,7 +1150,16 @@ Commit.
 
 ## Phase 7 — Contact form backend
 
-### Task 7.1: Form con react-hook-form + zod
+### Task 7.1: Form con react-hook-form + zod ✅ (2026-05-16)
+
+> Implementado. `Contact.jsx` usa `useForm` + `zodResolver`. Schema
+> `contactSchema` (nombre min 2, email válido, mensaje min 10) con
+> mensajes en español. Inputs con `{...register(...)}` + `error` por
+> campo (los primitives `Input`/`Textarea` ya soportaban `error`).
+> `noValidate` en el form. Botón `disabled` mientras envía + mensaje
+> de éxito (`isSubmitSuccessful`). `onSubmit` sigue siendo placeholder
+> (`console.log`) — el envío real es Task 7.4/7.5. 1 test sumado
+> (validación inválida). 95 passing.
 
 Reemplazar form placeholder con validación real.
 
