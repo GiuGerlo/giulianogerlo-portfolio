@@ -43,6 +43,8 @@
 
 - **2026-05-15**: Task 4.7 ✅ — `Education` section. Grid de cards; 3 casos según `status`/`certUrl`. Card no es `<a>` entera (evita link muerto). 5 tests sumados. 85 passing.
 
+- **2026-05-15**: Task 4.8 ✅ — `Contact` section (UI only). Form con primitives + `console.log` placeholder; 4 cards de contacto; email obfuscado con base64 (`obfuscate-email.js`). 6 tests sumados. 91 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -913,7 +915,7 @@ Implementado en `Education.jsx` (sección 06). Grid `auto-fit minmax(280px,1fr)`
 cert y muchas cards aún no lo tienen → link muerto evitado. Hoy todos los
 `certUrl` son `null`, así que solo se ven casos 1 y 3. 5 tests. 85 passing.
 
-### Task 4.8: `Contact` section (UI only)
+### Task 4.8: `Contact` section (UI only) ✅ (2026-05-15)
 
 Grid 2 columnas: form (placeholder action — `console.log`) + 4 contact links.
 
@@ -942,6 +944,22 @@ const encoded = 'Z2dpdWxpYW5vNTI2QGdtYWlsLmNvbQ=='; // ggiuliano526@gmail.com en
 ```
 
 Commit por cada sección. Después de cada commit, `pnpm dev` y verificar visualmente.
+
+**Implementado (2026-05-15):** `Contact.jsx` (sección 07). Grid 2 cols
+(`md:grid-cols-2 gap-14`). Izq: form con primitives `Input`/`Textarea`/
+`Button`; `onSubmit` hace `preventDefault` + `console.log` de `FormData`
+(UI only, sin envío real). Der: 4 cards de contacto (Email, WhatsApp,
+LinkedIn, GitHub) con ícono en cuadrado accent-bg. Email obfuscado:
+`src/lib/obfuscate-email.js` (`btoa`/`atob`) + constante `ENCODED_EMAIL`
+en Contact.jsx; card es `<button>` ("Click para ver email") hasta el
+click, después `<a mailto>` con la dirección revelada. WhatsApp usa
+`MessageCircle` de lucide (no hay logo de marca en lucide v1); LinkedIn/
+GitHub usan el sprite. 6 tests (incluye obfuscation + submit con spy de
+console.log). 91 passing.
+
+**Pendiente / nota:** `socials.js` y `Footer.jsx` todavía usan el email
+en texto plano — la obfuscation de Contact es parcial mientras eso siga
+así. Decidir en review si se obfusca el footer también.
 
 ### Task 4.9: Composer `Home.jsx`
 
