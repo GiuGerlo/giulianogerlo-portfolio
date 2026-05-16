@@ -1,3 +1,5 @@
+import Reveal from './Reveal.jsx';
+
 /**
  * SectionHeading — header reutilizable para todas las secciones del Home.
  *
@@ -14,10 +16,14 @@
  *
  * No recibe children. Si hace falta layout más complejo, el caller
  * compone manualmente.
+ *
+ * Animación: el header entero va dentro de un <Reveal> — así TODOS los
+ * encabezados de sección aparecen con fade-up al scrollear, sin tener
+ * que envolverlos uno por uno en cada sección.
  */
 export default function SectionHeading({ eyebrow, title, subtitle, id }) {
   return (
-    <div className="mb-14">
+    <Reveal className="mb-14">
       {eyebrow && (
         <div className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
           {eyebrow}
@@ -36,6 +42,6 @@ export default function SectionHeading({ eyebrow, title, subtitle, id }) {
           {subtitle}
         </p>
       )}
-    </div>
+    </Reveal>
   );
 }

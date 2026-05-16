@@ -2,6 +2,7 @@ import { ExternalLink } from 'lucide-react';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
 import BorderGlow from '../ui/BorderGlow.jsx';
+import Reveal from '../ui/Reveal.jsx';
 import { education } from '../../data/education.js';
 
 /**
@@ -41,16 +42,22 @@ export default function Education() {
 
         {/* Grid auto-fit. gap-4 (16px) matchea mockup. */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
-          {education.map((item) => {
+          {education.map((item, index) => {
             // Flags de los 3 casos. Se calculan una vez acá arriba para
             // que el JSX de abajo quede legible.
             const isInProgress = item.status === 'in-progress';
             const hasCert = Boolean(item.certUrl);
 
             return (
-              // BorderGlow es el contenedor de la card (borde mesh +
-              // glow). El contenido va adentro con su padding p-5.
-              <BorderGlow key={item.id} className="h-full">
+              // Reveal: fade-up al scrollear, escalonado por index.
+              // BorderGlow adentro: contenedor de la card (borde mesh +
+              // glow). El contenido va con su padding p-5.
+              <Reveal
+                key={item.id}
+                delay={index * 0.06}
+                className="h-full"
+              >
+                <BorderGlow className="h-full">
                 <div className="flex h-full flex-col p-5">
                   <div className="mb-2 font-mono text-[11px] text-accent">
                     {item.dateLabel}
@@ -90,7 +97,8 @@ export default function Education() {
                     </a>
                   )}
                 </div>
-              </BorderGlow>
+                </BorderGlow>
+              </Reveal>
             );
           })}
         </div>

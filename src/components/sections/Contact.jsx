@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Mail, MessageCircle, Send } from 'lucide-react';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
+import Reveal from '../ui/Reveal.jsx';
 import Input from '../ui/Input.jsx';
 import Textarea from '../ui/Textarea.jsx';
 import Button from '../ui/Button.jsx';
@@ -104,7 +105,8 @@ export default function Contact() {
         {/* Grid 2 columnas en md+; en mobile se apila (1 col).
             gap-14 (56px) matchea mockup. items-start para que las dos
             columnas arranquen alineadas arriba aunque tengan distinta
-            altura. */}
+            altura. <Reveal> lo hace aparecer con fade-up al scrollear. */}
+        <Reveal>
         <div className="grid items-start gap-14 md:grid-cols-2">
           {/* ── Columna 1: formulario ── */}
           <form
@@ -214,6 +216,7 @@ export default function Contact() {
             </a>
           </div>
         </div>
+        </Reveal>
       </div>
     </section>
   );

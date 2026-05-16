@@ -48,11 +48,19 @@
   z-index: -1;
 }
 
+/* Card en reposo (sin hover): las 3 capas de glow se SACAN del render
+   con `display: none`, no se dejan a `opacity: 0`.
+   Por qué: estas capas usan `mask-image` con varios gradientes y
+   `mix-blend-mode` — son carísimas de compostear. A `opacity: 0` el
+   navegador igual las mantiene en el árbol de capas y las re-mezcla al
+   scrollear (10 cards = lag). Con `display: none` cuestan cero mientras
+   no las uses (que es el 99% del tiempo). Trade-off: se pierde el
+   fade-out al salir de la card — el glow desaparece de una. Es
+   imperceptible porque el glow sigue al cursor (es "vivo", no estático). */
 .border-glow-card:not(:hover):not(.sweep-active)::before,
 .border-glow-card:not(:hover):not(.sweep-active)::after,
 .border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
-  opacity: 0;
-  transition: opacity 0.75s ease-in-out;
+  display: none;
 }
 
 /* borde de degradé mesh coloreado */

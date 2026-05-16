@@ -1,4 +1,5 @@
 import BorderGlow from '../ui/BorderGlow.jsx';
+import Reveal from '../ui/Reveal.jsx';
 import { aiSkills } from '../../data/skills.js';
 
 /**
@@ -38,7 +39,9 @@ export default function AISection() {
       <div className="mx-auto max-w-[1200px]">
         {/* Bloque destacado dentro de un BorderGlow. borderRadius 20
             porque es un bloque grande (las cards chicas usan el 14
-            por defecto). El padding interno va en el div hijo. */}
+            por defecto). El padding interno va en el div hijo.
+            <Reveal> lo hace aparecer con fade-up al scrollear. */}
+        <Reveal>
         <BorderGlow borderRadius={20} glowRadius={48}>
           <div className="p-8 md:p-14">
             <div className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
@@ -89,6 +92,7 @@ export default function AISection() {
             </div>
           </div>
         </BorderGlow>
+        </Reveal>
       </div>
     </section>
   );

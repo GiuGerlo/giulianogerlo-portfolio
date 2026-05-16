@@ -53,6 +53,10 @@
 
 - **2026-05-16**: Task 5.1 ✅ — `ProjectDetail` page (`/proyectos/:slug`). Lookup por slug, redirect a `/404`, `document.title` por effect. Galería/desafíos/acciones condicionales (vacíos hoy). 3 tests + fix de smoke test stale. 94 passing.
 
+- **2026-05-16**: Fuera de plan — `ScrollToTop` (resetea scroll al cambiar de ruta) + logos de Navbar/Footer scrollean al tope en `onClick`.
+
+- **2026-05-16**: Task 6.1 ✅ — Scroll reveals con Motion. `<Reveal>` (fade-up `whileInView`), horneado en `SectionHeading` + cards con stagger en todas las secciones. Mock de `IntersectionObserver` en el setup de tests. 94 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1047,7 +1051,18 @@ Commit final phase 4.
 
 ## Phase 6 — Animaciones + polish
 
-### Task 6.1: Scroll reveals con Motion
+### Task 6.1: Scroll reveals con Motion ✅ (2026-05-16)
+
+> Implementado. Se instaló `motion` (v12) y se creó `src/components/ui/
+> Reveal.jsx` (fade-up `whileInView`, `once`, `margin -100px`, props
+> `delay` + `className`). El `<Reveal>` se horneó dentro de
+> `SectionHeading` → todos los encabezados de sección revelan solos.
+> Cards envueltas con stagger (`delay={index*0.06}`) en Skills,
+> Projects, Experience y Education; About / AISection / Contact con un
+> Reveal por bloque. Fix en Experience: `last:pb-0` se reemplazó por
+> chequeo de índice (cada item ahora está en su propio wrapper).
+> Mock de `IntersectionObserver` agregado a `src/test/setup.js` (jsdom
+> no lo trae y Motion lo necesita para `whileInView`). 94 passing.
 
 Wrapper component `<Reveal>`:
 ```jsx

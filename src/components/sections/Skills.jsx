@@ -8,6 +8,7 @@ import {
 
 import SectionHeading from '../ui/SectionHeading.jsx';
 import BorderGlow from '../ui/BorderGlow.jsx';
+import Reveal from '../ui/Reveal.jsx';
 import { skillGroups } from '../../data/skills.js';
 
 /**
@@ -67,16 +68,23 @@ export default function Skills() {
         {/* Grid: 1 col mobile · 2 cols tablet · 5 cols desktop (una
             fila con los 5 grupos). gap-5 (20px) matchea mockup. */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-          {skillGroups.map((group) => {
+          {skillGroups.map((group, index) => {
             // Resolver ícono por nombre. Si la data tiene un nombre que
             // no está mapeado, dejamos null — el render salta el ícono
             // en vez de explotar.
             const Icon = ICONS[group.icon] ?? null;
 
             return (
-              // BorderGlow es el contenedor de la card (borde mesh +
-              // glow). El contenido real va adentro con su padding.
-              <BorderGlow key={group.id} className="h-full">
+              // Reveal: fade-up al scrollear. delay escalonado por
+              // index → las 5 cards aparecen una atrás de otra.
+              // BorderGlow adentro: el contenedor de la card (borde
+              // mesh + glow). El contenido real va con su padding.
+              <Reveal
+                key={group.id}
+                delay={index * 0.06}
+                className="h-full"
+              >
+                <BorderGlow className="h-full">
                 <div className="p-6">
                   {/* Cuadrado 36x36 con bg accent-bg (verde tenue) e
                       ícono accent. inline-flex centra el SVG dentro. */}
@@ -109,7 +117,8 @@ export default function Skills() {
                     ))}
                   </div>
                 </div>
-              </BorderGlow>
+                </BorderGlow>
+              </Reveal>
             );
           })}
         </div>

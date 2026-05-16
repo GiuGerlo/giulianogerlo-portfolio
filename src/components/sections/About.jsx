@@ -1,6 +1,7 @@
 import { MapPin, Languages, GraduationCap } from 'lucide-react';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
+import Reveal from '../ui/Reveal.jsx';
 import Chip from '../ui/Chip.jsx';
 
 /**
@@ -37,7 +38,9 @@ export default function About() {
         <SectionHeading eyebrow="// 01 — about" title="Sobre mí" />
 
         {/* Grid 2 cols en desktop. items-start para que la foto no
-            estire de alto si el texto es más largo. */}
+            estire de alto si el texto es más largo. Envuelto en
+            <Reveal> → aparece con fade-up al scrollear. */}
+        <Reveal>
         <div className="grid gap-12 md:grid-cols-[1fr_280px] md:gap-16 md:items-start">
           {/* Columna texto + chips. */}
           <div>
@@ -109,6 +112,7 @@ export default function About() {
             />
           </div>
         </div>
+        </Reveal>
       </div>
     </section>
   );

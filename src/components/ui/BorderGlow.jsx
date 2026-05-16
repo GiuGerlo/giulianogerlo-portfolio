@@ -141,6 +141,14 @@ export default function BorderGlow({
   // (getBoundingClientRect) y escribir CSS vars.
   const cardRef = useRef(null);
 
+  // Throttle del pointermove: el mouse dispara el evento muchas veces
+  // por frame. Guardamos la última posición y agendamos UN solo
+  // requestAnimationFrame — así el cálculo (que incluye un
+  // getBoundingClientRect, que fuerza reflow) corre máximo una vez por
+  // frame, no una vez por evento.
+  const moveFrame = useRef(0);
+  const lastPointer = useRef({ x: 0, y: 0 });
+
   // Centro del elemento (mitad de width/height).
   const getCenterOfElement = useCallback((el) => {
     const { width, height } = el.getBoundingClientRect();
@@ -178,24 +186,45 @@ export default function BorderGlow({
   );
 
   // Handler de pointermove: traduce la posición del cursor a las dos
-  // CSS vars que consume BorderGlow.css.
+  // CSS vars que consume BorderGlow.css. Throttleado a 1 cálculo/frame.
   const handlePointerMove = useCallback(
     (e) => {
-      const card = cardRef.current;
-      if (!card) return;
+      // Guardamos siempre la última posición del cursor.
+      lastPointer.current = { x: e.clientX, y: e.clientY };
 
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      // Si ya hay un frame agendado, no agendamos otro: cuando corra,
+      // usará la posición más reciente que dejamos arriba.
+      if (moveFrame.current) return;
 
-      const edge = getEdgeProximity(card, x, y);
-      const angle = getCursorAngle(card, x, y);
+      moveFrame.current = requestAnimationFrame(() => {
+        moveFrame.current = 0;
+        const card = cardRef.current;
+        if (!card) return;
 
-      card.style.setProperty('--edge-proximity', `${(edge * 100).toFixed(3)}`);
-      card.style.setProperty('--cursor-angle', `${angle.toFixed(3)}deg`);
+        const rect = card.getBoundingClientRect();
+        const x = lastPointer.current.x - rect.left;
+        const y = lastPointer.current.y - rect.top;
+
+        const edge = getEdgeProximity(card, x, y);
+        const angle = getCursorAngle(card, x, y);
+
+        card.style.setProperty(
+          '--edge-proximity',
+          `${(edge * 100).toFixed(3)}`,
+        );
+        card.style.setProperty('--cursor-angle', `${angle.toFixed(3)}deg`);
+      });
     },
     [getEdgeProximity, getCursorAngle],
   );
+
+  // Cleanup: cancelar el rAF pendiente si la card se desmonta con un
+  // frame en cola (evita que corra sobre un nodo ya removido).
+  useEffect(() => {
+    return () => {
+      if (moveFrame.current) cancelAnimationFrame(moveFrame.current);
+    };
+  }, []);
 
   // Animación de intro opcional: un barrido del glow alrededor del
   // borde al montar. Solo corre si `animated` es true.

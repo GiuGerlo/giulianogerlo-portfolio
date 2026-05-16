@@ -71,9 +71,12 @@ export default function Navbar() {
     // <header> = elemento semántico HTML para el encabezado del sitio.
     // - sticky top-0 z-50:  queda pegado arriba al scrollear, sobre todo lo demás.
     // - bg-bg/70:           color de fondo con 70% de opacidad (alpha en v4).
-    // - backdrop-blur-md:   efecto "vidrio esmerilado" sobre lo que pasa por detrás.
+    // - backdrop-blur-sm:   efecto "vidrio esmerilado" leve. Se usa el
+    //   nivel `sm` (no `md`) a propósito: el backdrop-filter re-desenfoca
+    //   el fondo en cada frame de scroll — `sm` baja bastante ese costo
+    //   manteniendo algo del efecto vidrio.
     // - border-b:           línea fina abajo separando del contenido.
-    <header className="sticky top-0 z-50 border-b border-border bg-bg/70 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-border bg-bg/70 backdrop-blur-sm">
 
       {/* Contenedor interno: max-width 1200px centrado.
           mx-auto = margin-left/right: auto (centra horizontal).

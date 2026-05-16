@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
+import Reveal from '../ui/Reveal.jsx';
 import { experience } from '../../data/experience.js';
 
 /**
@@ -51,7 +52,7 @@ export default function Experience() {
             className="absolute left-2 top-2 bottom-2 w-0.5 bg-border"
           />
 
-          {experience.map((item) => {
+          {experience.map((item, index) => {
             // Contenido de la card — idéntico linkee o no. Lo definimos
             // una vez y abajo decidimos en qué contenedor lo metemos.
             // group-hover en el <h3>: cuando el item es link, al pasar
@@ -76,10 +77,18 @@ export default function Experience() {
               </>
             );
 
+            // Último item: sin padding-bottom. No uso la variante
+            // `last:` de Tailwind porque ahora cada item está envuelto
+            // en su propio <Reveal> → siempre sería "último hijo" de su
+            // wrapper y `last:pb-0` aplicaría a todos. Lo resolvemos por
+            // index contra el largo del array.
+            const isLast = index === experience.length - 1;
+
             return (
+              // Reveal: fade-up al scrollear, escalonado por index.
+              <Reveal key={item.id} delay={index * 0.06}>
               <div
-                key={item.id}
-                className="relative pb-10 last:pb-0"
+                className={isLast ? 'relative' : 'relative pb-10'}
               >
                 {/* Punto del timeline. -left-8 lo saca 32px a la izq para
                     caer sobre la línea. Hueco por defecto (bg-bg + borde
@@ -107,6 +116,7 @@ export default function Experience() {
                   <div>{content}</div>
                 )}
               </div>
+              </Reveal>
             );
           })}
         </div>

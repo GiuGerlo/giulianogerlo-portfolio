@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
+import Reveal from '../ui/Reveal.jsx';
 import { projects } from '../../data/projects.js';
 
 /**
@@ -43,9 +44,10 @@ export default function Projects() {
 
         {/* Grid auto-fit. gap-5 (20px) matchea mockup. */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-5">
-          {projects.map((project) => (
+          {projects.map((project, index) => (
+            // Reveal: fade-up al scrollear, escalonado por index.
+            <Reveal key={project.slug} delay={index * 0.06}>
             <Link
-              key={project.slug}
               to={`/proyectos/${project.slug}`}
               className="group block overflow-hidden rounded-xl border border-border bg-bg-elevated shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent"
             >
@@ -101,6 +103,7 @@ export default function Projects() {
                 </span>
               </div>
             </Link>
+            </Reveal>
           ))}
         </div>
       </div>
