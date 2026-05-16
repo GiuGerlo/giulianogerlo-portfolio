@@ -71,6 +71,10 @@
 
 - **2026-05-16**: Task 7.3 ✅ — Widget Cloudflare Turnstile en el form. Token requerido para habilitar el submit. 97 passing.
 
+- **2026-05-16**: Task 7.4 ✅ — Serverless `api/contact.js` (Resend + verify Turnstile + honeypot + HTML escape). 97 passing, lint OK.
+
+- **2026-05-16**: Task 7.5 ✅ — Form conectado a `/api/contact` vía fetch. Estados loading/success/error. 98 passing, lint OK.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1212,7 +1216,21 @@ Agregar widget al form, capturar token en estado.
 
 Commit.
 
-### Task 7.4: Serverless function `api/contact.js`
+### Task 7.4: Serverless function `api/contact.js` ✅ (2026-05-16)
+
+> Implementado. `resend@6.12.3` instalado. `api/contact.js` (Vercel
+> serverless): 1) solo POST → 405; 2) honeypot `website` lleno → 200
+> falso; 3) verifica `turnstileToken` contra Cloudflare siteverify;
+> 4) re-valida nombre/email/mensaje server-side; 5) `escapeHtml` de
+> todos los inputs; 6) `resend.emails.send` con `replyTo` al visitante.
+> Env vars sumadas: `CONTACT_EMAIL_TO`, `CONTACT_EMAIL_FROM` (en `.env`
+> y `.env.example`). ESLint: bloque nuevo para `api/**` con
+> `globals.node`. Aparte: fix lint pre-existente en `App.test.jsx`
+> (faltaba `import { test, expect }`). 97 passing, lint OK.
+>
+> Pendiente usuario: el `from` usa `onboarding@resend.dev` (modo prueba
+> Resend — solo manda al email de la cuenta). Para producción hace falta
+> verificar un dominio propio en Resend.
 
 `pnpm install resend`
 
@@ -1225,7 +1243,17 @@ Implementar según design doc:
 
 Commit.
 
-### Task 7.5: Wire form → /api/contact
+### Task 7.5: Wire form → /api/contact ✅ (2026-05-16)
+
+> Implementado. `onSubmit` ahora es `async`: hace `POST /api/contact`
+> con `{ nombre, email, mensaje, website, turnstileToken }` en JSON. Si
+> `res.ok` es false, lee `body.error` y lo tira como excepción. Estado
+> `status` ('idle'|'success'|'error') + `errorMsg` controlan el mensaje
+> de resultado debajo del botón. Botón muestra "Enviando..." mientras
+> `isSubmitting`. Sacado `isSubmitSuccessful` (lo reemplaza `status`).
+> Tests: mock de `fetch` con `vi.stubGlobal`; el test de console.log
+> pasó a verificar el POST + mensaje de éxito; +1 test de error. 98
+> passing, lint OK.
 
 `fetch('/api/contact', { method: 'POST', body: JSON.stringify(...) })`
 

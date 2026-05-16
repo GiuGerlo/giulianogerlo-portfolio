@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Mail, MessageCircle, Send } from 'lucide-react';
 // react-hook-form maneja el estado del formulario; zodResolver conecta
 // el schema de validación de zod con react-hook-form.
@@ -22,10 +22,10 @@ import { socials } from '../../data/socials.js';
  * contacto a la izquierda, links de contacto directo a la derecha.
  *
  * Estado del formulario:
- *   La VALIDACIÓN ya es real — react-hook-form + zod chequean los
- *   campos y muestran errores por campo. Lo que todavía NO está es el
- *   ENVÍO: `onSubmit` solo loguea los datos (placeholder). Conectar el
- *   form a un servicio de email es una task posterior de esta Phase.
+ *   Validación real (react-hook-form + zod) y envío real: `onSubmit`
+ *   hace un POST a /api/contact (serverless function con Resend). El
+ *   estado `status` ('idle' | 'success' | 'error') controla el mensaje
+ *   de resultado debajo del botón.
  *
  * Email obfuscation (anti-scraping):
  *   El email NO está en texto plano en el código. Se guarda codificado
@@ -126,9 +126,18 @@ export default function Contact() {
   // confirma que es humano (onSuccess), guardamos el token acá.
   const [turnstileToken, setTurnstileToken] = useState(null);
 
-  // Ref al widget de Turnstile para poder resetearlo después de enviar
-  // (un token sirve una sola vez; tras el submit hay que pedir uno nuevo).
-  const turnstileRef = useRef(null);
+  // "Llave" del widget de Turnstile. En React, cambiar el `key` de un
+  // componente lo desmonta y lo vuelve a montar desde cero. Lo usamos
+  // para resetear el widget tras enviar: un token sirve una sola vez,
+  // así que incrementamos esta llave para forzar un widget nuevo.
+  const [turnstileKey, setTurnstileKey] = useState(0);
+
+  // Estado del resultado del envío al backend:
+  //   'idle'    → todavía no se envió (o se está enviando).
+  //   'success' → el backend confirmó el envío del email.
+  //   'error'   → algo falló; el detalle queda en `errorMsg`.
+  const [status, setStatus] = useState('idle');
+  const [errorMsg, setErrorMsg] = useState('');
 
   // react-hook-form:
   //  - register  → conecta cada input al form (name, onChange, ref...).
@@ -141,22 +150,49 @@ export default function Contact() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(contactSchema) });
 
-  // onSubmit — solo corre si la validación pasó. Por ahora es
-  // placeholder: loguea los datos junto al token de Turnstile. El envío
-  // real a /api/contact se conecta en una task posterior de esta Phase.
-  function onSubmit(data) {
-    console.log('Formulario de contacto (placeholder, sin envío):', {
-      ...data,
-      turnstileToken,
-    });
-    reset();
-    // El token de Turnstile es de un solo uso: lo limpiamos y reseteamos
-    // el widget para que genere uno nuevo si el visitante vuelve a enviar.
-    setTurnstileToken(null);
-    turnstileRef.current?.reset();
+  // onSubmit — solo corre si la validación de zod pasó. Es `async`
+  // porque hace un fetch al backend; react-hook-form mantiene
+  // `isSubmitting` en true mientras la promesa esté pendiente, así el
+  // botón queda deshabilitado y muestra "Enviando...".
+  async function onSubmit(data) {
+    setStatus('idle');
+    try {
+      // POST al serverless function api/contact.js. El body va como
+      // JSON: los 3 campos + el honeypot + el token de Turnstile (que
+      // NO está en `data` porque no es un input registrado del form).
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: data.nombre,
+          email: data.email,
+          mensaje: data.mensaje,
+          website: data.website ?? '',
+          turnstileToken,
+        }),
+      });
+
+      // res.ok es true para status 2xx. Si el backend respondió un
+      // error, leemos el mensaje que mandó y lo tiramos como excepción.
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? 'No se pudo enviar el mensaje.');
+      }
+
+      setStatus('success');
+      reset();
+      // El token de Turnstile es de un solo uso: lo limpiamos y
+      // cambiamos la llave para remontar el widget (genera uno nuevo).
+      setTurnstileToken(null);
+      setTurnstileKey((k) => k + 1);
+    } catch (err) {
+      // Cae acá tanto por error del backend como por fallo de red.
+      setStatus('error');
+      setErrorMsg(err.message || 'Error de conexión. Probá de nuevo.');
+    }
   }
 
   return (
@@ -246,7 +282,7 @@ export default function Contact() {
                 dentro de la columna del form. */}
             <div className="mb-5 flex justify-center">
               <Turnstile
-                ref={turnstileRef}
+                key={turnstileKey}
                 siteKey={TURNSTILE_SITE_KEY}
                 onSuccess={setTurnstileToken}
                 onExpire={() => setTurnstileToken(null)}
@@ -263,16 +299,23 @@ export default function Contact() {
               disabled={isSubmitting || !turnstileToken}
               className="w-full justify-center"
             >
-              Enviar mensaje
+              {isSubmitting ? 'Enviando...' : 'Enviar mensaje'}
               <Send size={16} aria-hidden="true" />
             </Button>
 
-            {/* Mensaje de éxito tras un submit válido. role="status"
-                hace que el lector de pantalla lo anuncie. */}
-            {isSubmitSuccessful && (
+            {/* Mensaje de éxito tras un envío confirmado por el backend.
+                role="status" hace que el lector de pantalla lo anuncie. */}
+            {status === 'success' && (
               <p role="status" className="mt-3 text-sm text-accent">
-                ¡Mensaje recibido! (Por ahora es un placeholder — el
-                envío real se conecta en la próxima task.)
+                ¡Mensaje enviado! Te voy a responder pronto.
+              </p>
+            )}
+
+            {/* Mensaje de error si el envío falló. role="alert" hace que
+                el lector de pantalla lo anuncie con prioridad. */}
+            {status === 'error' && (
+              <p role="alert" className="mt-3 text-sm text-red-500">
+                {errorMsg}
               </p>
             )}
           </form>

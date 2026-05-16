@@ -61,31 +61,68 @@ describe('Contact', () => {
     expect(enviar).toBeEnabled();
   });
 
-  test('submit válido: corre onSubmit (console.log, UI only)', async () => {
-    const user = userEvent.setup();
-    // Espiamos console.log para verificar que el handler corre.
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    render(<Contact />);
-
-    // Pasamos el anti-bot para habilitar el botón Enviar.
-    await pasarTurnstile(user);
-
-    // Completamos los 3 campos con valores válidos según el schema.
+  // Helper — completa los 3 campos del form con valores válidos.
+  async function completarForm(user) {
     await user.type(screen.getByLabelText(/nombre/i), 'Juan Pérez');
-    await user.type(
-      screen.getByLabelText(/email/i),
-      'juan@example.com',
-    );
+    await user.type(screen.getByLabelText(/email/i), 'juan@example.com');
     await user.type(
       screen.getByLabelText(/mensaje/i),
       'Hola, quiero contactarte por un proyecto.',
     );
+  }
+
+  test('submit válido: postea a /api/contact y muestra éxito', async () => {
+    const user = userEvent.setup();
+    // No hay backend en los tests: mockeamos fetch para que devuelva
+    // una respuesta 200 ok, como haría api/contact.js en producción.
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<Contact />);
+    await pasarTurnstile(user);
+    await completarForm(user);
     await user.click(
       screen.getByRole('button', { name: /enviar mensaje/i }),
     );
 
-    expect(logSpy).toHaveBeenCalled();
-    logSpy.mockRestore();
+    // fetch fue llamado al endpoint correcto con método POST.
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/contact',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    // El mensaje de éxito aparece tras la respuesta.
+    expect(
+      await screen.findByText(/mensaje enviado/i),
+    ).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
+  });
+
+  test('submit con error del backend: muestra el mensaje de error', async () => {
+    const user = userEvent.setup();
+    // El backend responde con un error (ej: Turnstile falló).
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: 'La verificación anti-bot falló.' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<Contact />);
+    await pasarTurnstile(user);
+    await completarForm(user);
+    await user.click(
+      screen.getByRole('button', { name: /enviar mensaje/i }),
+    );
+
+    // El mensaje de error del backend se muestra en el form.
+    expect(
+      await screen.findByText(/anti-bot falló/i),
+    ).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
   });
 
   test('submit inválido: muestra errores de validación por campo', async () => {

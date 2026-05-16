@@ -18,4 +18,13 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  // Las serverless functions de /api corren en Node (Vercel), no en el
+  // browser: usan globals de Node como `process`. Este bloque sobrescribe
+  // los globals para esos archivos.
+  {
+    files: ['api/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])
