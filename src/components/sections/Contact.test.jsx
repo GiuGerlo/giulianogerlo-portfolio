@@ -85,6 +85,21 @@ describe('Contact', () => {
     ).toBeInTheDocument();
   });
 
+  test('honeypot: campo trampa "website" existe pero está oculto', () => {
+    const { container } = render(<Contact />);
+
+    // El input trampa existe en el DOM (un bot lo encuentra y lo llena).
+    const honeypot = container.querySelector('#website');
+    expect(honeypot).toBeInTheDocument();
+    expect(honeypot).toHaveAttribute('tabindex', '-1');
+
+    // Su contenedor está fuera de pantalla y marcado aria-hidden — un
+    // humano (o lector de pantalla) nunca lo ve.
+    const wrapper = honeypot.closest('[aria-hidden="true"]');
+    expect(wrapper).not.toBeNull();
+    expect(wrapper).toHaveStyle({ left: '-9999px' });
+  });
+
   test('renderiza los links de contacto directo', () => {
     render(<Contact />);
     // WhatsApp, LinkedIn y GitHub son <a> con href real.

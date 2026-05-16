@@ -67,6 +67,8 @@
 
 - **2026-05-16**: Task 7.1 ✅ — Form de contacto con react-hook-form + zod. Validación real por campo. Envío sigue placeholder (Task 7.4/7.5). 95 passing.
 
+- **2026-05-16**: Task 7.2 ✅ — Honeypot anti-bots (campo trampa `website` oculto offscreen). Creados `.env` (gitignored) + `.env.example`. 96 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1167,7 +1169,19 @@ Mostrar errores por campo.
 
 Commit.
 
-### Task 7.2: Honeypot field
+### Task 7.2: Honeypot field ✅ (2026-05-16)
+
+> Implementado. Campo trampa `website` en `Contact.jsx`: `<input>` raw
+> (no el primitive) dentro de un `<div>` con `position:absolute;
+> left:-9999px; opacity:0; pointer-events:none` + `aria-hidden`.
+> `tabIndex={-1}` + `autoComplete="off"`. Agregado al `contactSchema`
+> como `z.string().optional()` para que el valor NO sea descartado por
+> zod y llegue al backend (el rechazo si viene lleno es Task 7.4). 1
+> test sumado (campo existe pero oculto). 96 passing.
+>
+> Aparte: creados `.env` (keys reales, gitignored) y `.env.example`
+> (plantilla, commiteada). Convención: `VITE_TURNSTILE_SITE_KEY` pública
+> (frontend), `TURNSTILE_SECRET_KEY` + `RESEND_API_KEY` server-only.
 
 Campo `website` con CSS `position: absolute; left: -9999px; opacity: 0; pointer-events: none;` + `tabIndex={-1}` + `autoComplete="off"`.
 

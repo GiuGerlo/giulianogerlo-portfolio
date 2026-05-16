@@ -30,6 +30,14 @@ import { socials } from '../../data/socials.js';
  *   hace click en la card de email. Hasta entonces la card muestra
  *   "Click para ver email" y es un `<button>`; tras el click pasa a ser
  *   un `<a href="mailto:...">`. Ver src/lib/obfuscate-email.js.
+ *
+ * Honeypot anti-bots (campo `website`):
+ *   Hay un input extra escondido fuera de la pantalla. Un humano nunca
+ *   lo ve ni lo puede tabular, así que lo deja vacío. Los bots que
+ *   completan automáticamente TODOS los campos del form lo llenan — y
+ *   eso los delata. El backend (Task 7.4) descarta cualquier envío que
+ *   traiga `website` con contenido. El nombre "website" es a propósito
+ *   genérico: un bot ve un campo así y lo autocompleta sin sospechar.
  */
 
 /**
@@ -93,6 +101,11 @@ const contactSchema = z.object({
     .string()
     .trim()
     .min(10, 'Contame un poco más (mínimo 10 caracteres).'),
+  // Honeypot — campo trampa. optional() porque un humano lo deja
+  // vacío (no lo ve). Lo incluimos en el schema para que su valor
+  // NO sea descartado por zod y llegue al backend, que es quien
+  // decide rechazar el envío si viene con contenido.
+  website: z.string().optional(),
 });
 
 export default function Contact() {
@@ -172,6 +185,33 @@ export default function Contact() {
               error={errors.mensaje?.message}
               {...register('mensaje')}
             />
+
+            {/* Honeypot — input trampa para bots. NO usa el primitive
+                <Input> a propósito: no queremos label visible. Se saca
+                de la pantalla con position:absolute + left:-9999px (no
+                con display:none ni hidden, porque algunos bots ignoran
+                campos display:none). tabIndex={-1} lo saltea con Tab,
+                autoComplete="off" evita que el browser lo autocomplete,
+                aria-hidden lo oculta del lector de pantalla. Un humano
+                nunca interactúa con esto; un bot que llena todo, sí. */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '-9999px',
+                opacity: 0,
+                pointerEvents: 'none',
+              }}
+              aria-hidden="true"
+            >
+              <label htmlFor="website">No completar este campo</label>
+              <input
+                id="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                {...register('website')}
+              />
+            </div>
 
             {/* type="submit" pisa el type="button" default del primitive.
                 disabled mientras envía evita doble submit. */}
