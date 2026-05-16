@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Mail, MessageCircle, Send } from 'lucide-react';
 // react-hook-form maneja el estado del formulario; zodResolver conecta
 // el schema de validación de zod con react-hook-form.
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+// Turnstile — widget anti-bot de Cloudflare. Genera un token cuando
+// confirma que el visitante es humano; ese token lo verifica el backend.
+import { Turnstile } from '@marsidev/react-turnstile';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
 import Reveal from '../ui/Reveal.jsx';
@@ -80,6 +83,11 @@ function ContactRow({ icon, label, value }) {
 // NUNCA aparece en el código fuente ni en el HTML servido.
 const ENCODED_EMAIL = 'Z2dpdWxpYW5vNTI2QGdtYWlsLmNvbQ==';
 
+// SITE KEY de Cloudflare Turnstile. Es PÚBLICA (va en el frontend), por
+// eso lleva prefijo VITE_ — Vite la inyecta en el bundle desde el .env.
+// La SECRET KEY (verificación) vive solo en el backend, nunca acá.
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+
 // Clases compartidas de cada card de contacto. Se aplican igual sea
 // `<a>` o `<button>`. text-left porque <button> centra el texto por
 // default y queremos alineado a la izquierda como las cards <a>.
@@ -113,6 +121,15 @@ export default function Contact() {
   // true = revelado (se muestra la dirección y la card es mailto).
   const [revealed, setRevealed] = useState(false);
 
+  // Token de Turnstile. null = el visitante todavía no pasó el chequeo
+  // anti-bot → el botón Enviar queda deshabilitado. Cuando el widget
+  // confirma que es humano (onSuccess), guardamos el token acá.
+  const [turnstileToken, setTurnstileToken] = useState(null);
+
+  // Ref al widget de Turnstile para poder resetearlo después de enviar
+  // (un token sirve una sola vez; tras el submit hay que pedir uno nuevo).
+  const turnstileRef = useRef(null);
+
   // react-hook-form:
   //  - register  → conecta cada input al form (name, onChange, ref...).
   //  - handleSubmit → valida con el schema y, si pasa, llama onSubmit.
@@ -128,11 +145,18 @@ export default function Contact() {
   } = useForm({ resolver: zodResolver(contactSchema) });
 
   // onSubmit — solo corre si la validación pasó. Por ahora es
-  // placeholder: loguea los datos. El envío real a un servicio de
-  // email se conecta en una task posterior de esta Phase.
+  // placeholder: loguea los datos junto al token de Turnstile. El envío
+  // real a /api/contact se conecta en una task posterior de esta Phase.
   function onSubmit(data) {
-    console.log('Formulario de contacto (placeholder, sin envío):', data);
+    console.log('Formulario de contacto (placeholder, sin envío):', {
+      ...data,
+      turnstileToken,
+    });
     reset();
+    // El token de Turnstile es de un solo uso: lo limpiamos y reseteamos
+    // el widget para que genere uno nuevo si el visitante vuelve a enviar.
+    setTurnstileToken(null);
+    turnstileRef.current?.reset();
   }
 
   return (
@@ -213,11 +237,30 @@ export default function Contact() {
               />
             </div>
 
+            {/* Widget de Turnstile. onSuccess entrega el token cuando
+                Cloudflare confirma que es humano; onExpire/onError lo
+                invalidan (el token caduca o falla la verificación).
+                Mientras turnstileToken sea null, el botón Enviar queda
+                deshabilitado. mb-5 lo separa del botón de abajo;
+                flex+justify-center centra la cajita (ancho fijo ~300px)
+                dentro de la columna del form. */}
+            <div className="mb-5 flex justify-center">
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={TURNSTILE_SITE_KEY}
+                onSuccess={setTurnstileToken}
+                onExpire={() => setTurnstileToken(null)}
+                onError={() => setTurnstileToken(null)}
+                options={{ theme: 'auto' }}
+              />
+            </div>
+
             {/* type="submit" pisa el type="button" default del primitive.
-                disabled mientras envía evita doble submit. */}
+                disabled si está enviando (evita doble submit) o si todavía
+                no hay token de Turnstile (el visitante no pasó el anti-bot). */}
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !turnstileToken}
               className="w-full justify-center"
             >
               Enviar mensaje

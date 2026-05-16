@@ -69,6 +69,8 @@
 
 - **2026-05-16**: Task 7.2 ✅ — Honeypot anti-bots (campo trampa `website` oculto offscreen). Creados `.env` (gitignored) + `.env.example`. 96 passing.
 
+- **2026-05-16**: Task 7.3 ✅ — Widget Cloudflare Turnstile en el form. Token requerido para habilitar el submit. 97 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1187,7 +1189,17 @@ Campo `website` con CSS `position: absolute; left: -9999px; opacity: 0; pointer-
 
 Commit.
 
-### Task 7.3: Cloudflare Turnstile widget
+### Task 7.3: Cloudflare Turnstile widget ✅ (2026-05-16)
+
+> Implementado. `@marsidev/react-turnstile@1.5.2` instalado. Widget
+> `<Turnstile>` en `Contact.jsx` con `siteKey` desde
+> `VITE_TURNSTILE_SITE_KEY`. Token capturado en estado
+> (`turnstileToken`); `onExpire`/`onError` lo invalidan. Botón Enviar
+> `disabled` mientras no haya token. `turnstileRef` para resetear el
+> widget tras enviar (token de un solo uso). Tests: mock de
+> `@marsidev/react-turnstile` (jsdom no corre el script de CF) — botón
+> que dispara `onSuccess`. 1 test sumado (botón disabled→enabled). 97
+> passing.
 
 **Pre-requisito usuario:** crear cuenta Cloudflare, obtener SITE KEY + SECRET KEY (ver `TODO-USUARIO.md`).
 

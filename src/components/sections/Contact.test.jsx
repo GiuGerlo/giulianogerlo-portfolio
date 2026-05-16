@@ -4,6 +4,27 @@ import userEvent from '@testing-library/user-event';
 
 import Contact from './Contact.jsx';
 
+// Mock del widget de Turnstile. El componente real carga un script de
+// Cloudflare que no funciona en jsdom (entorno de tests). Lo reemplazamos
+// por un <button>: clickearlo simula que el visitante "pasó" el anti-bot
+// y dispara onSuccess con un token falso. Así los tests controlan cuándo
+// hay token y cuándo no, sin depender de la red.
+vi.mock('@marsidev/react-turnstile', () => ({
+  Turnstile: ({ onSuccess }) => (
+    <button type="button" onClick={() => onSuccess('test-turnstile-token')}>
+      mock-turnstile
+    </button>
+  ),
+}));
+
+// Helper — clickea el mock de Turnstile para entregar un token. Lo usan
+// los tests que necesitan el botón Enviar habilitado.
+async function pasarTurnstile(user) {
+  await user.click(
+    screen.getByRole('button', { name: /mock-turnstile/i }),
+  );
+}
+
 describe('Contact', () => {
   test('renderiza heading "Hablemos"', () => {
     render(<Contact />);
@@ -27,11 +48,27 @@ describe('Contact', () => {
     ).toBeInTheDocument();
   });
 
+  test('Turnstile: botón Enviar deshabilitado hasta pasar el widget', async () => {
+    const user = userEvent.setup();
+    render(<Contact />);
+
+    // Sin token: el botón arranca deshabilitado.
+    const enviar = screen.getByRole('button', { name: /enviar mensaje/i });
+    expect(enviar).toBeDisabled();
+
+    // Tras pasar el widget anti-bot, el botón se habilita.
+    await pasarTurnstile(user);
+    expect(enviar).toBeEnabled();
+  });
+
   test('submit válido: corre onSubmit (console.log, UI only)', async () => {
     const user = userEvent.setup();
     // Espiamos console.log para verificar que el handler corre.
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     render(<Contact />);
+
+    // Pasamos el anti-bot para habilitar el botón Enviar.
+    await pasarTurnstile(user);
 
     // Completamos los 3 campos con valores válidos según el schema.
     await user.type(screen.getByLabelText(/nombre/i), 'Juan Pérez');
@@ -55,7 +92,9 @@ describe('Contact', () => {
     const user = userEvent.setup();
     render(<Contact />);
 
-    // Submit con el form vacío → zod falla → se muestran los errores.
+    // Pasamos el anti-bot (sino el botón está disabled y no se puede
+    // disparar el submit) y enviamos el form vacío → zod falla.
+    await pasarTurnstile(user);
     await user.click(
       screen.getByRole('button', { name: /enviar mensaje/i }),
     );
