@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
+import BorderGlow from '../ui/BorderGlow.jsx';
 import { skillGroups } from '../../data/skills.js';
 
 /**
@@ -30,10 +31,14 @@ import { skillGroups } from '../../data/skills.js';
  *   import arriba + entry en ICONS.
  *
  * Layout — grid responsive:
- *   `grid-cols-[repeat(auto-fit,minmax(240px,1fr))]` replica el mockup.
- *   auto-fit acomoda tantas columnas como entren con mínimo 240px cada
- *   una. En mobile (~360px viewport) entra 1 col; en tablet 2; en
- *   desktop 3+. Sin breakpoints manuales: el grid se adapta solo.
+ *   Son 5 grupos y los queremos en UNA fila en desktop, así que el
+ *   grid es de columnas fijas por breakpoint (no auto-fit):
+ *   1 col en mobile, 2 en tablet (sm), 5 en desktop (lg).
+ *
+ * Cards con glow:
+ *   Cada grupo va dentro de un <BorderGlow> — card con borde mesh
+ *   verde + glow que sigue al cursor cerca de los bordes. Reemplaza
+ *   el `<article>` con border/hover plano que había antes.
  */
 
 // Lookup string → componente lucide. Mantener sincronizado con los
@@ -59,9 +64,9 @@ export default function Skills() {
           subtitle="Herramientas que uso día a día para construir aplicaciones web completas."
         />
 
-        {/* Grid auto-fit: tantas cols como entren con minmax(240px, 1fr).
-            gap-5 (20px) matchea mockup. */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5">
+        {/* Grid: 1 col mobile · 2 cols tablet · 5 cols desktop (una
+            fila con los 5 grupos). gap-5 (20px) matchea mockup. */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
           {skillGroups.map((group) => {
             // Resolver ícono por nombre. Si la data tiene un nombre que
             // no está mapeado, dejamos null — el render salta el ícono
@@ -69,41 +74,42 @@ export default function Skills() {
             const Icon = ICONS[group.icon] ?? null;
 
             return (
-              <article
-                key={group.id}
-                className="rounded-lg border border-border bg-bg-elevated p-6 transition-colors hover:border-accent"
-              >
-                {/* Cuadrado 36x36 con bg accent-bg (verde tenue) e ícono
-                    accent. inline-flex centra el SVG dentro. */}
-                {Icon && (
-                  <div
-                    data-testid={`skill-icon-${group.id}`}
-                    className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-accent-bg text-accent"
-                  >
-                    <Icon size={18} aria-hidden="true" />
-                  </div>
-                )}
-
-                <h3 className="mb-3 text-base font-semibold">
-                  {group.title}
-                </h3>
-
-                {/* Skill tags. NO uso el primitive Chip porque ese es
-                    pill redondo grande; estos son squared más chicos
-                    (matchea .skill-tag del mockup: 11px mono, px-2 py-1,
-                    border-radius 4px). Si después se reusa este styling
-                    en más lados, extraer a primitive Tag.jsx. */}
-                <div className="flex flex-wrap gap-1.5">
-                  {group.items.map((item) => (
-                    <span
-                      key={item}
-                      className="rounded border border-border bg-bg px-2 py-1 font-mono text-[11px] text-text-muted"
+              // BorderGlow es el contenedor de la card (borde mesh +
+              // glow). El contenido real va adentro con su padding.
+              <BorderGlow key={group.id} className="h-full">
+                <div className="p-6">
+                  {/* Cuadrado 36x36 con bg accent-bg (verde tenue) e
+                      ícono accent. inline-flex centra el SVG dentro. */}
+                  {Icon && (
+                    <div
+                      data-testid={`skill-icon-${group.id}`}
+                      className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-accent-bg text-accent"
                     >
-                      {item}
-                    </span>
-                  ))}
+                      <Icon size={18} aria-hidden="true" />
+                    </div>
+                  )}
+
+                  <h3 className="mb-3 text-base font-semibold">
+                    {group.title}
+                  </h3>
+
+                  {/* Skill tags. NO uso el primitive Chip porque ese es
+                      pill redondo grande; estos son squared más chicos
+                      (matchea .skill-tag del mockup: 11px mono, px-2
+                      py-1, border-radius 4px). Si después se reusa este
+                      styling en más lados, extraer a primitive Tag.jsx. */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {group.items.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded border border-border bg-bg px-2 py-1 font-mono text-[11px] text-text-muted"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </article>
+              </BorderGlow>
             );
           })}
         </div>

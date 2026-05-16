@@ -167,9 +167,11 @@ export default function Contact() {
             )}
 
             {/* WhatsApp — wa.me abre el chat directo. socials.whatsapp ya
-                está en formato internacional sin "+". MessageCircle de
-                lucide: ícono genérico de mensajería (lucide no trae el
-                logo de marca de WhatsApp). */}
+                está en formato internacional sin "+". El número NO se
+                muestra como texto (anti-scraping + preferencia del
+                dueño): la card solo dice "Enviar mensaje" y el número
+                vive únicamente dentro del href. MessageCircle de lucide:
+                ícono genérico de mensajería (no trae el logo de marca). */}
             <a
               href={`https://wa.me/${socials.whatsapp}`}
               target="_blank"
@@ -179,7 +181,7 @@ export default function Contact() {
               <ContactRow
                 icon={<MessageCircle size={18} aria-hidden="true" />}
                 label="WhatsApp"
-                value="+54 3468 53-6422"
+                value="Enviar mensaje"
               />
             </a>
 

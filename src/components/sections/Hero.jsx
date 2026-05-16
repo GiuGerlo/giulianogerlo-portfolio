@@ -2,15 +2,16 @@ import { MapPin } from 'lucide-react';
 
 import { useTheme } from '../../hooks/useTheme.js';
 import Button from '../ui/Button.jsx';
-import DarkVeil from '../ui/DarkVeil.jsx';
+import Plasma from '../ui/Plasma.jsx';
 
 /**
  * Hero — primera sección de la home. Saludo + CTAs sobre fondo animado.
  *
  * Composición:
- *  - Fondo: <DarkVeil /> WebGL — shader CPPN procedural animado.
- *  - Overlay oscuro semi-transparente encima del veil para que el
- *    fondo no compita con el texto.
+ *  - Fondo: <Plasma /> WebGL — shader plasma procedural animado,
+ *    tintado con el verde de marca.
+ *  - Overlay semi-transparente encima del plasma para que el fondo
+ *    no compita con el texto.
  *  - Contenido: "$ whoami" + h1 + rol + ubicación + 2 CTAs.
  *
  * Los CTAs hacen scroll suave a las secciones objetivo. En Phase 6.2
@@ -26,23 +27,16 @@ function scrollToSection(id) {
 }
 
 export default function Hero() {
-  // Tomamos el theme actual para tunear el veil. En dark queda lindo
-  // con verde brillante. En light el mismo verde lavado por el overlay
-  // claro queda gris/sucio → cambiamos hueShift + subimos overlay para
-  // un look más limpio.
+  // Tomamos el theme solo para tunear la opacidad del overlay. El
+  // plasma verde se ve bien en ambos themes; lo que cambia es cuánto
+  // lo atenuamos para que el texto contraste:
+  //  - dark: overlay sutil (55%), el plasma se nota más.
+  //  - light: overlay más opaco (80%) para que el verde no compita
+  //    con el texto oscuro sobre fondo claro.
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Props del veil por theme.
-  // Dark: verde aurora vibrante (hueShift 110), overlay sutil 55%.
-  // Light: hueShift 215 → tonos azul/violeta lavanda suaves sobre
-  // fondo claro. Overlay más opaco (75%) para que el veil sea solo
-  // un acento sutil, no protagonice.
-  const veilProps = isDark
-    ? { hueShift: 110, speed: 0.45, noiseIntensity: 0.02, warpAmount: 0.04 }
-    : { hueShift: 215, speed: 0.35, noiseIntensity: 0.015, warpAmount: 0.03 };
-
-  const overlayClass = isDark ? 'bg-bg/55' : 'bg-bg/75';
+  const overlayClass = isDark ? 'bg-bg/55' : 'bg-bg/80';
 
   return (
     <section
@@ -51,28 +45,37 @@ export default function Hero() {
     >
       {/* Fondo WebGL — cubre toda la sección (inset-0 = top/right/
           bottom/left:0). z-0 para que quede DETRÁS del contenido.
-          aria-hidden porque es decoración pura.
-          key={theme} fuerza remount del DarkVeil al cambiar theme,
-          para que el useEffect del shader se reinicialice con los
-          nuevos uniforms. Sin esto, el canvas seguiría con los
-          valores del theme anterior hasta que el RAF loop reaplique. */}
+          aria-hidden porque es decoración pura. */}
       <div aria-hidden="true" className="absolute inset-0 z-0">
-        <DarkVeil
-          key={theme}
-          hueShift={veilProps.hueShift}
-          speed={veilProps.speed}
-          noiseIntensity={veilProps.noiseIntensity}
-          scanlineIntensity={0}
-          scanlineFrequency={0}
-          warpAmount={veilProps.warpAmount}
+        {/* Plasma tintado con el verde de marca (#06a352, la variante
+            brillante del accent — el #04773b base queda muy oscuro
+            para un fondo). mouseInteractive en false: el plasma está
+            detrás del contenido (z-20), el mouse nunca lo alcanza, así
+            que activarlo solo gastaría un listener al pedo. */}
+        <Plasma
+          color="#06a352"
+          speed={0.6}
+          direction="forward"
+          scale={1.1}
+          opacity={0.8}
+          mouseInteractive={false}
         />
       </div>
 
-      {/* Overlay encima del veil. Baja el brillo del fondo para que
+      {/* Overlay encima del plasma. Baja el brillo del fondo para que
           el texto contraste. Opacity ajustada por theme. */}
       <div
         aria-hidden="true"
         className={`absolute inset-0 z-[1] ${overlayClass}`}
+      />
+
+      {/* Fade inferior — degradé de transparente al color de fondo.
+          Sin esto el plasma termina en una línea horizontal dura
+          contra la sección siguiente; el fade lo funde de forma
+          suave. h-40 cubre la franja inferior del Hero. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 z-[2] h-40 bg-gradient-to-b from-transparent to-bg"
       />
 
       {/* Container con z-20 — queda por encima del veil y del overlay. */}

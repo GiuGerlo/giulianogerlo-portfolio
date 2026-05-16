@@ -1,0 +1,10 @@
+/* Plasma — contenedor del canvas WebGL (reactbits.dev).
+   El componente crea el <canvas> y lo appendea acá adentro.
+   El padre del contenedor define el tamaño + position: relative. */
+
+.plasma-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}

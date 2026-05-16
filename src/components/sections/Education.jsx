@@ -1,6 +1,7 @@
 import { ExternalLink } from 'lucide-react';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
+import BorderGlow from '../ui/BorderGlow.jsx';
 import { education } from '../../data/education.js';
 
 /**
@@ -47,48 +48,49 @@ export default function Education() {
             const hasCert = Boolean(item.certUrl);
 
             return (
-              <article
-                key={item.id}
-                className="flex flex-col rounded-lg border border-border bg-bg-elevated p-5 transition-colors hover:border-accent"
-              >
-                <div className="mb-2 font-mono text-[11px] text-accent">
-                  {item.dateLabel}
-                </div>
+              // BorderGlow es el contenedor de la card (borde mesh +
+              // glow). El contenido va adentro con su padding p-5.
+              <BorderGlow key={item.id} className="h-full">
+                <div className="flex h-full flex-col p-5">
+                  <div className="mb-2 font-mono text-[11px] text-accent">
+                    {item.dateLabel}
+                  </div>
 
-                {/* Título + badge "EN CURSO" si aplica. El badge va
-                    inline con el título (mono chico sobre accent-bg). */}
-                <h3 className="mb-1 text-[15px] font-semibold">
-                  {item.title}
+                  {/* Título + badge "EN CURSO" si aplica. El badge va
+                      inline con el título (mono chico sobre accent-bg). */}
+                  <h3 className="mb-1 text-[15px] font-semibold">
+                    {item.title}
+                    {isInProgress && (
+                      <span className="ml-1.5 inline-block rounded bg-accent-bg px-1.5 py-0.5 font-mono text-[10px] uppercase text-accent">
+                        En curso
+                      </span>
+                    )}
+                  </h3>
+
+                  <div className="text-[13px] text-text-muted">
+                    {item.org}
+                  </div>
+
+                  {/* Slot del certificado — caso 1, 2 o nada. */}
                   {isInProgress && (
-                    <span className="ml-1.5 inline-block rounded bg-accent-bg px-1.5 py-0.5 font-mono text-[10px] uppercase text-accent">
-                      En curso
+                    <span className="mt-3 font-mono text-xs text-text-muted">
+                      Certificado al finalizar
                     </span>
                   )}
-                </h3>
 
-                <div className="text-[13px] text-text-muted">
-                  {item.org}
+                  {!isInProgress && hasCert && (
+                    <a
+                      href={item.certUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-1 font-mono text-xs font-medium text-accent hover:underline"
+                    >
+                      Ver certificado
+                      <ExternalLink size={12} aria-hidden="true" />
+                    </a>
+                  )}
                 </div>
-
-                {/* Slot del certificado — caso 1, 2 o nada. */}
-                {isInProgress && (
-                  <span className="mt-3 font-mono text-xs text-text-muted">
-                    Certificado al finalizar
-                  </span>
-                )}
-
-                {!isInProgress && hasCert && (
-                  <a
-                    href={item.certUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-1 font-mono text-xs font-medium text-accent hover:underline"
-                  >
-                    Ver certificado
-                    <ExternalLink size={12} aria-hidden="true" />
-                  </a>
-                )}
-              </article>
+              </BorderGlow>
             );
           })}
         </div>
