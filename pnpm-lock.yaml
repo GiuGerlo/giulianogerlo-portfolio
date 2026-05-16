@@ -11,6 +11,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.75.0(react@19.2.6))
+      animejs:
+        specifier: ^4.4.1
+        version: 4.4.1
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -78,9 +81,6 @@ importers:
       '@vitest/ui':
         specifier: ^4.1.6
         version: 4.1.6(vitest@4.1.6)
-      animejs:
-        specifier: ^4.4.1
-        version: 4.4.1
       autoprefixer:
         specifier: ^10.5.0
         version: 10.5.0(postcss@8.5.14)

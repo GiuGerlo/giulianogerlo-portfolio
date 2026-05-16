@@ -61,6 +61,10 @@
 
 - **2026-05-16**: Task 6.2 ✅ — Smooth scroll con Lenis. Hook `useLenis` en `Layout` + helper `lenisScrollTo`; CTAs del Hero y `ScrollToTop` migrados al helper. Guard de reduced-motion. Mock de `ResizeObserver` en el setup. 94 passing.
 
+- **2026-05-16**: Fuera de plan — cards parejas (Skills/Projects/Education con `h-full` + `flex-col` + footer `mt-auto`), doc `docs/components/cards.md`, logo migrado a SVG vectorial.
+
+- **2026-05-16**: Task 6.3 ✅ — Typewriter del Hero con Anime.js. `AnimatedName` anima el `<h1>` con stagger de chars al montar. **Phase 6 cerrada.** 94 passing.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1125,7 +1129,16 @@ Llamar en `Layout`.
 
 Commit.
 
-### Task 6.3: Hero typewriter con Anime.js
+### Task 6.3: Hero typewriter con Anime.js ✅ (2026-05-16)
+
+> Implementado. `pnpm add animejs` (v4). Componente
+> `src/components/ui/AnimatedName.jsx`: parte el texto en chars (un
+> `<span inline-block>` por letra) y al montar los anima en cascada
+> con `animate` + `stagger` (fade + subida corta). Corre en
+> `useLayoutEffect` (antes del paint → sin parpadeo). Guard de
+> `prefers-reduced-motion`. Accesibilidad: `aria-label` en el
+> contenedor + chars `aria-hidden` → el lector lee el nombre de
+> corrido. Usado en el `<h1>` del Hero. **Phase 6 cerrada.** 94 passing.
 
 Animar el nombre con stagger de chars al mount.
 

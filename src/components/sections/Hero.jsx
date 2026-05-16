@@ -4,6 +4,7 @@ import { useTheme } from '../../hooks/useTheme.js';
 import { lenisScrollTo } from '../../hooks/useLenis.js';
 import Button from '../ui/Button.jsx';
 import Plasma from '../ui/Plasma.jsx';
+import AnimatedName from '../ui/AnimatedName.jsx';
 
 /**
  * Hero — primera sección de la home. Saludo + CTAs sobre fondo animado.
@@ -83,9 +84,10 @@ export default function Hero() {
         <div className="mb-6 font-mono text-sm text-accent">$ whoami</div>
 
         {/* clamp(min, vw, max) para escalado fluido entre mobile y
-            desktop sin breakpoints intermedios. */}
+            desktop sin breakpoints intermedios. El nombre entra con
+            animación de chars en cascada (AnimatedName). */}
         <h1 className="mb-5 text-[clamp(2.5rem,8vw,4.5rem)] font-bold leading-[1.05] tracking-tight">
-          Giuliano Gerlo
+          <AnimatedName text="Giuliano Gerlo" />
         </h1>
 
         <p className="mb-3 text-lg text-text-muted md:text-2xl">
