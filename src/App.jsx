@@ -3,6 +3,9 @@
 // que matchee. Si ninguna matchea, la Route con path="*" actúa de fallback.
 import { Routes, Route } from 'react-router-dom';
 
+// Vercel Web Analytics — registra visitas/page views sin cookies.
+import { Analytics } from '@vercel/analytics/react';
+
 // Layout = wrapper con Navbar + Footer + <Outlet /> para el contenido.
 import Layout from './components/layout/Layout.jsx';
 
@@ -28,13 +31,20 @@ import NotFound from './pages/NotFound.jsx';
  */
 function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/proyectos/:slug" element={<ProjectDetail />} />
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    </Routes>
+    <>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/proyectos/:slug" element={<ProjectDetail />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+
+      {/* Vercel Web Analytics. No renderiza nada visible: inyecta el
+          script de tracking. Solo manda datos en producción (en dev y
+          en los tests es no-op). */}
+      <Analytics />
+    </>
   );
 }
 

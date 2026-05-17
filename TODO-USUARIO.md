@@ -69,18 +69,13 @@ Opciones para hostearlos:
 - [x] LinkedIn: https://www.linkedin.com/in/giuliano-gerlo-21a7b8221/
 - [x] GitHub: https://github.com/GiuGerlo
 
-## 🚀 Pre-deploy (cuando esté listo)
+## 🚀 Deploy (hecho)
 
-- [ ] Probar build local: `pnpm build` y `pnpm preview`
-- [ ] Renombrar el proyecto Vercel a `giulianogerlo` (ver sección Cuentas → 1)
-- [ ] Configurar variables de entorno en Vercel dashboard (Project Settings → Environment Variables). Las del store Upstash (`KV_*`) ya las inyecta solas la integración; cargar a mano estas:
-  - `VITE_TURNSTILE_SITE_KEY` = (site key de Turnstile, pública)
-  - `TURNSTILE_SECRET_KEY` = (secret key de Turnstile)
-  - `RESEND_API_KEY` = (tu key de Resend)
-  - `CONTACT_EMAIL_TO` = ggiuliano526@gmail.com
-  - `CONTACT_EMAIL_FROM` = onboarding@resend.dev (o tu dominio verificado)
-- [ ] Agregar `giulianogerlo.vercel.app` a los hostnames del widget Turnstile
-- [ ] Verificar que llegue email de prueba al completar el form en producción
+- [x] Proyecto Vercel renombrado a `giulianogerlo`, dominio `giulianogerlo.vercel.app`
+- [x] Env vars cargadas en el dashboard de Vercel
+- [x] `giulianogerlo.vercel.app` agregado a los hostnames del widget Turnstile
+- [x] Deploy inicial OK + form probado en producción (mail recibido)
+- [ ] **Activar Vercel Web Analytics** — dashboard de Vercel → proyecto → pestaña **Analytics** → Enable Web Analytics. El código (`<Analytics />`) ya está; falta el toggle.
 
 ## 🔍 Post-deploy (SEO)
 

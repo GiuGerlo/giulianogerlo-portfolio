@@ -89,6 +89,8 @@
 
 - **2026-05-17**: Task 8.6 ✅ — Headers de seguridad en `vercel.json` (X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy). **Phase 8 cerrada.**
 
+- **2026-05-17**: Tasks 9.1-9.6 ✅ — Deploy a Vercel (`giulianogerlo.vercel.app`), env vars, form probado en prod (mail OK), Vercel Analytics. **Phase 9 cerrada.**
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1399,47 +1401,49 @@ Commit cada paso.
 
 ## Phase 9 — Deploy a Vercel
 
-### Task 9.1: Crear repo GitHub
+### Task 9.1: Crear repo GitHub ✅ (2026-05-17)
 
-**Usuario:** crear repo público `giulianogerlo-portfolio` en GitHub (sin README inicial).
+> Repo `GiuGerlo/giulianogerlo-portfolio` creado y conectado. Rama por
+> defecto: `master` (no `main`). Todo el código pusheado.
 
-Local:
-```bash
-git remote add origin git@github.com:GiuGerlo/giulianogerlo-portfolio.git
-git branch -M main
-git push -u origin main
-```
+### Task 9.2: Conectar Vercel ✅ (2026-05-17)
 
-### Task 9.2: Conectar Vercel
-
-**Usuario** sigue checklist en `TODO-USUARIO.md` sección Vercel.
+> Proyecto Vercel `giulianogerlo` linkeado al repo de GitHub
+> (auto-deploy en cada push). Proyecto renombrado a `giulianogerlo` →
+> dominio `giulianogerlo.vercel.app`.
 
 ### Task 9.3: Configurar env vars en Vercel
 
-**Usuario** pega en dashboard:
+**Usuario** pega en dashboard (Project Settings → Environment Variables).
+Las del store Upstash (`KV_*`) ya las inyecta la integración. Cargar a mano:
+- `VITE_TURNSTILE_SITE_KEY` (necesaria en BUILD — Vite la inlinea)
+- `TURNSTILE_SECRET_KEY`
 - `RESEND_API_KEY`
-- `TURNSTILE_SECRET`
-- `VITE_TURNSTILE_SITE_KEY`
 - `CONTACT_EMAIL_TO`
+- `CONTACT_EMAIL_FROM`
 
-### Task 9.4: Deploy inicial
+### Task 9.4: Deploy inicial ✅ (2026-05-17)
 
-Click "Deploy" en Vercel. Esperar 2 min. Verificar URL live.
+> Deploy en `giulianogerlo.vercel.app` (dominio corto agregado en
+> Settings → Domains; el largo `-portfolio` se borró). 5 env vars
+> cargadas en el dashboard + `KV_*` de la integración Upstash.
 
-### Task 9.5: Test form en producción
+### Task 9.5: Test form en producción ✅ (2026-05-17)
 
-Enviar mensaje desde el form deployado. Verificar que llega a `ggiuliano526@gmail.com`.
+> Form probado en producción: mensaje enviado, mail recibido en
+> `ggiuliano526@gmail.com`. Turnstile OK tras agregar
+> `giulianogerlo.vercel.app` a los hostnames del widget (hubo que
+> esperar la propagación). Los errores de consola del iframe de
+> Turnstile (`bubble_compiled.js`, trusted-types) son internos de
+> Cloudflare — no son del proyecto.
 
-Si falla:
-- Logs en Vercel dashboard → Functions tab
-- Verificar env vars
-- Verificar Turnstile domain en Cloudflare
+### Task 9.6: Vercel Analytics ✅ (2026-05-17)
 
-### Task 9.6: Vercel Analytics
-
-Dashboard → Analytics → Enable.
-
-Verificar que tracking script se agregó al bundle.
+> `@vercel/analytics@2.0.1` instalado. `<Analytics />` montado en
+> `App.jsx` (no-op fuera de producción). 101 passing, lint + build OK.
+>
+> Pendiente usuario: activar Web Analytics en el dashboard de Vercel
+> (pestaña Analytics → Enable).
 
 ---
 
