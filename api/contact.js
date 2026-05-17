@@ -13,16 +13,55 @@
 // Capas anti-spam que aplica (en orden):
 //   1. Method check  — solo POST.
 //   2. Honeypot      — si el campo trampa `website` viene lleno → bot.
-//   3. Turnstile     — verifica el token contra Cloudflare.
-//   4. Validación    — re-valida los campos server-side (no confiar en
+//   3. Rate limit    — máx 3 envíos por hora por IP (Upstash Redis).
+//   4. Turnstile     — verifica el token contra Cloudflare.
+//   5. Validación    — re-valida los campos server-side (no confiar en
 //                      el cliente: el frontend se puede saltear).
-//   5. HTML escape   — escapa los inputs antes de meterlos en el email.
+//   6. HTML escape   — escapa los inputs antes de meterlos en el email.
 
 import { Resend } from 'resend';
+import { Redis } from '@upstash/redis';
 
 // Cliente de Resend. process.env lee las variables de entorno: en local
 // salen del archivo .env; en producción, del dashboard de Vercel.
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Cliente de Upstash Redis (rate limiting). Habla por REST API con las
+// vars KV_REST_API_URL/TOKEN que inyecta la integración de Vercel.
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
+
+// Tope de envíos: RATE_LIMIT_MAX por cada ventana de RATE_LIMIT_WINDOW
+// segundos (3 por hora). Pasado el límite, la IP recibe un 429.
+const RATE_LIMIT_MAX = 3;
+const RATE_LIMIT_WINDOW = 3600;
+
+/**
+ * checkRateLimit — cuenta los envíos de una IP en la ventana actual.
+ * Devuelve true si la IP TODAVÍA puede enviar, false si se pasó.
+ *
+ * INCR suma 1 a la clave (la crea en 0 si no existe) y devuelve el nuevo
+ * valor. En el primer envío de la ventana le ponemos un TTL: la clave se
+ * autoborra en 1h, así el contador se resetea solo sin tarea de limpieza.
+ *
+ * Fail-open: si Redis falla, devolvemos true (dejamos pasar). No
+ * bloqueamos a un visitante legítimo por un problema de infraestructura.
+ */
+async function checkRateLimit(ip) {
+  try {
+    const key = `rate:contact:${ip}`;
+    const count = await redis.incr(key);
+    if (count === 1) {
+      await redis.expire(key, RATE_LIMIT_WINDOW);
+    }
+    return count <= RATE_LIMIT_MAX;
+  } catch (err) {
+    console.error('Rate limit (Redis) falló, se deja pasar:', err);
+    return true;
+  }
+}
 
 /**
  * escapeHtml — reemplaza los caracteres con significado en HTML por sus
@@ -73,6 +112,9 @@ export default async function handler(req, res) {
   const { nombre, email, mensaje, website, turnstileToken } =
     req.body ?? {};
 
+  // x-forwarded-for trae la IP real del visitante (Vercel está delante).
+  const ip = req.headers['x-forwarded-for'] ?? '';
+
   // ── 2. Honeypot ───────────────────────────────────────────────────
   // Un humano deja `website` vacío (no ve el campo). Si vino con algo,
   // es un bot. Respondemos 200 "ok" a propósito: si le devolviéramos un
@@ -81,14 +123,23 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  // ── 3. Turnstile ──────────────────────────────────────────────────
+  // ── 3. Rate limit ─────────────────────────────────────────────────
+  // Frena el abuso del form (máx 3 envíos/hora por IP). Va ANTES de
+  // Turnstile a propósito: así cada intento cuenta aunque después falle
+  // el captcha, y no gastamos llamadas a Cloudflare en un IP abusivo.
+  const dentroDelLimite = await checkRateLimit(ip);
+  if (!dentroDelLimite) {
+    return res.status(429).json({
+      error: 'Demasiados envíos. Probá de nuevo en una hora.',
+    });
+  }
+
+  // ── 4. Turnstile ──────────────────────────────────────────────────
   if (!turnstileToken) {
     return res
       .status(400)
       .json({ error: 'Falta la verificación anti-bot.' });
   }
-  // x-forwarded-for trae la IP real del visitante (Vercel está delante).
-  const ip = req.headers['x-forwarded-for'] ?? '';
   const humano = await verifyTurnstile(turnstileToken, ip);
   if (!humano) {
     return res
@@ -96,7 +147,7 @@ export default async function handler(req, res) {
       .json({ error: 'La verificación anti-bot falló.' });
   }
 
-  // ── 4. Validación server-side ─────────────────────────────────────
+  // ── 5. Validación server-side ─────────────────────────────────────
   // El frontend ya valida con zod, pero un request se puede mandar sin
   // pasar por el frontend (curl, Postman). Re-validamos siempre acá.
   const nombreOk = typeof nombre === 'string' && nombre.trim().length >= 2;
@@ -109,7 +160,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Datos del formulario inválidos.' });
   }
 
-  // ── 5. Enviar el email con Resend ─────────────────────────────────
+  // ── 6. Enviar el email con Resend ─────────────────────────────────
   try {
     await resend.emails.send({
       from: process.env.CONTACT_EMAIL_FROM,

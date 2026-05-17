@@ -75,6 +75,8 @@
 
 - **2026-05-16**: Task 7.5 ✅ — Form conectado a `/api/contact` vía fetch. Estados loading/success/error. 98 passing, lint OK.
 
+- **2026-05-16**: Task 7.6 ✅ — Rate limiting con Upstash Redis (3 envíos/hora por IP). **Phase 7 cerrada.** 98 passing, lint OK.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1261,7 +1263,17 @@ Loading / success / error states.
 
 Commit.
 
-### Task 7.6: Rate limiting
+### Task 7.6: Rate limiting ✅ (2026-05-16)
+
+> Implementado. `@vercel/kv` estaba deprecado → se usó **Upstash Redis**
+> (`@upstash/redis@1.38.0`) vía integración Marketplace de Vercel.
+> Store creado en el dashboard; vars `KV_REST_API_URL` +
+> `KV_REST_API_TOKEN` (las otras 3 que inyecta la integración no se
+> usan). `checkRateLimit(ip)` en `api/contact.js`: `INCR` por IP +
+> `EXPIRE` 3600s en el primer hit → máx 3 envíos/hora. Fail-open si
+> Redis falla. Va antes de Turnstile (cada intento cuenta, no se gastan
+> llamadas a Cloudflare en IPs abusivas). `429` al pasarse. **Phase 7
+> cerrada.** 98 passing, lint OK.
 
 Opción simple: Vercel Edge Config o `@vercel/kv` (gratis tier).
 
