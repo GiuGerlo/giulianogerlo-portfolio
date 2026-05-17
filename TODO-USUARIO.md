@@ -16,6 +16,7 @@ Lista viva de todo lo que **Giuliano** tiene que hacer fuera del código (crear 
 - [ ] Screenshot proyecto: CENARB (web y móvil si tenés)
 - [ ] Logo/favicon personal (puede ser "GG" en SVG simple, o algo más elaborado)
 - [ ] CV en PDF actualizado (para botón "Descargar CV")
+- [ ] **OG image** — PNG 1200x630 con nombre + título (Figma/Canva). Va en `public/og-image.png`. Es la imagen de preview al pegar el link en WhatsApp/LinkedIn/Twitter. (Task 8.2)
 
 ## 🏅 Certificados y títulos (URLs o PDFs)
 
@@ -37,36 +38,29 @@ Opciones para hostearlos:
 - [ ] URL live: CENARB
 - [ ] URL repo GitHub: Inmobiliaria NZ (si es público)
 
-## 🌐 Cuentas y servicios a crear
+## 🌐 Cuentas y servicios
 
 ### 1. Cuenta Vercel (hosting)
-- [ ] Ir a https://vercel.com
-- [ ] Sign Up → continuar con tu cuenta de GitHub (GiuGerlo)
-- [ ] Confirmar email
-- [ ] No instalar nada local todavía — lo hacemos cuando deployemos
+- [x] Cuenta creada, proyecto linkeado (`vercel dev` corriendo OK)
+- [ ] **Renombrar el proyecto en Vercel** de `giulianogerlo-portfolio` a `giulianogerlo` — Project Settings → General → Project Name. Necesario para que el dominio quede `giulianogerlo.vercel.app` (las URLs de SEO ya apuntan ahí).
 
 ### 2. Cuenta Resend (envío de emails del form)
-- [ ] Ir a https://resend.com
-- [ ] Sign Up con email
-- [ ] Confirmar email
-- [ ] Settings → API Keys → Create API Key (nombre: "portfolio-prod", permission: "Sending access")
-- [ ] **Copiar la API key** y guardarla — solo se ve UNA vez. Empieza con `re_...`
-- [ ] (Pasarme la key cuando configuremos `.env.local` — NO la subas a GitHub)
-- [ ] Verificar dominio (opcional, recién cuando tengas dominio propio)
+- [x] Cuenta creada, API key generada y pasada
+- [ ] **Verificar dominio propio en Resend** — mientras tanto el `from` usa `onboarding@resend.dev` (modo prueba: solo manda al email de TU cuenta Resend). Para producción: Resend → Domains → Add Domain → cargar registros DNS. Después cambiar `CONTACT_EMAIL_FROM` a algo como `contacto@tudominio`.
 
 ### 3. Cuenta Cloudflare Turnstile (anti-bot del form)
-- [ ] Ir a https://cloudflare.com → Sign Up (gratis)
-- [ ] Confirmar email
-- [ ] Dashboard → Turnstile → Add Site
-- [ ] Domain: `giulianogerlo.vercel.app` (o el que tengas)
-- [ ] Widget Mode: **Managed** (recomendado)
-- [ ] **Copiar SITE KEY** (pública, va al front)
-- [ ] **Copiar SECRET KEY** (privada, va al backend)
-- [ ] Pasarme ambas para configurar `.env.local`
+- [x] Cuenta creada, widget creado, SITE + SECRET key pasadas
+- [ ] **Agregar hostnames al widget** — Cloudflare → Turnstile → tu widget → Settings → Hostnames: sumar `localhost` (para probar con `vercel dev`) y `giulianogerlo.vercel.app` (para producción). Sin esto el widget falla.
 
 ### 4. Repositorio GitHub
-- [ ] Crear repo público en GitHub: `giulianogerlo-portfolio`
-- [ ] (NO inicializar con README — el local ya tiene archivos)
+- [x] Repo creado y conectado a Vercel
+
+### 5. Upstash Redis (rate limiting del form)
+- [x] Store creado vía Marketplace de Vercel, env vars copiadas al `.env`
+
+## 🔐 Seguridad — rotar keys
+
+- [ ] **Rotar las keys secretas** — `TURNSTILE_SECRET_KEY` y `RESEND_API_KEY` se pegaron en texto plano en el chat. Antes/después de deployar, generá nuevas desde los dashboards de Cloudflare y Resend, y actualizá el `.env` + las env vars de Vercel. (La `VITE_TURNSTILE_SITE_KEY` es pública, esa no hace falta rotarla.)
 
 ## 📱 Datos de contacto a confirmar
 
@@ -78,11 +72,21 @@ Opciones para hostearlos:
 ## 🚀 Pre-deploy (cuando esté listo)
 
 - [ ] Probar build local: `pnpm build` y `pnpm preview`
-- [ ] Conectar repo GitHub a Vercel
-- [ ] Configurar variables de entorno en Vercel dashboard:
+- [ ] Renombrar el proyecto Vercel a `giulianogerlo` (ver sección Cuentas → 1)
+- [ ] Configurar variables de entorno en Vercel dashboard (Project Settings → Environment Variables). Las del store Upstash (`KV_*`) ya las inyecta solas la integración; cargar a mano estas:
+  - `VITE_TURNSTILE_SITE_KEY` = (site key de Turnstile, pública)
+  - `TURNSTILE_SECRET_KEY` = (secret key de Turnstile)
   - `RESEND_API_KEY` = (tu key de Resend)
   - `CONTACT_EMAIL_TO` = ggiuliano526@gmail.com
-- [ ] Verificar que llegue email de prueba al completar el form
+  - `CONTACT_EMAIL_FROM` = onboarding@resend.dev (o tu dominio verificado)
+- [ ] Agregar `giulianogerlo.vercel.app` a los hostnames del widget Turnstile
+- [ ] Verificar que llegue email de prueba al completar el form en producción
+
+## 🔍 Post-deploy (SEO)
+
+- [ ] Validar las tarjetas OG/Twitter con https://www.opengraph.xyz (pegar la URL del sitio)
+- [ ] Dar de alta el sitio en Google Search Console y enviar el sitemap
+- [ ] Correr Lighthouse (pestaña en DevTools) — apuntar a SEO + Performance 90+
 
 ---
 

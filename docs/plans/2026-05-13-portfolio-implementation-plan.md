@@ -77,6 +77,8 @@
 
 - **2026-05-16**: Task 7.6 ✅ — Rate limiting con Upstash Redis (3 envíos/hora por IP). **Phase 7 cerrada.** 98 passing, lint OK.
 
+- **2026-05-17**: Task 8.1 ✅ — Meta tags base en `index.html` (description, canonical, Open Graph, Twitter Card). Build OK.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1289,7 +1291,17 @@ Commit.
 
 ## Phase 8 — SEO + meta + performance
 
-### Task 8.1: Meta tags base
+### Task 8.1: Meta tags base ✅ (2026-05-17)
+
+> Implementado. `index.html` con: `description` (~155 chars), `author`,
+> `robots`, `canonical`, `theme-color` (#0a0a0a). Open Graph completo
+> (type, site_name, locale es_AR, title, description, url, image
+> 1200x630 + alt). Twitter Card `summary_large_image`. `og:image`
+> apunta a `/og-image.png` (se genera en Task 8.2). Build OK.
+>
+> Dominio elegido: `https://giulianogerlo.vercel.app`. Requiere renombrar
+> el proyecto en Vercel a `giulianogerlo`. Usar el mismo en `robots.txt`
+> + sitemap (Task 8.4).
 
 Modificar `index.html` con title, description, OG tags, twitter card.
 

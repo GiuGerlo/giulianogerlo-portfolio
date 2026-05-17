@@ -2,9 +2,80 @@
 <html lang="es" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+
+    <!-- ════════ SEO base ════════ -->
+    <!-- title: lo que se ve en la pestaña del browser y como link en
+         Google. ~38 chars (Google trunca cerca de 60). -->
     <title>Giuliano Gerlo — Full-Stack Developer</title>
+
+    <!-- description: el texto gris debajo del link en los resultados de
+         Google. ~155 chars (se trunca cerca de 160). -->
+    <meta
+      name="description"
+      content="Portfolio de Giuliano Gerlo, desarrollador Full-Stack de Rosario, Argentina. Especializado en PHP, Laravel, MySQL y React. Mirá mis proyectos."
+    />
+    <meta name="author" content="Giuliano Gerlo" />
+
+    <!-- robots: index,follow = permití indexar la página y seguir sus
+         links. Es el default, pero declararlo explícito no molesta. -->
+    <meta name="robots" content="index, follow" />
+
+    <!-- canonical: la URL "oficial" de esta página. Evita que Google
+         trate variantes (con/sin www, con query params) como duplicados.
+         OJO: tiene que coincidir con el dominio real del deploy. -->
+    <link rel="canonical" href="https://giulianogerlo.vercel.app/" />
+
+    <!-- theme-color: color de la barra del browser en mobile. Igual al
+         --bg dark del sitio. -->
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <!-- ════════ Open Graph (Facebook, LinkedIn, WhatsApp) ════════ -->
+    <!-- Estos tags controlan la "tarjeta" que se ve al pegar el link en
+         redes/chats: título, descripción e imagen de preview. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Giuliano Gerlo" />
+    <meta property="og:locale" content="es_AR" />
+    <meta
+      property="og:title"
+      content="Giuliano Gerlo — Full-Stack Developer"
+    />
+    <meta
+      property="og:description"
+      content="Desarrollador Full-Stack de Rosario, Argentina. PHP, Laravel, MySQL y React. Mirá mis proyectos y contactame."
+    />
+    <meta property="og:url" content="https://giulianogerlo.vercel.app/" />
+    <!-- og:image: la imagen de preview (1200x630). El archivo se genera
+         en Task 8.2 — public/og-image.png. La URL debe ser ABSOLUTA. -->
+    <meta
+      property="og:image"
+      content="https://giulianogerlo.vercel.app/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Giuliano Gerlo — Full-Stack Developer"
+    />
+
+    <!-- ════════ Twitter / X Card ════════ -->
+    <!-- summary_large_image = tarjeta con imagen grande arriba. Twitter
+         cae a los tags og:* si estos no están, pero los declaramos
+         igual para tener control fino del título/descripción. -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Giuliano Gerlo — Full-Stack Developer"
+    />
+    <meta
+      name="twitter:description"
+      content="Desarrollador Full-Stack de Rosario, Argentina. PHP, Laravel, MySQL y React. Mirá mis proyectos y contactame."
+    />
+    <meta
+      name="twitter:image"
+      content="https://giulianogerlo.vercel.app/og-image.png"
+    />
   </head>
   <body>
     <div id="root"></div>
