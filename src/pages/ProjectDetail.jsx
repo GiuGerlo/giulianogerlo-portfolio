@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
 // React Router:
 //  - useParams → lee el :slug dinámico de la URL.
 //  - Navigate  → redirige de forma declarativa (componente, no función).
 //  - Link      → navegación interna sin recargar la página.
 import { useParams, Navigate, Link } from 'react-router-dom';
+
+// Custom hook que gestiona el <title> de la pestaña.
+import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import {
   ArrowLeft,
   ArrowRight,
@@ -68,17 +70,11 @@ export default function ProjectDetail() {
   // Buscamos el proyecto que matchee el slug. Puede ser undefined.
   const project = projects.find((p) => p.slug === slug);
 
-  // Effect: setea el <title> del documento al del proyecto y lo
-  // restaura al desmontar. El guard `if (!project)` va ADENTRO del
-  // effect —no antes— porque los hooks no pueden ir después de un
-  // return condicional (regla de hooks).
-  useEffect(() => {
-    if (!project) return;
-    document.title = `${project.title} — Giuliano Gerlo`;
-    return () => {
-      document.title = 'Giuliano Gerlo — Full-Stack Developer';
-    };
-  }, [project]);
+  // Setea el <title> de la pestaña con el nombre del proyecto. Se llama
+  // SIEMPRE (antes del return condicional de abajo) para respetar la
+  // regla de hooks. Si el proyecto no existe, pasamos null y el hook
+  // no toca el título.
+  useDocumentTitle(project ? `${project.title} — Giuliano Gerlo` : null);
 
   // Slug inexistente → redirección declarativa. `replace` evita que la
   // URL rota quede en el historial (back no vuelve a ella).

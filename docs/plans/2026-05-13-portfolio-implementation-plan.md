@@ -81,6 +81,8 @@
 
 - **2026-05-17**: Task 8.2 ✅ — OG image `public/og-image.png` (1200x630) provista por el usuario.
 
+- **2026-05-17**: Task 8.3 ✅ — Title dinámico por ruta vía custom hook `useDocumentTitle`. 101 passing, lint OK.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1315,7 +1317,14 @@ Modificar `index.html` con title, description, OG tags, twitter card.
 
 Generar 1200x630 PNG con título + foto (puede ser Figma o Canva). Pone en `public/og-image.png`.
 
-### Task 8.3: Title dinámico por ruta
+### Task 8.3: Title dinámico por ruta ✅ (2026-05-17)
+
+> Implementado. Custom hook `src/hooks/useDocumentTitle.js`: setea
+> `document.title` y lo restaura al default en el cleanup. Acepta título
+> falsy (no toca nada) para el caso de ProjectDetail con proyecto
+> inexistente. `Home.jsx` lo usa con el título principal;
+> `ProjectDetail.jsx` reemplazó su `useEffect` inline por el hook.
+> +3 tests (`useDocumentTitle.test.js`). 101 passing, lint OK.
 
 `useEffect` en `Home.jsx` y `ProjectDetail.jsx`.
 
