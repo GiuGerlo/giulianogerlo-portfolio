@@ -79,6 +79,8 @@
 
 - **2026-05-17**: Task 8.1 ✅ — Meta tags base en `index.html` (description, canonical, Open Graph, Twitter Card). Build OK.
 
+- **2026-05-17**: Task 8.2 ✅ — OG image `public/og-image.png` (1200x630) provista por el usuario.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1305,7 +1307,11 @@ Commit.
 
 Modificar `index.html` con title, description, OG tags, twitter card.
 
-### Task 8.2: OG image
+### Task 8.2: OG image ✅ (2026-05-17)
+
+> El usuario generó la imagen y la guardó en `public/og-image.png`
+> (PNG 1200x630, logo `{gg}.dev` sobre fondo oscuro). `index.html` ya
+> la referencia desde Task 8.1.
 
 Generar 1200x630 PNG con título + foto (puede ser Figma o Canva). Pone en `public/og-image.png`.
 

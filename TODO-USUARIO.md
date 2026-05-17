@@ -16,7 +16,7 @@ Lista viva de todo lo que **Giuliano** tiene que hacer fuera del código (crear 
 - [ ] Screenshot proyecto: CENARB (web y móvil si tenés)
 - [ ] Logo/favicon personal (puede ser "GG" en SVG simple, o algo más elaborado)
 - [ ] CV en PDF actualizado (para botón "Descargar CV")
-- [ ] **OG image** — PNG 1200x630 con nombre + título (Figma/Canva). Va en `public/og-image.png`. Es la imagen de preview al pegar el link en WhatsApp/LinkedIn/Twitter. (Task 8.2)
+- [x] **OG image** — `public/og-image.png` (1200x630). Imagen de preview al compartir el link. (Task 8.2)
 
 ## 🏅 Certificados y títulos (URLs o PDFs)
 
