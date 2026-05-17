@@ -15,7 +15,10 @@
  */
 
 @import 'tailwindcss';
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+/* Las fuentes (Inter + JetBrains Mono) se cargan desde el <head> de
+   index.html con preconnect — NO con @import acá. Un @import de Google
+   Fonts en el CSS crea una cadena render-blocking (bundle CSS → @import
+   → CSS de Google → fuentes). Desde el HEAD cargan en paralelo. */
 
 /* Variante `dark:` activada cuando el elemento o un ancestro tiene data-theme="dark".
    Sin esto la variante "dark:" no sabría cuándo aplicar. */

@@ -95,6 +95,8 @@
 
 - **2026-05-17**: Task 10.4 ✅ — Lighthouse: Rend 99 / SEO 100 / A11y 90 / Prácticas 73. Lazy-load de rutas, sourcemaps y HSTS. **Phase 10 cerrada.**
 
+- **2026-05-17**: Perf — en producción el Rendimiento daba 86 (FCP/LCP 3.3s). Causa: `@import` de Google Fonts en `index.css` = cadena render-blocking. Fix: fuentes movidas al `<head>` de `index.html` con `preconnect` + `<link>`.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).

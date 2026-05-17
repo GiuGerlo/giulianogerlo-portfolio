@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
 
+    <!-- Fuentes (Inter + JetBrains Mono). preconnect abre la conexión a
+         los servidores de Google Fonts apenas se parsea el HTML; el
+         <link rel="stylesheet"> carga el CSS de las fuentes en paralelo
+         con el resto. display=swap evita el texto invisible mientras
+         cargan (se muestra una fuente fallback y se cambia al llegar). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+    />
+
     <!-- ════════ SEO base ════════ -->
     <!-- title: lo que se ve en la pestaña del browser y como link en
          Google. ~38 chars (Google trunca cerca de 60). -->
