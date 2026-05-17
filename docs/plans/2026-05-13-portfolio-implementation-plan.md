@@ -87,6 +87,8 @@
 
 - **2026-05-17**: Task 8.5 ✅ — Foto optimizada a WebP (-71%) vía `sharp` + `scripts/optimize-images.js`. `<picture>` con fallback en About. 101 passing, lint OK.
 
+- **2026-05-17**: Task 8.6 ✅ — Headers de seguridad en `vercel.json` (X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy). **Phase 8 cerrada.**
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1365,7 +1367,14 @@ Sitemap: https://giulianogerlo.vercel.app/sitemap.xml
 
 Convertir screenshots a WebP. Lazy load con `loading="lazy"`. Sizes/srcset si fuera necesario.
 
-### Task 8.6: Headers de seguridad
+### Task 8.6: Headers de seguridad ✅ (2026-05-17)
+
+> Implementado. `vercel.json` con bloque `headers` para `/(.*)`:
+> X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy
+> strict-origin-when-cross-origin, Permissions-Policy (camera/mic/geo
+> deshabilitados). `$schema` agregado para autocompletado. HSTS no se
+> agrega: `.vercel.app` ya está en la lista de preload HSTS. **Phase 8
+> cerrada.**
 
 `vercel.json`:
 ```json
