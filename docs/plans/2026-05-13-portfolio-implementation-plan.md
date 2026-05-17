@@ -85,6 +85,8 @@
 
 - **2026-05-17**: Task 8.4 ✅ — `robots.txt` + `sitemap.xml` generado en build por `scripts/generate-sitemap.js`. Build OK.
 
+- **2026-05-17**: Task 8.5 ✅ — Foto optimizada a WebP (-71%) vía `sharp` + `scripts/optimize-images.js`. `<picture>` con fallback en About. 101 passing, lint OK.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1348,7 +1350,18 @@ Sitemap: https://giulianogerlo.vercel.app/sitemap.xml
 
 `public/sitemap.xml` generado por script en build (`scripts/generate-sitemap.js` lee `projects.js`).
 
-### Task 8.5: Image optimization
+### Task 8.5: Image optimization ✅ (2026-05-17)
+
+> Implementado. Única imagen raster era `foto-giulianogerlo.jpg`
+> (960x1280, 83 KB). `sharp` instalado (devDep) + script
+> `scripts/optimize-images.js` (`pnpm optimize:images`): genera
+> `foto-giulianogerlo.webp` (600x800, 23.8 KB, -71%). `About.jsx` ahora
+> usa `<picture>` (source webp + img jpg fallback) con `width/height`
+> explícitos (evita CLS) y `loading="lazy"` (ya estaba). Los
+> screenshots de proyectos siguen pendientes (assets del usuario) — el
+> script se reusa cuando lleguen. `pnpm-workspace.yaml` creado para
+> `allowBuilds: sharp: false` (sharp anda con binario prebuilt). 101
+> passing, lint OK.
 
 Convertir screenshots a WebP. Lazy load con `loading="lazy"`. Sizes/srcset si fuera necesario.
 

@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "node scripts/generate-sitemap.js && vite build",
     "lint": "eslint .",
+    "optimize:images": "node scripts/optimize-images.js",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
@@ -50,6 +51,7 @@
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
     "postcss": "^8.5.14",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.3.0",
     "vite": "^8.0.12",
     "vitest": "^4.1.6"

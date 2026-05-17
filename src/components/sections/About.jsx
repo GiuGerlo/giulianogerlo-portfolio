@@ -104,12 +104,23 @@ export default function About() {
               <img> con h-full w-full object-cover llena el cuadrado y
               recorta si la imagen no es 1:1 (sin distorsionar). */}
           <div className="aspect-square w-full overflow-hidden rounded-xl border border-border bg-gradient-to-br from-accent to-bg-elevated md:max-w-[280px]">
-            <img
-              src="/foto-giulianogerlo.jpg"
-              alt="Giuliano Gerlo"
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
+            {/* <picture>: el browser elige el .webp (liviano, moderno) y
+                cae al .jpg solo si no soporta WebP. width/height son los
+                del archivo real (600x800): le dan al browser la
+                proporción y evitan el salto de layout (CLS) mientras
+                la imagen carga. loading="lazy" la difiere hasta que
+                está por entrar en viewport. */}
+            <picture>
+              <source srcSet="/foto-giulianogerlo.webp" type="image/webp" />
+              <img
+                src="/foto-giulianogerlo.jpg"
+                alt="Giuliano Gerlo"
+                width={600}
+                height={800}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </picture>
           </div>
         </div>
         </Reveal>

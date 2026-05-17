@@ -51,6 +51,22 @@ Ej: `src/hooks/useTheme.js` → `src/hooks/useTheme.test.js`.
 
 ---
 
+## 🖼️ Optimización de imágenes
+
+| Comando | Qué hace |
+|---|---|
+| `pnpm optimize:images` | Convierte las imágenes raster de `public/` a **WebP** (formato moderno, ~70% más liviano) y las reduce de tamaño. Corre `scripts/optimize-images.js` |
+
+**Cuándo correrlo:** cada vez que agregás una imagen nueva a `public/` (ej. screenshots de proyectos). Pasos:
+1. Poné el archivo fuente (`.jpg`/`.png`) en `public/`.
+2. Agregalo a la lista `images` en `scripts/optimize-images.js` con su `width` de salida.
+3. Corré `pnpm optimize:images` — genera el `.webp`.
+4. En el componente, usá `<picture>` con el `.webp` + el original como fallback.
+
+> NO corre en el build — es un paso manual de preparación de assets. El `.webp` generado se commitea al repo.
+
+---
+
 ## 📦 Gestión de dependencias
 
 | Comando | Qué hace |
@@ -99,6 +115,7 @@ Prefijos comunes (basado en Conventional Commits, en español):
 ```
 giulianogerlo-portfolio/
 ├── api/                         # Vercel serverless functions (Phase 7+)
+├── scripts/                     # Scripts de build/assets (generate-sitemap, optimize-images)
 ├── public/                      # Assets servidos al root (favicon, icons.svg, imágenes)
 ├── src/
 │   ├── main.jsx                 # Entry point, monta React
@@ -118,6 +135,7 @@ giulianogerlo-portfolio/
 │   └── plans/                   # Design doc + implementation plan
 ├── .gitignore
 ├── .npmrc                       # pnpm config (minimum-release-age, auto-install-peers)
+├── pnpm-workspace.yaml          # pnpm config (allowBuilds — aprobación de build scripts)
 ├── pnpm-lock.yaml               # Lockfile (COMMITEADO — no editar a mano)
 ├── package.json
 ├── vite.config.js               # Config Vite (React + React Compiler)

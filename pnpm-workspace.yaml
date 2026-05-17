@@ -1,0 +1,11 @@
+# Config de pnpm. En pnpm 11 la aprobación de build scripts de
+# dependencias vive acá.
+#
+# allowBuilds: por cada paquete con script de instalación, true = pnpm lo
+# ejecuta, false = no lo ejecuta. Default seguro contra supply-chain
+# attacks: no correr scripts salvo decisión explícita.
+#
+# sharp: false → no corre su build script. sharp funciona con el binario
+# prebuilt (@img/sharp-*), no necesita compilar nada.
+allowBuilds:
+  sharp: false
