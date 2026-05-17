@@ -23,6 +23,7 @@ Lockfile: `pnpm-lock.yaml` (commiteado). `package-lock.json` NO existe.
 - `pnpm test` — Vitest watch mode
 - `pnpm test:run` — Vitest single run (CI-style)
 - `pnpm test:ui` — Vitest web UI
+- `pnpm optimize:images` — convierte imágenes de `public/` a WebP (`scripts/optimize-images.js`)
 - `pnpm add <pkg>` — add dependency
 - `pnpm add -D <pkg>` — add dev dependency
 
@@ -34,8 +35,11 @@ Referencia completa de comandos en [docs/comandos.md](docs/comandos.md) (incluye
 - **Tailwind v4 CSS-first, no `tailwind.config.js`**: toda la config vive en [src/index.css](src/index.css) con `@theme inline` (CSS vars mapeadas a tokens Tailwind) y `@custom-variant dark` (data-theme attribute). NO agregar reset universal tipo `* { margin: 0; padding: 0 }` después de `@import 'tailwindcss'` — sobreescribe utilities como `mx-auto`. Preflight ya hace el reset moderno necesario.
 - **Entry**: [index.html](index.html) → [src/main.jsx](src/main.jsx) → [src/App.jsx](src/App.jsx).
 - **Static SVG sprite**: [public/icons.svg](public/icons.svg) is referenced via `<use href="/icons.svg#id">`. Add new icons as `<symbol id="...">` entries there rather than importing individual SVGs.
-- **Styling**: plain CSS — global [src/index.css](src/index.css), component [src/App.css](src/App.css). No CSS framework installed yet.
-- **ESLint**: flat config in [eslint.config.js](eslint.config.js) with `react-hooks` and `react-refresh` plugins. JS/JSX only — no TypeScript.
+- **Routing**: React Router v7. Rutas en [src/App.jsx](src/App.jsx) (`/`, `/proyectos/:slug`, `*` → 404), con layout route que envuelve Navbar + Footer.
+- **Contenido**: [src/data/](src/data/) es la **fuente única de verdad** del contenido del portfolio (`projects.js`, `experience.js`, `skills.js`, `education.js`, `socials.js`). Editar el contenido ahí, no en los componentes.
+- **Backend**: serverless functions de Vercel en [api/](api/). `api/contact.js` maneja el form (honeypot + rate limit Upstash + Turnstile + Resend). Corren en Node — usan `process.env`.
+- **Scripts**: [scripts/](scripts/) — `generate-sitemap.js` (corre en `build`) y `optimize-images.js` (manual).
+- **ESLint**: flat config in [eslint.config.js](eslint.config.js) with `react-hooks` and `react-refresh` plugins. JS/JSX only — no TypeScript. Bloque aparte con globals de Node para `api/**` y `scripts/**`.
 
 ## Conventions
 
@@ -88,9 +92,10 @@ Cada skill puede tener una carpeta `references/` con docs detallados — leerlos
 ## Source of truth for the project
 
 - [docs/plans/2026-05-13-portfolio-design.md](docs/plans/2026-05-13-portfolio-design.md) — design doc aprobado (sistema visual, arquitectura, decisiones técnicas).
-- [docs/plans/2026-05-13-portfolio-implementation-plan.md](docs/plans/2026-05-13-portfolio-implementation-plan.md) — plan de implementación task-por-task. Fase actual: **Phase 0**.
+- [docs/plans/2026-05-13-portfolio-implementation-plan.md](docs/plans/2026-05-13-portfolio-implementation-plan.md) — plan de implementación task-por-task. Estado: **Phases 0-10 completas, sitio deployado** en https://giulianogerlo.vercel.app. Lo que queda es contenido real (assets del usuario).
+- [docs/dependencias.md](docs/dependencias.md) — qué hace cada dependencia del proyecto.
+- [docs/comandos.md](docs/comandos.md) — comandos, troubleshooting, estructura del repo.
 - [TODO-USUARIO.md](TODO-USUARIO.md) — checklist de cuentas/assets/keys que Giuliano tiene que conseguir fuera del código.
-- [mockup.html](mockup.html) — mockup HTML de referencia visual (se elimina en Phase 10).
 
 ## Ejecución del plan
 

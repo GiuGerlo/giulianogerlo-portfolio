@@ -1,3 +1,5 @@
+// `Suspense` muestra un fallback mientras se carga un componente lazy.
+import { Suspense } from 'react';
 // `Outlet` es el "hueco" donde React Router inserta el componente hijo
 // de la ruta matcheada. Lo usamos para compartir layout (Navbar + Footer)
 // entre todas las páginas sin repetir el JSX en cada una.
@@ -30,7 +32,13 @@ export default function Layout() {
       <Navbar />
 
       <main className="min-h-screen">
-        <Outlet />
+        {/* Suspense: mientras se baja el chunk de una página lazy (ver
+            App.jsx — ProjectDetail/NotFound), muestra este fallback. El
+            div vacío con min-h-screen sostiene el alto para que el
+            Footer no salte hacia arriba. */}
+        <Suspense fallback={<div className="min-h-screen" />}>
+          <Outlet />
+        </Suspense>
       </main>
 
       <Footer />

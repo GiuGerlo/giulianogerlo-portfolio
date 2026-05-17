@@ -17,6 +17,7 @@ Lista viva de todo lo que **Giuliano** tiene que hacer fuera del código (crear 
 - [ ] Logo/favicon personal (puede ser "GG" en SVG simple, o algo más elaborado)
 - [ ] CV en PDF actualizado (para botón "Descargar CV")
 - [x] **OG image** — `public/og-image.png` (1200x630). Imagen de preview al compartir el link. (Task 8.2)
+- [ ] **OG image v2 (opcional)** — rediseñarla con el contenido (nombre, logo, rol) CENTRADO en la zona segura (cuadrado central ~630x630). WhatsApp recorta la imagen a un cuadrado en su preview compacto y corta lo que está en los bordes.
 
 ## 🏅 Certificados y títulos (URLs o PDFs)
 
@@ -42,7 +43,7 @@ Opciones para hostearlos:
 
 ### 1. Cuenta Vercel (hosting)
 - [x] Cuenta creada, proyecto linkeado (`vercel dev` corriendo OK)
-- [ ] **Renombrar el proyecto en Vercel** de `giulianogerlo-portfolio` a `giulianogerlo` — Project Settings → General → Project Name. Necesario para que el dominio quede `giulianogerlo.vercel.app` (las URLs de SEO ya apuntan ahí).
+- [x] Proyecto renombrado a `giulianogerlo` → dominio `giulianogerlo.vercel.app`
 
 ### 2. Cuenta Resend (envío de emails del form)
 - [x] Cuenta creada, API key generada y pasada
@@ -50,7 +51,7 @@ Opciones para hostearlos:
 
 ### 3. Cuenta Cloudflare Turnstile (anti-bot del form)
 - [x] Cuenta creada, widget creado, SITE + SECRET key pasadas
-- [ ] **Agregar hostnames al widget** — Cloudflare → Turnstile → tu widget → Settings → Hostnames: sumar `localhost` (para probar con `vercel dev`) y `giulianogerlo.vercel.app` (para producción). Sin esto el widget falla.
+- [x] Hostnames del widget: `localhost` + `giulianogerlo.vercel.app`
 
 ### 4. Repositorio GitHub
 - [x] Repo creado y conectado a Vercel
@@ -75,7 +76,7 @@ Opciones para hostearlos:
 - [x] Env vars cargadas en el dashboard de Vercel
 - [x] `giulianogerlo.vercel.app` agregado a los hostnames del widget Turnstile
 - [x] Deploy inicial OK + form probado en producción (mail recibido)
-- [ ] **Activar Vercel Web Analytics** — dashboard de Vercel → proyecto → pestaña **Analytics** → Enable Web Analytics. El código (`<Analytics />`) ya está; falta el toggle.
+- [x] Vercel Web Analytics activado
 
 ## 🔍 Post-deploy (SEO)
 

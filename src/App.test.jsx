@@ -20,7 +20,7 @@ test('renders Home on /', () => {
   ).toBeInTheDocument();
 });
 
-test('renders ProjectDetail with slug on /proyectos/:slug', () => {
+test('renders ProjectDetail with slug on /proyectos/:slug', async () => {
   render(
     <MemoryRouter initialEntries={['/proyectos/clovertecno']}>
       <App />
@@ -28,18 +28,21 @@ test('renders ProjectDetail with slug on /proyectos/:slug', () => {
   );
   // ProjectDetail busca el proyecto por slug y renderiza su título como
   // h1 — confirmamos que la ruta matcheó y resolvió el proyecto.
+  // findBy* (no getBy*) porque ProjectDetail es lazy: hay que esperar
+  // a que se baje su chunk antes de que el h1 exista en el DOM.
   expect(
-    screen.getByRole('heading', { level: 1, name: /clovertecno/i }),
+    await screen.findByRole('heading', { level: 1, name: /clovertecno/i }),
   ).toBeInTheDocument();
 });
 
-test('renders 404 on unknown route', () => {
+test('renders 404 on unknown route', async () => {
   render(
     <MemoryRouter initialEntries={['/no-existe']}>
       <App />
     </MemoryRouter>
   );
-  expect(screen.getByText('404')).toBeInTheDocument();
+  // NotFound también es lazy → findBy* espera a que cargue su chunk.
+  expect(await screen.findByText('404')).toBeInTheDocument();
 });
 
 test('Layout renders Navbar + Footer on every page', () => {

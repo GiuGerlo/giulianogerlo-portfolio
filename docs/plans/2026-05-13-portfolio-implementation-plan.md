@@ -91,6 +91,10 @@
 
 - **2026-05-17**: Tasks 9.1-9.6 ✅ — Deploy a Vercel (`giulianogerlo.vercel.app`), env vars, form probado en prod (mail OK), Vercel Analytics. **Phase 9 cerrada.**
 
+- **2026-05-17**: Tasks 10.1-10.3 ✅ — Cleanup: `mockup.html` + `src/App.css` borrados, `CLAUDE.md` actualizado, `README.md` reescrito, `docs/dependencias.md` nuevo. `pnpm audit` sin vulnerabilidades.
+
+- **2026-05-17**: Task 10.4 ✅ — Lighthouse: Rend 99 / SEO 100 / A11y 90 / Prácticas 73. Lazy-load de rutas, sourcemaps y HSTS. **Phase 10 cerrada.**
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1577,28 +1581,40 @@ Render visual: Grupo 1 con badge verde `✓ activo`. Grupo 2 con badge amarillo 
 
 ## Phase 10 — Cleanup final
 
-### Task 10.1: Borrar `mockup.html`
+### Task 10.1: Borrar `mockup.html` ✅ (2026-05-17)
 
-Ya no es necesario. Quitar.
+> `mockup.html` eliminado (diseño ya implementado). Aparte: `src/App.css`
+> borrado (vacío y sin importar — archivo muerto).
 
-```bash
-rm mockup.html
-git add -A
-git commit -m "chore: remove mockup.html — diseño implementado"
-```
+### Task 10.2: Actualizar `CLAUDE.md` ✅ (2026-05-17)
 
-### Task 10.2: Actualizar `CLAUDE.md`
+> Actualizado: comando `pnpm optimize:images`; Architecture con routing,
+> `src/data/` como fuente única de contenido, backend `api/`, scripts;
+> sacada la línea stale "plain CSS / no CSS framework" y la referencia a
+> `mockup.html`; estado del proyecto (Phases 0-10, deployado).
 
-Sumar:
-- Comandos: `pnpm test`, `pnpm test:run`, `pnpm dev`, `pnpm build`, `pnpm lint`
-- Stack añadido: Tailwind v4, Motion, Lenis, React Router, shadcn primitives, Resend
-- Mencionar `src/data/` como punto único de edición de contenido
+### Task 10.3: README final ✅ (2026-05-17)
 
-### Task 10.3: README final
+> `README.md` reescrito (era el template default de Vite): descripción
+> real, stack, features, setup, comandos, estructura, seguridad, links a
+> docs. Aparte: `docs/dependencias.md` nuevo — qué hace cada dependencia.
 
-Reemplazar `README.md` con descripción real del proyecto + screenshots + link live.
+### Task 10.4: Lighthouse audit ✅ (2026-05-17)
 
-### Task 10.4: Lighthouse audit
+> Lighthouse corrido (preview): Rendimiento **99**, SEO **100**,
+> Accesibilidad **90**, Prácticas recomendadas **73**.
+>
+> Fixes aplicados:
+> - **Lazy-load de rutas**: `ProjectDetail` y `NotFound` con `lazy()` +
+>   `Suspense` (en `Layout.jsx`). Salen del bundle inicial a chunks
+>   propios. `Home` queda eager (es la landing).
+> - **Sourcemaps**: `build.sourcemap: true` en `vite.config.js` — fixea
+>   el item "no hay mapas de origen".
+> - **HSTS**: header `Strict-Transport-Security` sumado a `vercel.json`.
+>
+> El 73 de Prácticas es mayormente irreducible: cookies de terceros +
+> errores de consola los genera el iframe de Cloudflare Turnstile (no
+> es código del proyecto). 101 passing, lint + build OK.
 
 `pnpm build && pnpm preview` → Chrome DevTools → Lighthouse → run.
 

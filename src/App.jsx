@@ -1,6 +1,7 @@
 // `Routes` y `Route` son los componentes que definen el sistema de rutas.
 // Routes es como un switch: mira la URL actual y renderiza UNA Route
 // que matchee. Si ninguna matchea, la Route con path="*" actúa de fallback.
+import { lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 // Vercel Web Analytics — registra visitas/page views sin cookies.
@@ -9,10 +10,15 @@ import { Analytics } from '@vercel/analytics/react';
 // Layout = wrapper con Navbar + Footer + <Outlet /> para el contenido.
 import Layout from './components/layout/Layout.jsx';
 
-// Páginas (componentes de ruta entera).
+// Home se importa normal: es la landing, no queremos demorarla.
 import Home from './pages/Home.jsx';
-import ProjectDetail from './pages/ProjectDetail.jsx';
-import NotFound from './pages/NotFound.jsx';
+
+// ProjectDetail y NotFound se cargan con lazy(): su código sale del
+// bundle inicial y se baja en su propio chunk recién cuando se visita
+// esa ruta (code splitting). El <Suspense> que muestra el fallback
+// mientras carga vive en Layout.jsx, alrededor del <Outlet />.
+const ProjectDetail = lazy(() => import('./pages/ProjectDetail.jsx'));
+const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 
 /**
  * App = árbol de rutas del portfolio.
