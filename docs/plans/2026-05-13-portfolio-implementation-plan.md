@@ -83,6 +83,8 @@
 
 - **2026-05-17**: Task 8.3 ✅ — Title dinámico por ruta vía custom hook `useDocumentTitle`. 101 passing, lint OK.
 
+- **2026-05-17**: Task 8.4 ✅ — `robots.txt` + `sitemap.xml` generado en build por `scripts/generate-sitemap.js`. Build OK.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1328,7 +1330,14 @@ Generar 1200x630 PNG con título + foto (puede ser Figma o Canva). Pone en `publ
 
 `useEffect` en `Home.jsx` y `ProjectDetail.jsx`.
 
-### Task 8.4: `robots.txt` y `sitemap.xml`
+### Task 8.4: `robots.txt` y `sitemap.xml` ✅ (2026-05-17)
+
+> Implementado. `public/robots.txt` (allow all, disallow `/api/`,
+> apunta al sitemap). `scripts/generate-sitemap.js` lee `projects.js`
+> y genera `public/sitemap.xml` (Home priority 1.0 + 5 proyectos 0.8,
+> `lastmod` = fecha de build). `build` script ahora corre
+> `node scripts/generate-sitemap.js && vite build`. ESLint: el bloque
+> Node ahora cubre `scripts/**`. Build OK, 6 URLs, lint OK.
 
 `public/robots.txt`:
 ```
