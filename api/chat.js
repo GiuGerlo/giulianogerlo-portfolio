@@ -29,6 +29,9 @@ import { projects } from '../src/data/projects.js';
 import { experience } from '../src/data/experience.js';
 import { skillGroups, aiSkills } from '../src/data/skills.js';
 import { education } from '../src/data/education.js';
+// bio.js — datos extra que NO se renderizan en el frontend, existen
+// solo para que el chatbot tenga más contexto (edad, disponibilidad…).
+import { bio } from '../src/data/bio.js';
 
 // Cliente de Upstash Redis (rate limiting). Mismas vars que usa
 // api/contact.js — las inyecta la integración de Vercel.
@@ -48,7 +51,8 @@ const MAX_MESSAGE_LEN = 1000; // caracteres por mensaje
 const MAX_HISTORY = 10; // turnos previos que se mandan como contexto
 
 // Modelo de Gemini. Flash = rápido y con free tier sin tarjeta.
-const GEMINI_MODEL = 'gemini-2.0-flash';
+// gemini-2.0-flash ya no tiene free tier (quota en 0); 2.5-flash sí.
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 /**
  * checkRateLimit — cuenta los mensajes de una IP en la ventana actual.
@@ -142,12 +146,19 @@ function buildContext() {
     .map((ed) => `- ${ed.title} — ${ed.org} (${ed.dateLabel})`)
     .join('\n');
 
+  // Object.entries recorre el objeto bio como pares [clave, valor], así
+  // sumar un campo nuevo en bio.js aparece acá sin tocar nada.
+  const datosExtra = Object.entries(bio)
+    .map(([clave, valor]) => `- ${clave}: ${valor}`)
+    .join('\n');
+
   return (
     `## Proyectos\n${proyectos}\n\n` +
     `## Experiencia laboral\n${trabajo}\n\n` +
     `## Skills técnicas\n${tecnicas}\n\n` +
     `## Skills de IA\n${ia}\n\n` +
-    `## Educación\n${estudios}`
+    `## Educación\n${estudios}\n\n` +
+    `## Datos personales\n${datosExtra}`
   );
 }
 
@@ -211,9 +222,16 @@ async function callGemini(systemPrompt, contents) {
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
+    // `vercel env pull` escribe los valores entre comillas en .env.local
+    // y `vercel dev` a veces las deja literales dentro de la variable.
+    // Limpiamos comillas y espacios para que la key entre limpia en la URL.
+    const apiKey = (process.env.GEMINI_API_KEY ?? '')
+      .trim()
+      .replace(/^["']|["']$/g, '');
+
     const url =
       `https://generativelanguage.googleapis.com/v1beta/models/` +
-      `${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+      `${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
     const res = await fetch(url, {
       method: 'POST',

@@ -101,3 +101,29 @@ body {
   transition-duration:        250ms;
   transition-timing-function: ease;
 }
+
+/* Scrollbar fina para paneles con scroll interno (ej. lista de mensajes
+ * del chat). El scrollbar nativo de Windows es ancho y gris, rompe la
+ * estética. Esto lo hace delgado, redondeado y con los colores del tema.
+ *
+ * Dos sintaxis porque los navegadores no se pusieron de acuerdo:
+ *  - `scrollbar-width` / `scrollbar-color` → estándar (Firefox).
+ *  - `::-webkit-scrollbar-*` → pseudo-elementos de Chrome/Edge/Safari.
+ */
+.scroll-slim {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.scroll-slim::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-slim::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+}
+.scroll-slim::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}

@@ -155,8 +155,9 @@ export default function Chat() {
             </div>
           </div>
 
-          {/* Lista de mensajes — scrolleable. */}
-          <div className="flex-1 space-y-3 overflow-y-auto p-4">
+          {/* Lista de mensajes — scrolleable. `scroll-slim` (index.css)
+              reemplaza el scrollbar nativo por uno fino acorde al tema. */}
+          <div className="scroll-slim flex-1 space-y-3 overflow-y-auto p-4">
             {/* Saludo inicial estático (no es parte de `messages`). */}
             <div className="max-w-[85%] rounded-lg rounded-tl-none bg-bg px-3 py-2 text-sm text-text-muted">
               ¡Hola! Soy el asistente de Giuliano. Preguntame sobre su
@@ -226,19 +227,23 @@ export default function Chat() {
 
           {/* Footer: Turnstile + input. */}
           <div className="border-t border-border p-3">
-            {/* Widget de Turnstile. compact para que no ocupe tanto en el
-                panel. Mientras no entregue token, el envío queda
-                deshabilitado. */}
-            <div className="mb-2 flex justify-center">
-              <Turnstile
-                key={turnstileKey}
-                siteKey={TURNSTILE_SITE_KEY}
-                onSuccess={setTurnstileToken}
-                onExpire={() => setTurnstileToken(null)}
-                onError={() => setTurnstileToken(null)}
-                options={{ theme: 'auto', size: 'compact' }}
-              />
-            </div>
+            {/* Widget de Turnstile en modo `interaction-only`: queda
+                INVISIBLE y valida en segundo plano. El recuadro grande
+                "Verify you are human" solo aparece si Cloudflare necesita
+                un challenge real (caso raro). El token se genera igual y,
+                mientras no exista, el envío queda deshabilitado. */}
+            <Turnstile
+              key={turnstileKey}
+              siteKey={TURNSTILE_SITE_KEY}
+              onSuccess={setTurnstileToken}
+              onExpire={() => setTurnstileToken(null)}
+              onError={() => setTurnstileToken(null)}
+              options={{
+                theme: 'auto',
+                size: 'flexible',
+                appearance: 'interaction-only',
+              }}
+            />
 
             <form onSubmit={handleSubmit} className="flex gap-2">
               {/* Honeypot — input trampa, oculto fuera de pantalla. Un
