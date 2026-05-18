@@ -23,17 +23,27 @@ export const projects = [
     role: 'Full-Stack Developer',
     myRole: 'Full-Stack Developer',
     summary:
-      'Sitio web para inmobiliaria con catálogo de propiedades y panel de gestión para publicar inmuebles.',
+      'Sitio web para estudio jurídico-inmobiliario con catálogo de propiedades, buscador instantáneo, mapa dinámico y panel de gestión.',
     description:
-      'Plataforma web completa para inmobiliaria. Catálogo público de propiedades con filtros por tipo, zona y precio. Panel de administración con CRUD de propiedades, gestión de imágenes y publicación al sitio público.',
-    stack: ['PHP', 'Laravel', 'MySQL', 'jQuery', 'Bootstrap'],
-    image: null,
-    gallery: [],
+      'Plataforma web para un estudio jurídico-inmobiliario. Catálogo público de propiedades organizado por categoría (casas, departamentos, terrenos, locales), con buscador instantáneo en tiempo real y mapa dinámico con clusters. Panel de administración con CRUD de propiedades y categorías, ordenamiento drag-and-drop y sección de propiedades vendidas. Desarrollado en PHP vanilla sobre arquitectura propia, con autenticación por sesiones y medición de tráfico con Google Analytics 4.',
+    stack: ['PHP', 'MySQL', 'Bootstrap 5', 'JavaScript', 'Google Maps API'],
+    image: '/projects/inmobiliaria-nz-1.webp',
+    gallery: [
+      '/projects/inmobiliaria-nz-1.webp',
+      '/projects/inmobiliaria-nz-2.webp',
+      '/projects/inmobiliaria-nz-3.webp',
+      '/projects/inmobiliaria-nz-4.webp',
+    ],
     liveUrl: null,
     repoUrl: null,
     dateStart: '2025-06',
     dateEnd: '2025-08',
-    challenges: [],
+    challenges: [
+      'Mostrar todo el catálogo de propiedades en venta de la inmobiliaria: cada propiedad con sus características, ubicación, galería de imágenes y datos de contacto, para que cualquier interesado pueda consultar lo disponible sin intermediarios.',
+      'Buscador de propiedades instantáneo: filtra por título, localidad o categoría en tiempo real, normalizando el texto para ignorar acentos.',
+      'Mapa dinámico de propiedades con clusters personalizados (Google Maps + MarkerClusterer), adaptado a mobile sin romper el responsive.',
+      'Ordenamiento drag-and-drop de propiedades en el panel admin, persistiendo el orden por categoría en la base de datos.',
+    ],
   },
   {
     slug: 'clovertecno',

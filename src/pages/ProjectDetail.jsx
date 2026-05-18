@@ -1,3 +1,6 @@
+// useState → guarda qué imagen de la galería está abierta en el lightbox.
+import { useState } from 'react';
+
 // React Router:
 //  - useParams → lee el :slug dinámico de la URL.
 //  - Navigate  → redirige de forma declarativa (componente, no función).
@@ -14,6 +17,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 
+import Lightbox from '../components/ui/Lightbox.jsx';
 import { projects } from '../data/projects.js';
 
 /**
@@ -76,6 +80,11 @@ export default function ProjectDetail() {
   // no toca el título.
   useDocumentTitle(project ? `${project.title} — Giuliano Gerlo` : null);
 
+  // Estado del lightbox de la galería: null = cerrado, número = índice
+  // de la imagen abierta. Se declara ANTES del return condicional para
+  // respetar la regla de hooks (siempre se ejecutan en el mismo orden).
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
   // Slug inexistente → redirección declarativa. `replace` evita que la
   // URL rota quede en el historial (back no vuelve a ella).
   if (!project) return <Navigate to="/404" replace />;
@@ -85,13 +94,29 @@ export default function ProjectDetail() {
   const hasGallery = project.gallery.length > 0;
   const hasChallenges = project.challenges.length > 0;
 
+  // Handlers del lightbox. prev/next usan el operador módulo (%) para
+  // dar la vuelta: después de la última imagen vuelve a la primera y
+  // viceversa (wrap-around). El `+ length` antes del % evita índices
+  // negativos al retroceder desde la imagen 0.
+  function closeLightbox() {
+    setLightboxIndex(null);
+  }
+  function prevImage() {
+    setLightboxIndex(
+      (i) => (i - 1 + project.gallery.length) % project.gallery.length,
+    );
+  }
+  function nextImage() {
+    setLightboxIndex((i) => (i + 1) % project.gallery.length);
+  }
+
   return (
     <article className="mx-auto max-w-[900px] px-4 py-12 md:px-8 md:py-16">
       {/* Back link — vuelve al Home. ArrowLeft de lucide en vez del
           carácter "←" (política del proyecto: íconos vectoriales). */}
       <Link
         to="/"
-        className="mb-8 inline-flex items-center gap-1.5 font-mono text-[13px] text-text-muted transition-colors hover:text-accent"
+        className="mb-8 flex w-fit items-center gap-1.5 font-mono text-[13px] text-text-muted transition-colors hover:text-accent"
       >
         <ArrowLeft size={14} aria-hidden="true" />
         Volver a proyectos
@@ -180,13 +205,24 @@ export default function ProjectDetail() {
           <h2 className="mb-3 text-xl font-semibold">Galería</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {project.gallery.map((src, i) => (
-              <img
+              // Cada thumbnail es un <button> (no un <img> suelto): así
+              // es accesible por teclado y semánticamente correcto para
+              // un elemento clickeable. Al click abre el lightbox en
+              // esa imagen seteando su índice.
+              <button
                 key={src}
-                src={src}
-                alt={`${project.title} — captura ${i + 1}`}
-                loading="lazy"
-                className="aspect-[16/10] w-full rounded-lg border border-border object-cover"
-              />
+                type="button"
+                onClick={() => setLightboxIndex(i)}
+                aria-label={`Ampliar captura ${i + 1} de ${project.title}`}
+                className="group block overflow-hidden rounded-lg border border-border transition-colors hover:border-accent"
+              >
+                <img
+                  src={src}
+                  alt={`${project.title} — captura ${i + 1}`}
+                  loading="lazy"
+                  className="aspect-[16/10] w-full object-cover transition-transform group-hover:scale-105"
+                />
+              </button>
             ))}
           </div>
         </section>
@@ -215,6 +251,17 @@ export default function ProjectDetail() {
           </ul>
         </section>
       )}
+
+      {/* Lightbox de la galería. Renderiza el overlay solo cuando
+          lightboxIndex es un número; si es null, no muestra nada. */}
+      <Lightbox
+        images={project.gallery}
+        index={lightboxIndex}
+        title={project.title}
+        onClose={closeLightbox}
+        onPrev={prevImage}
+        onNext={nextImage}
+      />
     </article>
   );
 }

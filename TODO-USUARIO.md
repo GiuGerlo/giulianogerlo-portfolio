@@ -9,12 +9,12 @@ Lista viva de todo lo que **Giuliano** tiene que hacer fuera del código (crear 
 ## 📸 Assets gráficos
 
 - [ ] Foto profesional (cuadrada, mínimo 600x600px, PNG/JPG)
-- [ ] Screenshot proyecto: Inmobiliaria NZ (1280x800 aprox.)
+- [x] Screenshot proyecto: Inmobiliaria NZ (1280x800 aprox.)
 - [ ] Screenshot proyecto: Clovertecno
 - [ ] Screenshot proyecto: RAMCC
 - [ ] Screenshot proyecto: ALPA
 - [ ] Screenshot proyecto: CENARB (web y móvil si tenés)
-- [ ] Logo/favicon personal (puede ser "GG" en SVG simple, o algo más elaborado)
+- [x] Logo/favicon personal (puede ser "GG" en SVG simple, o algo más elaborado)
 - [ ] CV en PDF actualizado (para botón "Descargar CV")
 - [x] **OG image** — `public/og-image.png` (1200x630). Imagen de preview al compartir el link. (Task 8.2)
 - [ ] **OG image v2 (opcional)** — rediseñarla con el contenido (nombre, logo, rol) CENTRADO en la zona segura (cuadrado central ~630x630). WhatsApp recorta la imagen a un cuadrado en su preview compacto y corta lo que está en los bordes.

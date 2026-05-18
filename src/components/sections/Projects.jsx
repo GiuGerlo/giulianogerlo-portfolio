@@ -58,12 +58,25 @@ export default function Projects() {
               to={`/proyectos/${project.slug}`}
               className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-bg-elevated shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent"
             >
-              {/* Placeholder de imagen — gradiente bg → accent-bg con el
-                  título en mono. Se reemplaza por <img> cuando haya
-                  screenshots reales. h-[180px] matchea mockup. */}
-              <div className="flex h-[180px] items-center justify-center border-b border-border bg-gradient-to-br from-bg to-accent-bg font-mono text-[13px] text-text-muted">
-                [ {project.title} ]
-              </div>
+              {/* Imagen del proyecto. Si `project.image` existe renderizamos
+                  el screenshot; si es null (proyecto sin asset todavía)
+                  caemos al placeholder con gradiente + título en mono.
+                  aspect-[16/10] → el contenedor toma la proporción de los
+                  screenshots (1280x800), así la imagen se ve COMPLETA sin
+                  recorte. Todos los screenshots deben subirse con esa
+                  misma proporción para que las cards queden parejas. */}
+              {project.image ? (
+                <img
+                  src={project.image}
+                  alt={`Captura del proyecto ${project.title}`}
+                  loading="lazy"
+                  className="aspect-[16/10] w-full border-b border-border object-cover"
+                />
+              ) : (
+                <div className="flex aspect-[16/10] items-center justify-center border-b border-border bg-gradient-to-br from-bg to-accent-bg font-mono text-[13px] text-text-muted">
+                  [ {project.title} ]
+                </div>
+              )}
 
               {/* Body de la card. p-6 (24px). flex flex-1 flex-col →
                   ocupa el alto restante después de la imagen; permite
