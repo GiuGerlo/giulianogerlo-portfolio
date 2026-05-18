@@ -1453,39 +1453,77 @@ Las del store Upstash (`KV_*`) ya las inyecta la integración. Cargar a mano:
 
 ---
 
-## Phase 11 — Bonus AI Chatbot RAG (post-MVP)
+## Phase 11 — Bonus AI Chatbot "Preguntale a Giuliano" (post-MVP)
 
-**Goal:** Construir chatbot embebido en portfolio "Pregúntale a Giuliano" usando RAG sobre CV + proyectos. Legitima skills AI declaradas.
+**Goal:** Chatbot embebido en el portfolio que responde preguntas sobre
+Giuliano (experiencia, skills, proyectos, educación) usando su data real.
+Legitima las skills AI declaradas (integración de LLM API + prompt
+engineering aplicado).
 
-**Stack:**
-- Front: componente Chat en React (`src/components/Chat.jsx`)
-- Vector DB: Upstash Vector (gratis 10k vectors) o pgvector vía Vercel Postgres
-- Embeddings: `text-embedding-3-small` de OpenAI (barato) o Voyage AI
-- LLM: Claude Haiku (rápido + barato)
-- Agentic flow: LangGraph.js con nodo retrieval + nodo respuesta
-- Backend: Vercel function `api/chat.js`
+### Decisión de arquitectura — context-stuffing, NO RAG
 
-**Tasks (alto nivel):**
+> **Revisión 2026-05-18:** el plan original (RAG con vector DB +
+> embeddings + LangGraph) quedó descartado. Se documenta acá el porqué.
 
-### Task 11.1: Generar embeddings de data
-Script `scripts/build-embeddings.js` que lee CV + projects.js + experience.js, los chunkea, genera embeddings, sube a vector DB.
+El corpus del chatbot es **todo `src/data/`** (proyectos, experiencia,
+skills, educación, socials): ~3-5k tokens. **Entra entero en un solo
+prompt.** No hace falta buscar nada.
 
-### Task 11.2: API endpoint `api/chat.js`
-Recibe pregunta → embedea query → busca top-3 chunks similares → arma prompt con contexto → llama Claude → devuelve respuesta streaming.
+- **RAG** (vector DB + embeddings + retrieval) sirve cuando el corpus
+  es enorme y no entra en un prompt. A esta escala es over-engineering:
+  más infra, más piezas que fallan, y el retrieval puede no traer el
+  chunk correcto → el LLM responde mal o alucina.
+- **Context-stuffing** manda TODO el contenido en cada consulta. El
+  modelo ve todo → no hay retrieval que falle → cero infra → más
+  fiable. Es la opción correcta para un portfolio.
 
-### Task 11.3: LangGraph workflow
-Nodo 1: clasifica si pregunta necesita RAG o no.
-Nodo 2: retrieval (si aplica).
-Nodo 3: respuesta final con contexto.
+**Descartado del plan original (NO se implementa):** Upstash Vector,
+embeddings OpenAI/Voyage, `scripts/build-embeddings.js`, LangGraph.js,
+workflow de nodos. LangGraph aporta valor solo con loops/ramas/estado;
+acá el flujo es lineal (pregunta → respuesta).
 
-### Task 11.4: Chat UI component
-Input + stream de mensajes. Bubble user / bot. Loading state. Markdown render con `react-markdown`.
+> Futuro opcional: si se quisiera la credencial "RAG" real en el CV, se
+> puede sumar una capa mínima de embeddings (Gemini `text-embedding-004`,
+> gratis, guardados como `.json` en el repo, similarity en memoria — sin
+> vector DB). No cambia la UI ni `api/chat.js` de forma estructural.
 
-### Task 11.5: Embed en Home
-Botón flotante "💬 Preguntale a Giuliano" abajo-derecha. Click abre drawer con chat.
+### Stack
 
-### Task 11.6: Cambiar labels Grupo 2 → "✓ implementado"
-Una vez deployado, mover de "🌱 explorando" a "✓ activo" las skills usadas.
+- **LLM:** Google Gemini 2.0 Flash — free tier real, sin tarjeta de
+  crédito. (Se descartó Claude Haiku: barato pero no gratis; el objetivo
+  es costo cero.)
+- **Front:** componente `Chat.jsx` en React.
+- **Backend:** Vercel function `api/chat.js` (Node, `process.env`).
+- **Datos:** imports directos de `src/data/*.js` dentro de la function.
+  Sin base de datos. Editar la data ahí actualiza el chatbot solo.
+- **Anti-abuso:** un endpoint público de IA se puede spamear y quemar el
+  free tier. Se reutiliza la protección que ya existe en
+  `api/contact.js`: honeypot + rate limit Upstash + Turnstile.
+
+### Tasks (alto nivel)
+
+#### Task 11.1: Pre-requisito usuario — API key de Gemini
+Crear API key gratis en Google AI Studio. Anotar en `TODO-USUARIO.md`
+y cargar como env var en Vercel (`GEMINI_API_KEY`).
+
+#### Task 11.2: API endpoint `api/chat.js`
+Recibe la pregunta → arma el prompt (system con todo `src/data/` +
+reglas anti-alucinación: "respondé solo con la info dada, si no está
+decí que no sabés") → llama Gemini Flash → devuelve respuesta en
+streaming. Reusa honeypot + rate limit Upstash + Turnstile de
+`api/contact.js`.
+
+#### Task 11.3: Chat UI component `Chat.jsx`
+Botón flotante abajo-derecha (ícono lucide `MessageCircle`, sin emoji).
+Click abre un drawer con: input, stream de mensajes, burbujas
+user/bot, loading state. Render markdown con `react-markdown`.
+
+#### Task 11.4: Embed en el layout
+Montar el chat en la layout route (visible en todas las páginas).
+
+#### Task 11.5: Cambiar labels Grupo 2 → "activo"
+Una vez deployado, mover las skills usadas de "explorando" a "activo"
+en `src/data/skills.js`.
 
 ---
 

@@ -8,6 +8,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
 import ScrollToTop from './ScrollToTop.jsx';
+import Chat from '../ui/Chat.jsx';
 import { useLenis } from '../../hooks/useLenis.js';
 
 /**
@@ -42,6 +43,9 @@ export default function Layout() {
       </main>
 
       <Footer />
+
+      {/* Chatbot flotante — visible en todas las páginas. */}
+      <Chat />
     </>
   );
 }
