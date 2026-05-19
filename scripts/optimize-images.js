@@ -64,18 +64,62 @@ const images = [
     output: 'projects/inmobiliaria-nz-4.webp',
     width: 1280,
   },
+  {
+    input: 'projects/clovertecno-1.png',
+    output: 'projects/clovertecno-1.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/clovertecno-2.png',
+    output: 'projects/clovertecno-2.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/clovertecno-3.png',
+    output: 'projects/clovertecno-3.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/clovertecno-4.png',
+    output: 'projects/clovertecno-4.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/gym-tracker-1.png',
+    output: 'projects/gym-tracker-1.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/gym-tracker-2.png',
+    output: 'projects/gym-tracker-2.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/gym-tracker-3.png',
+    output: 'projects/gym-tracker-3.webp',
+    width: 1280,
+  },
 ];
 
 for (const { input, output, width } of images) {
   // Asegura que exista el subdirectorio de salida (ej: public/projects/).
   await mkdir(dirname(join(outDir, output)), { recursive: true });
 
-  const info = await sharp(join(srcDir, input))
+  // Screenshots de proyectos → WebP lossless: cero pérdida de calidad
+  // (texto y bordes nítidos, sin artefactos). Comprimen bien igual
+  // porque son capturas con zonas planas de color.
+  // Foto de perfil y otras imágenes → WebP lossy quality 80: una foto
+  // no necesita pixel-perfect y lossy la deja mucho más liviana.
+  const esScreenshot = output.startsWith('projects/');
+
+  const pipeline = sharp(join(srcDir, input))
     .resize({ width, withoutEnlargement: true })
-    .webp({ quality: 80 })
-    .toFile(join(outDir, output));
+    .webp(esScreenshot ? { lossless: true } : { quality: 80 });
+
+  const info = await pipeline.toFile(join(outDir, output));
   console.log(
     `${input} -> ${output}  (${info.width}x${info.height}, ` +
-      `${(info.size / 1024).toFixed(1)} KB)`,
+      `${(info.size / 1024).toFixed(1)} KB, ` +
+      `${esScreenshot ? 'lossless' : 'q80'})`,
   );
 }

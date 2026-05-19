@@ -97,6 +97,8 @@
 
 - **2026-05-17**: Perf — en producción el Rendimiento daba 86 (FCP/LCP 3.3s). Causa: `@import` de Google Fonts en `index.css` = cadena render-blocking. Fix: fuentes movidas al `<head>` de `index.html` con `preconnect` + `<link>`.
 
+- **2026-05-18**: Tasks 11.1-11.4 ✅ — chatbot IA "Preguntale a Giuliano" completo y deployado en prod. Context-stuffing a Gemini 2.5 Flash, protección honeypot + rate limit + Turnstile. Task 11.5 marcada N/A (el Grupo 2 de skills `exploring` quedó descartado junto con RAG/LangGraph). **Phase 11 cerrada.** Detalle de desincronizaciones del plan corregido en la propia Phase 11.
+
 **Target audience:** Reclutadores, CTOs, clientes potenciales, comunidad dev.
 
 **Usuario es principiante React** — cada nueva primitiva (hook, pattern, lib) se explica al introducirla en chat (no en comentarios de código).
@@ -1466,8 +1468,13 @@ engineering aplicado).
 > embeddings + LangGraph) quedó descartado. Se documenta acá el porqué.
 
 El corpus del chatbot es **todo `src/data/`** (proyectos, experiencia,
-skills, educación, socials): ~3-5k tokens. **Entra entero en un solo
-prompt.** No hace falta buscar nada.
+skills, educación) más `src/data/bio.js` — un archivo nuevo con datos
+extra (edad, disponibilidad, idiomas) que NO se renderiza en el
+frontend, existe solo para darle más contexto al bot. Total: ~3-5k
+tokens. **Entra entero en un solo prompt.** No hace falta buscar nada.
+
+> `socials.js` quedó fuera del corpus a pedido del usuario — el bot no
+> revela links de redes ni contacto directo.
 
 - **RAG** (vector DB + embeddings + retrieval) sirve cuando el corpus
   es enorme y no entra en un prompt. A esta escala es over-engineering:
@@ -1489,9 +1496,10 @@ acá el flujo es lineal (pregunta → respuesta).
 
 ### Stack
 
-- **LLM:** Google Gemini 2.0 Flash — free tier real, sin tarjeta de
+- **LLM:** Google Gemini 2.5 Flash — free tier real, sin tarjeta de
   crédito. (Se descartó Claude Haiku: barato pero no gratis; el objetivo
-  es costo cero.)
+  es costo cero.) Nota: el plan original apuntaba a `gemini-2.0-flash`,
+  pero Google le sacó el free tier (quota 0); se usa `gemini-2.5-flash`.
 - **Front:** componente `Chat.jsx` en React.
 - **Backend:** Vercel function `api/chat.js` (Node, `process.env`).
 - **Datos:** imports directos de `src/data/*.js` dentro de la function.
@@ -1502,28 +1510,37 @@ acá el flujo es lineal (pregunta → respuesta).
 
 ### Tasks (alto nivel)
 
-#### Task 11.1: Pre-requisito usuario — API key de Gemini
+#### Task 11.1: Pre-requisito usuario — API key de Gemini ✅ (2026-05-18)
 Crear API key gratis en Google AI Studio. Anotar en `TODO-USUARIO.md`
 y cargar como env var en Vercel (`GEMINI_API_KEY`).
 
-#### Task 11.2: API endpoint `api/chat.js`
+#### Task 11.2: API endpoint `api/chat.js` ✅ (2026-05-18)
 Recibe la pregunta → arma el prompt (system con todo `src/data/` +
-reglas anti-alucinación: "respondé solo con la info dada, si no está
-decí que no sabés") → llama Gemini Flash → devuelve respuesta en
-streaming. Reusa honeypot + rate limit Upstash + Turnstile de
+`bio.js` + reglas anti-alucinación: "respondé solo con la info dada,
+si no está decí que no sabés") → llama Gemini Flash → devuelve la
+respuesta. Reusa honeypot + rate limit Upstash + Turnstile de
 `api/contact.js`.
 
-#### Task 11.3: Chat UI component `Chat.jsx`
-Botón flotante abajo-derecha (ícono lucide `MessageCircle`, sin emoji).
-Click abre un drawer con: input, stream de mensajes, burbujas
-user/bot, loading state. Render markdown con `react-markdown`.
+> No se implementó streaming: la respuesta vuelve como JSON
+> (`{ reply }`) en una sola pieza. Para el largo de respuesta de este
+> chatbot (2-4 oraciones) el streaming no aporta UX y suma complejidad.
 
-#### Task 11.4: Embed en el layout
+#### Task 11.3: Chat UI component `Chat.jsx` ✅ (2026-05-18)
+Botón flotante abajo-derecha (ícono lucide `MessageCircle`, sin emoji).
+Click abre un drawer con: input, mensajes, burbujas user/bot, loading
+state. Render markdown con `react-markdown`. Turnstile en modo
+`interaction-only` (widget invisible salvo challenge real).
+
+#### Task 11.4: Embed en el layout ✅ (2026-05-18)
 Montar el chat en la layout route (visible en todas las páginas).
 
-#### Task 11.5: Cambiar labels Grupo 2 → "activo"
-Una vez deployado, mover las skills usadas de "explorando" a "activo"
-en `src/data/skills.js`.
+#### Task 11.5: Cambiar labels Grupo 2 → "activo" — N/A
+Sin objeto. El "Grupo 2" de skills (`rag`, `langgraph`,
+`vector_databases`, status `exploring`) nunca llegó a `skills.js`:
+quedó descartado junto con RAG y LangGraph en la revisión de
+arquitectura (ver "context-stuffing, NO RAG" arriba). `skills.js`
+tiene 6 skills de IA, todas `active`. No hay nada `exploring` que
+activar.
 
 ---
 
@@ -1594,28 +1611,29 @@ Storage, para poder subirlos desde el admin sin redeploy.
 
 ## AI Skills — actualización de Phase 2
 
-Modificar `src/data/skills.js` para incluir `status` field:
+> **Revisión 2026-05-18:** sincronizado con `src/data/skills.js` real.
+> El "Grupo 2" (`rag`, `langgraph`, `vector_databases`, `exploring`)
+> del plan original NO se implementó — quedó descartado junto con RAG
+> y LangGraph (ver Phase 11, "context-stuffing, NO RAG"). `skills.js`
+> tiene 6 skills de IA, todas `active`.
+
+`src/data/skills.js` incluye el `status` field en cada AI skill:
 
 ```js
 export const aiSkills = [
-  // Grupo 1 — activo
-  { id: 'claude-code', title: 'claude_code', status: 'active', desc: '...' },
+  // Todas activas — ya se usan en el día a día.
+  { id: 'ai-dev-tooling', title: 'ai_dev_tooling', status: 'active', desc: '...' },
   { id: 'mcp', title: 'mcp_servers', status: 'active', desc: '...' },
   { id: 'api', title: 'anthropic_api', status: 'active', desc: '...' },
   { id: 'agent', title: 'agent_sdk', status: 'active', desc: '...' },
   { id: 'prompt', title: 'prompt_engineering', status: 'active', desc: '...' },
   { id: 'workflows', title: 'ai_workflows', status: 'active', desc: '...' },
-  // Grupo 2 — explorando (legitimadas post Phase 11)
-  { id: 'rag', title: 'rag_pipelines', status: 'exploring',
-    desc: 'Retrieval-Augmented Generation: embeddings, vector DBs, búsqueda semántica.' },
-  { id: 'langgraph', title: 'langgraph', status: 'exploring',
-    desc: 'Agentes como grafo de estados. Loops, tool use, branching condicional.' },
-  { id: 'vector-db', title: 'vector_databases', status: 'exploring',
-    desc: 'pgvector, Upstash Vector. Storage y similarity search semántica.' },
 ];
 ```
 
-Render visual: Grupo 1 con badge verde `✓ activo`. Grupo 2 con badge amarillo `🌱 explorando`.
+El campo `status` queda en el shape por si en el futuro se suman skills
+`exploring`, pero hoy ninguna lo usa. Render visual: badge verde
+`✓ activo`.
 
 ---
 
