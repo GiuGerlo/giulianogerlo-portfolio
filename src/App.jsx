@@ -7,6 +7,9 @@ import { Routes, Route } from 'react-router-dom';
 // Vercel Web Analytics — registra visitas/page views sin cookies.
 import { Analytics } from '@vercel/analytics/react';
 
+// Vercel Speed Insights — mide métricas de rendimiento (LCP, FID, CLS, etc).
+import { SpeedInsights } from '@vercel/speed-insights/react';
+
 // Layout = wrapper con Navbar + Footer + <Outlet /> para el contenido.
 import Layout from './components/layout/Layout.jsx';
 
@@ -50,6 +53,11 @@ function App() {
           script de tracking. Solo manda datos en producción (en dev y
           en los tests es no-op). */}
       <Analytics />
+
+      {/* Vercel Speed Insights. Mide métricas de rendimiento Web Vitals
+          (LCP, FID, CLS, etc.) y las reporta a Vercel. Solo activo en
+          producción. */}
+      <SpeedInsights />
     </>
   );
 }
