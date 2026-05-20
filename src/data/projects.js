@@ -33,7 +33,7 @@ export const projects = [
       '/projects/gym-tracker-2.webp',
       '/projects/gym-tracker-3.webp',
     ],
-    liveUrl: 'https://gym-tracker.nz-estudiojuridicoinmobiliario.com',
+    liveUrl: null,
     repoUrl: null,
     dateStart: '2026-02',
     dateEnd: '2026-03',
