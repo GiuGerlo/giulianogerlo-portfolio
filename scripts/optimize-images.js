@@ -99,6 +99,46 @@ const images = [
     output: 'projects/gym-tracker-3.webp',
     width: 1280,
   },
+  {
+    input: 'projects/ramcc-1.png',
+    output: 'projects/ramcc-1.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/ramcc-2.png',
+    output: 'projects/ramcc-2.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/ramcc-3.png',
+    output: 'projects/ramcc-3.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/ramcc-4.png',
+    output: 'projects/ramcc-4.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/next-tienda-1.png',
+    output: 'projects/next-tienda-1.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/next-tienda-2.png',
+    output: 'projects/next-tienda-2.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/next-tienda-3.png',
+    output: 'projects/next-tienda-3.webp',
+    width: 1280,
+  },
+  {
+    input: 'projects/next-tienda-4.png',
+    output: 'projects/next-tienda-4.webp',
+    width: 1280,
+  },
 ];
 
 for (const { input, output, width } of images) {

@@ -2,7 +2,7 @@
 // useEffect → auto-scroll al último mensaje.
 // useRef    → referencia al fondo de la lista para scrollear ahí.
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send } from 'lucide-react';
+import { MessageCircle, X, Send, AlertTriangle } from 'lucide-react';
 // react-markdown renderiza el texto del bot: Gemini puede devolver
 // **negrita**, listas, links — esto los convierte a HTML seguro.
 import ReactMarkdown from 'react-markdown';
@@ -30,6 +30,13 @@ import { Turnstile } from '@marsidev/react-turnstile';
 
 // SITE KEY pública de Turnstile (la misma del form de contacto).
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+
+// `import.meta.env.DEV` es true SOLO en `vite dev` (desarrollo local).
+// En el build de producción y en preview de Vercel queda false.
+// Lo usamos para deshabilitar el chatbot en local: `/api/chat` es una
+// función serverless de Vercel y no existe corriendo Vite suelto, así
+// que cualquier intento de chatear fallaría con 404.
+const IS_LOCAL_DEV = import.meta.env.DEV;
 
 // Preguntas sugeridas — se muestran como chips al abrir el chat, para
 // que el visitante no arranque de cero.
@@ -155,6 +162,38 @@ export default function Chat() {
             </div>
           </div>
 
+          {/* Modo desarrollo local: el endpoint /api/chat es una función
+              serverless de Vercel que NO corre con `vite dev`, así que el
+              chatbot fallaría con 404. Mostramos un aviso claro en vez
+              del input. En producción/preview esto queda false y se
+              renderiza el chat normal. */}
+          {IS_LOCAL_DEV ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+              <AlertTriangle
+                size={32}
+                className="text-yellow-500"
+                aria-hidden="true"
+              />
+              <p className="text-sm font-semibold">
+                Chatbot deshabilitado en local
+              </p>
+              <p className="text-xs text-text-muted">
+                La API <code className="font-mono">/api/chat</code> es una
+                función serverless de Vercel y solo corre en producción o
+                en un deploy preview. Probalo en{' '}
+                <a
+                  href="https://giulianogerlo.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent underline"
+                >
+                  giulianogerlo.vercel.app
+                </a>
+                .
+              </p>
+            </div>
+          ) : (
+          <>
           {/* Lista de mensajes — scrolleable. `scroll-slim` (index.css)
               reemplaza el scrollbar nativo por uno fino acorde al tema. */}
           <div className="scroll-slim flex-1 space-y-3 overflow-y-auto p-4">
@@ -288,6 +327,8 @@ export default function Chat() {
               </button>
             </form>
           </div>
+          </>
+          )}
         </div>
       )}
     </>

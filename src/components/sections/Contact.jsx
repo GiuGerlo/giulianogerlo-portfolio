@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, MessageCircle, Send } from 'lucide-react';
+import { Mail, MessageCircle, Send, FileDown } from 'lucide-react';
 // react-hook-form maneja el estado del formulario; zodResolver conecta
 // el schema de validación de zod con react-hook-form.
 import { useForm } from 'react-hook-form';
@@ -393,6 +393,20 @@ export default function Contact() {
                 icon={<SpriteIcon id="github-icon" />}
                 label="GitHub"
                 value="@GiuGerlo"
+              />
+            </a>
+
+            {/* CV — link directo al PDF servido desde public/cv.pdf. El
+                atributo `download` le dice al browser que descargue el
+                archivo en vez de abrirlo en una pestaña nueva (algunos
+                browsers ignoran este hint y lo abren igual, pero el
+                comportamiento "correcto" es bajarlo). No lleva target
+                _blank porque la descarga no abre una pestaña. */}
+            <a href="/cv.pdf" download className={cardClass}>
+              <ContactRow
+                icon={<FileDown size={18} aria-hidden="true" />}
+                label="Curriculum Vitae"
+                value="Descargar PDF"
               />
             </a>
           </div>

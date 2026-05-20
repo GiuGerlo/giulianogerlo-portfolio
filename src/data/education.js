@@ -31,7 +31,7 @@ export const education = [
     title: "Curso de Desarrollo Web",
     org: "CoderHouse",
     status: "completed",
-    certUrl: null,
+    certUrl: "/certs/coderhouse-web.pdf",
   },
   {
     id: "coderhouse-js",
@@ -39,7 +39,7 @@ export const education = [
     title: "Curso de JavaScript",
     org: "CoderHouse",
     status: "completed",
-    certUrl: null,
+    certUrl: "/certs/coderhouse-js.pdf",
   },
   {
     id: "digitalhouse-react",

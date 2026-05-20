@@ -8,36 +8,47 @@ Lista viva de todo lo que **Giuliano** tiene que hacer fuera del código (crear 
 
 ## 📸 Assets gráficos
 
-- [ ] Foto profesional (cuadrada, mínimo 600x600px, PNG/JPG)
-- [x] Screenshot proyecto: Inmobiliaria NZ (1280x800 aprox.)
-- [ ] Screenshot proyecto: Clovertecno
-- [ ] Screenshot proyecto: RAMCC
-- [ ] Screenshot proyecto: ALPA
-- [ ] Screenshot proyecto: CENARB (web y móvil si tenés)
-- [x] Logo/favicon personal (puede ser "GG" en SVG simple, o algo más elaborado)
-- [ ] CV en PDF actualizado (para botón "Descargar CV")
-- [x] **OG image** — `public/og-image.png` (1200x630). Imagen de preview al compartir el link. (Task 8.2)
+- [x] Foto profesional (`public/foto-giulianogerlo.webp`)
+- [x] Screenshot proyecto: Inmobiliaria NZ (4 imágenes)
+- [x] Screenshot proyecto: CloverTecno (4 imágenes)
+- [x] Screenshot proyecto: Ecosistema RAMCC (4 imágenes)
+- [x] Screenshot proyecto: Next — Tienda de Ropa (4 imágenes, datos ficticios)
+- [x] Screenshot proyecto: Personal Gym Tracker (3 imágenes)
+- [ ] Screenshot proyecto: Gestor de Finanzas (pendiente — único proyecto con `image: null`)
+- [x] Logo/favicon personal
+- [x] CV en PDF en `public/cv.pdf` + card "Descargar PDF" en la sección Contact (al final, debajo de GitHub).
+- [x] **OG image** — `public/og-image.png` (1200x630). Imagen de preview al compartir el link.
 - [ ] **OG image v2 (opcional)** — rediseñarla con el contenido (nombre, logo, rol) CENTRADO en la zona segura (cuadrado central ~630x630). WhatsApp recorta la imagen a un cuadrado en su preview compacto y corta lo que está en los bordes.
 
-## 🏅 Certificados y títulos (URLs o PDFs)
+## 🏅 Certificados y títulos (PDFs)
 
-- [ ] Título Brigadier López — Técnico Superior en Desarrollo de Software
-- [ ] Certificado CoderHouse — JavaScript (ago-oct 2024)
-- [ ] Certificado CoderHouse — Desarrollo Web (ene-mar 2024)
-- [ ] Certificado DigitalHouse — React Developer (cuando termine jun 2026)
+Carpeta lista: `public/certs/`. Droppealos con estos nombres exactos para que el código los encuentre solo (el path queda servido en `https://giulianogerlo.vercel.app/certs/<nombre>.pdf`):
 
-Opciones para hostearlos:
-- Subir PDFs a `public/certs/` del repo
-- O pegar URLs públicas de Google Drive / institución emisora
+- [~] Brigadier López — Giuliano decidió NO subir certificado (no existe imagen clara del título, solo el listado de materias). El item queda en `education.js` sin link.
+- [x] `public/certs/coderhouse-web.pdf` — CoderHouse · Desarrollo Web (ene-mar 2024)
+- [x] `public/certs/coderhouse-js.pdf` — CoderHouse · JavaScript (ago-oct 2024)
+- [ ] `public/certs/digitalhouse-react.pdf` — DigitalHouse · React Developer (cuando termine jun 2026)
+
+Una vez que dropees el archivo, actualizá el campo `certUrl` del item correspondiente en [src/data/education.js](src/data/education.js):
+
+```js
+certUrl: '/certs/brigadier-lopez.pdf',  // antes era null
+```
+
+Si alguno no lo tenés en PDF y solo tenés URL externa (ej. CoderHouse a veces da link público), pegá la URL completa en `certUrl` directamente.
 
 ## 🔗 URLs reales
 
-- [ ] URL live: Inmobiliaria NZ
-- [ ] URL live: Clovertecno
-- [ ] URL live: RAMCC
-- [ ] URL live: ALPA
-- [ ] URL live: CENARB
-- [ ] URL repo GitHub: Inmobiliaria NZ (si es público)
+- [x] URL live: Inmobiliaria NZ (`https://nz-estudiojuridicoinmobiliario.com/`)
+- [x] URL live: CloverTecno (`https://clovertecno.com/`)
+- [x] URL live: RAMCC (`https://ramcc.net/`)
+- [x] URL live: Personal Gym Tracker
+- [x] URL repo: Next — Tienda de Ropa (`https://github.com/GiuGerlo/Next-Tienda`)
+- [ ] URL repo: Gestor de Finanzas (si lo querés público)
+
+> Notas:
+> - **Next-Tienda** es un admin privado: `liveUrl: null` a propósito.
+> - **ALPA, CenArb, Aula Virtual y Mi-Huella** quedaron unificados como subsistemas del proyecto `ramcc` (Ecosistema RAMCC), no son cards separadas.
 
 ## 🌐 Cuentas y servicios
 
@@ -49,19 +60,23 @@ Opciones para hostearlos:
 - [x] Cuenta creada, API key generada y pasada
 - [ ] **Verificar dominio propio en Resend** — mientras tanto el `from` usa `onboarding@resend.dev` (modo prueba: solo manda al email de TU cuenta Resend). Para producción: Resend → Domains → Add Domain → cargar registros DNS. Después cambiar `CONTACT_EMAIL_FROM` a algo como `contacto@tudominio`.
 
-### 3. Cuenta Cloudflare Turnstile (anti-bot del form)
+### 3. Cuenta Cloudflare Turnstile (anti-bot del form + chatbot)
 - [x] Cuenta creada, widget creado, SITE + SECRET key pasadas
 - [x] Hostnames del widget: `localhost` + `giulianogerlo.vercel.app`
 
 ### 4. Repositorio GitHub
 - [x] Repo creado y conectado a Vercel
 
-### 5. Upstash Redis (rate limiting del form)
+### 5. Upstash Redis (rate limiting del form + chatbot)
 - [x] Store creado vía Marketplace de Vercel, env vars copiadas al `.env`
+
+### 6. Google Gemini API (chatbot "Preguntale a Giuliano")
+- [x] API key generada y cargada en Vercel + `.env`
+- [x] Chatbot deshabilitado en local con aviso (el endpoint `/api/chat` solo corre en deploy de Vercel)
 
 ## 🔐 Seguridad — rotar keys
 
-- [ ] **Rotar las keys secretas** — `TURNSTILE_SECRET_KEY` y `RESEND_API_KEY` se pegaron en texto plano en el chat. Antes/después de deployar, generá nuevas desde los dashboards de Cloudflare y Resend, y actualizá el `.env` + las env vars de Vercel. (La `VITE_TURNSTILE_SITE_KEY` es pública, esa no hace falta rotarla.)
+- [ ] **Rotar las keys secretas** — `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY` y la API key de Gemini se pegaron en texto plano en el chat en algún momento. Antes/después de deployar, generá nuevas desde los dashboards correspondientes y actualizá el `.env` + las env vars de Vercel. (La `VITE_TURNSTILE_SITE_KEY` es pública, esa no hace falta rotarla.)
 
 ## 📱 Datos de contacto a confirmar
 
@@ -87,6 +102,6 @@ Opciones para hostearlos:
 ---
 
 **Notas de seguridad:**
-- La API key de Resend NUNCA va en código ni en GitHub. Solo en variables de entorno.
+- La API key de Resend y la de Gemini NUNCA van en código ni en GitHub. Solo en variables de entorno.
 - El email mostrado en el sitio va a estar obfuscado (no plano en HTML) para evitar scrapers de spam.
-- El form usa Cloudflare Turnstile (anti-bot invisible, gratis) para que no te lleguen spam.
+- El form y el chatbot usan Cloudflare Turnstile (anti-bot invisible, gratis) + Upstash Redis para rate limiting.
