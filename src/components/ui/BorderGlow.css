@@ -9,7 +9,26 @@
      mask-image (conic-gradient) para mostrar el glow SOLO en el sector
      del borde que mira al cursor.
    - El borde del card lo dibujamos con var(--border) del design system
-     (el original usaba un blanco fijo 15% que en theme claro no se ve). */
+     (el original usaba un blanco fijo 15% que en theme claro no se ve).
+
+   @property con inherits:false:
+   - Estas dos vars cambian en cada frame (~60Hz). Si fueran custom
+     props normales, cascadearían a TODOS los hijos del card y forzarían
+     style recalc sobre cada elemento heredante en cada frame.
+   - Declarándolas como @property con inherits:false, el navegador NO
+     las propaga por cascade — solo afectan a las capas que las leen
+     explícitamente (::before / ::after / .edge-light). Resultado: cero
+     style recalc sobre los hijos al mover el cursor. */
+@property --edge-proximity {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --cursor-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 45deg;
+}
 
 .border-glow-card {
   --edge-proximity: 0;

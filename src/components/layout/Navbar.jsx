@@ -143,7 +143,7 @@ export default function Navbar() {
             target="_blank"
             rel="noreferrer noopener"
             aria-label="GitHub"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
+            className="inline-flex size-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
           >
             <Icon id="github-icon" />
           </a>
@@ -154,7 +154,7 @@ export default function Navbar() {
             target="_blank"
             rel="noreferrer noopener"
             aria-label="LinkedIn"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
+            className="inline-flex size-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
           >
             <Icon id="linkedin-icon" />
           </a>
@@ -169,7 +169,7 @@ export default function Navbar() {
             onClick={() => setOpen((prev) => !prev)}
             aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
             aria-expanded={open}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-text-primary transition-colors hover:border-accent hover:text-accent md:hidden"
+            className="inline-flex size-9 items-center justify-center rounded-md border border-border text-text-primary transition-colors hover:border-accent hover:text-accent md:hidden"
           >
             {open ? <X size={16} /> : <Menu size={16} />}
           </button>

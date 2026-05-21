@@ -86,7 +86,7 @@ export default function Hero() {
         {/* clamp(min, vw, max) para escalado fluido entre mobile y
             desktop sin breakpoints intermedios. El nombre entra con
             animación de chars en cascada (AnimatedName). */}
-        <h1 className="mb-5 text-[clamp(2.5rem,8vw,4.5rem)] font-bold leading-[1.05] tracking-tight">
+        <h1 className="mb-5 text-[clamp(2.5rem,8vw,4.5rem)] font-semibold leading-[1.05] tracking-tight">
           <AnimatedName text="Giuliano Gerlo" />
         </h1>
 
@@ -99,7 +99,7 @@ export default function Hero() {
               describe la ubicación; el ícono es decoración semántica
               redundante para screen readers. */}
           <MapPin size={14} aria-hidden="true" />
-          Rosario, Santa Fe — Argentina
+          Rosario, Santa Fe, Argentina
         </p>
 
         {/* CTAs. flex-wrap para que en mobile bajen una abajo de la

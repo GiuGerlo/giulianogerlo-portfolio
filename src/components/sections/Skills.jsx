@@ -93,7 +93,7 @@ export default function Skills() {
                   {Icon && (
                     <div
                       data-testid={`skill-icon-${group.id}`}
-                      className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-accent-bg text-accent"
+                      className="mb-4 inline-flex size-9 items-center justify-center rounded-lg bg-accent-bg text-accent"
                     >
                       <Icon size={18} aria-hidden="true" />
                     </div>

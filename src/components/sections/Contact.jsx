@@ -66,7 +66,7 @@ function ContactRow({ icon, label, value }) {
     <>
       {/* Cuadrado 40x40 con bg accent-bg. text-accent hace que tanto los
           íconos lucide (currentColor) como los del sprite hereden verde. */}
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-accent-bg text-accent">
+      <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-accent-bg text-accent">
         {icon}
       </div>
       <div className="flex flex-col gap-0.5">

@@ -33,14 +33,14 @@ describe('AISection', () => {
   test('renderiza chips de items[] cuando la entry los tiene', () => {
     render(<AISection />);
     // Solo ai_dev_tooling tiene items hoy. Cualquier entry con items
-    // debe rendear el wrapper con su data-testid.
-    aiSkills
-      .filter((s) => s.items && s.items.length > 0)
-      .forEach((skill) => {
-        expect(
-          screen.getByTestId(`ai-skill-items-${skill.id}`),
-        ).toBeInTheDocument();
-      });
+    // debe rendear el wrapper con su data-testid. Una sola pasada con
+    // for…of (en vez de .filter().forEach() que itera dos veces).
+    for (const skill of aiSkills) {
+      if (!skill.items || skill.items.length === 0) continue;
+      expect(
+        screen.getByTestId(`ai-skill-items-${skill.id}`),
+      ).toBeInTheDocument();
+    }
   });
 
   test('muestra herramientas individuales del entry ai_dev_tooling', () => {

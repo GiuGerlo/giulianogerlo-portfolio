@@ -127,7 +127,7 @@ export default function ProjectDetail() {
         {project.category}
       </span>
 
-      <h1 className="mt-3 mb-4 text-4xl font-bold tracking-tight md:text-5xl">
+      <h1 className="mt-3 mb-4 text-4xl font-semibold tracking-tight md:text-5xl">
         {project.title}
       </h1>
 

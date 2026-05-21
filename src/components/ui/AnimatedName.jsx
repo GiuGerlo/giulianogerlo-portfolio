@@ -64,7 +64,8 @@ export default function AnimatedName({ text, className }) {
       {text.split('').map((char, index) => (
         <span
           // El índice como key es seguro: la lista de chars es estática
-          // (no se reordena ni filtra).
+          // (no se reordena ni filtra). react-doctor lo va a marcar
+          // como warning igual; lo aceptamos como falso positivo.
           key={index}
           data-char
           aria-hidden="true"

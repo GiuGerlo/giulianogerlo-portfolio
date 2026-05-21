@@ -110,7 +110,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noreferrer noopener"
                 aria-label="GitHub"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
+                className="inline-flex size-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
               >
                 <Icon id="github-icon" />
               </a>
@@ -119,7 +119,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noreferrer noopener"
                 aria-label="LinkedIn"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
+                className="inline-flex size-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
               >
                 <Icon id="linkedin-icon" />
               </a>
@@ -129,7 +129,7 @@ export default function Footer() {
               <a
                 href={`mailto:${socials.email}`}
                 aria-label="Email"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
+                className="inline-flex size-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
               >
                 <Mail size={16} />
               </a>

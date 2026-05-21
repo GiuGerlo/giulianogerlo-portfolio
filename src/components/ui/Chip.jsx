@@ -37,7 +37,7 @@ export default function Chip({ variant = 'default', className, children }) {
         <span
           aria-hidden="true"
           data-testid="chip-dot"
-          className="inline-block h-2 w-2 rounded-full bg-accent"
+          className="inline-block size-2 rounded-full bg-accent"
         />
       )}
       {children}

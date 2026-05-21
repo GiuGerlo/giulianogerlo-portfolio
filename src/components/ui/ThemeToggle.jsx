@@ -31,7 +31,7 @@ export default function ThemeToggle() {
       onClick={toggle}
       aria-label="Cambiar tema"
       title="Cambiar tema"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-text-primary transition-colors hover:border-accent hover:text-accent"
+      className="inline-flex size-9 items-center justify-center rounded-md border border-border text-text-primary transition-colors hover:border-accent hover:text-accent"
     >
       <Icon size={16} />
     </button>

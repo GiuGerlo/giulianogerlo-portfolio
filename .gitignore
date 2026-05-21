@@ -23,6 +23,9 @@ coverage
 # Vercel
 .vercel
 
+# CodeGraph (índice local, no commitear)
+.codegraph
+
 # Claude Code (local per-user config)
 .claude/settings.local.json
 # OS
@@ -45,3 +48,6 @@ Thumbs.db
 skills-lock.json
 .claude
 .env*.local
+.claude.json
+AGENTS.md
+opencode.jsonc

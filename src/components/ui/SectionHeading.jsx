@@ -32,7 +32,7 @@ export default function SectionHeading({ eyebrow, title, subtitle, id }) {
 
       <h2
         id={id}
-        className="text-3xl font-bold tracking-tight md:text-4xl"
+        className="text-3xl font-semibold tracking-tight md:text-4xl"
       >
         {title}
       </h2>

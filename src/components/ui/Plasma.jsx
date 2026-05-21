@@ -171,9 +171,9 @@ export default function Plasma({
     const gl = renderer.gl;
     if (!gl) return;
     const canvas = gl.canvas;
-    canvas.style.display = 'block';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
+    // Batch CSS: una sola escritura a `cssText` en vez de 3 assignments
+    // individuales — evita múltiples invalidations de estilo seguidas.
+    canvas.style.cssText = 'display:block;width:100%;height:100%;';
     containerEl.appendChild(canvas);
 
     // Triangle = geometría full-screen (1 triángulo que cubre todo el

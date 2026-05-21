@@ -141,25 +141,31 @@ const images = [
   },
 ];
 
-for (const { input, output, width } of images) {
-  // Asegura que exista el subdirectorio de salida (ej: public/projects/).
-  await mkdir(dirname(join(outDir, output)), { recursive: true });
+// Procesamos las imágenes en PARALELO con Promise.all: cada conversión
+// es I/O-bound (lee del disco, codifica, escribe), independiente de las
+// otras. Con `for…of + await` corren una atrás de otra; con Promise.all
+// arrancan todas en paralelo y el script termina mucho más rápido.
+await Promise.all(
+  images.map(async ({ input, output, width }) => {
+    // Asegura que exista el subdirectorio de salida (ej: public/projects/).
+    await mkdir(dirname(join(outDir, output)), { recursive: true });
 
-  // Screenshots de proyectos → WebP lossless: cero pérdida de calidad
-  // (texto y bordes nítidos, sin artefactos). Comprimen bien igual
-  // porque son capturas con zonas planas de color.
-  // Foto de perfil y otras imágenes → WebP lossy quality 80: una foto
-  // no necesita pixel-perfect y lossy la deja mucho más liviana.
-  const esScreenshot = output.startsWith('projects/');
+    // Screenshots de proyectos → WebP lossless: cero pérdida de calidad
+    // (texto y bordes nítidos, sin artefactos). Comprimen bien igual
+    // porque son capturas con zonas planas de color.
+    // Foto de perfil y otras imágenes → WebP lossy quality 80: una foto
+    // no necesita pixel-perfect y lossy la deja mucho más liviana.
+    const esScreenshot = output.startsWith('projects/');
 
-  const pipeline = sharp(join(srcDir, input))
-    .resize({ width, withoutEnlargement: true })
-    .webp(esScreenshot ? { lossless: true } : { quality: 80 });
+    const pipeline = sharp(join(srcDir, input))
+      .resize({ width, withoutEnlargement: true })
+      .webp(esScreenshot ? { lossless: true } : { quality: 80 });
 
-  const info = await pipeline.toFile(join(outDir, output));
-  console.log(
-    `${input} -> ${output}  (${info.width}x${info.height}, ` +
-      `${(info.size / 1024).toFixed(1)} KB, ` +
-      `${esScreenshot ? 'lossless' : 'q80'})`,
-  );
-}
+    const info = await pipeline.toFile(join(outDir, output));
+    console.log(
+      `${input} -> ${output}  (${info.width}x${info.height}, ` +
+        `${(info.size / 1024).toFixed(1)} KB, ` +
+        `${esScreenshot ? 'lossless' : 'q80'})`,
+    );
+  }),
+);

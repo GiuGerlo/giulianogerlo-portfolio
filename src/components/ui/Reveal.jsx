@@ -1,7 +1,13 @@
 // `motion/react` es la API de la librería Motion (ex Framer Motion).
-// `motion.div` es un <div> normal pero "animable" — acepta props como
-// `initial`, `whileInView`, `transition`.
-import { motion } from 'motion/react';
+// LazyMotion + m (en vez de motion) baja ~30kb del bundle: en lugar de
+// importar TODAS las features de animación de fábrica, cargamos solo
+// las DOM (`domAnimation`) y el componente reducido `m`. Tree-shaking
+// efectivo: el bundle final solo trae la animación que realmente usamos.
+//   `m.div`        → equivalente a `motion.div` pero "lite".
+//   `LazyMotion`   → provee las features al árbol que envuelve.
+//   `domAnimation` → set de features para animar nodos DOM (sin layout
+//                    animations ni drag — que no usamos en Reveal).
+import { LazyMotion, domAnimation, m } from 'motion/react';
 
 /**
  * Reveal — wrapper que hace aparecer su contenido con un fade + subida
@@ -27,14 +33,19 @@ import { motion } from 'motion/react';
  */
 export default function Reveal({ children, delay = 0, className }) {
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.5, delay, ease: 'easeOut' }}
-    >
-      {children}
-    </motion.div>
+    // LazyMotion `strict` no — varios Reveal en el árbol comparten el
+    // mismo set de features (idempotente). Para optimizar más, se puede
+    // subir LazyMotion al root (App.jsx) y dejar solo <m.div> acá.
+    <LazyMotion features={domAnimation}>
+      <m.div
+        className={className}
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-100px' }}
+        transition={{ duration: 0.5, delay, ease: 'easeOut' }}
+      >
+        {children}
+      </m.div>
+    </LazyMotion>
   );
 }

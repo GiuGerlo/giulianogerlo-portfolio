@@ -45,10 +45,10 @@ export default function AISection() {
         <BorderGlow borderRadius={20} glowRadius={48}>
           <div className="p-8 md:p-14">
             <div className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
-              // 03 — AI integration
+              // 03 · AI integration
             </div>
 
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
               AI-Augmented Development
             </h2>
 

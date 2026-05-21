@@ -85,7 +85,14 @@ export default function Chat() {
     const history = messages;
 
     // Pintamos el mensaje del usuario al instante (UI optimista).
-    setMessages([...messages, { role: 'user', text: pregunta }]);
+    // Functional update: garantiza que partimos del último estado, sin
+    // depender del closure de `messages` (que podría estar stale si el
+    // usuario manda varios mensajes en rápida sucesión).
+    // `id` único por turno → key estable en el .map (no usar index).
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: 'user', text: pregunta },
+    ]);
     setInput('');
     setError('');
     setLoading(true);
@@ -108,7 +115,10 @@ export default function Chat() {
         throw new Error(body.error ?? 'No se pudo obtener la respuesta.');
       }
 
-      setMessages((prev) => [...prev, { role: 'model', text: body.reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'model', text: body.reply },
+      ]);
     } catch (err) {
       setError(err.message || 'Error de conexión. Probá de nuevo.');
     } finally {
@@ -135,7 +145,7 @@ export default function Chat() {
         onClick={() => setIsOpen((o) => !o)}
         aria-label={isOpen ? 'Cerrar chat' : 'Abrir chat con asistente'}
         aria-expanded={isOpen}
-        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-lg transition-transform hover:scale-105"
+        className="fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-accent text-white shadow-lg transition-transform hover:scale-105"
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
       </button>
@@ -220,10 +230,10 @@ export default function Chat() {
               </div>
             )}
 
-            {/* Turnos de la conversación. */}
-            {messages.map((msg, i) => (
+            {/* Turnos de la conversación. key estable por msg.id (uuid). */}
+            {messages.map((msg) => (
               <div
-                key={i}
+                key={msg.id}
                 className={
                   msg.role === 'user'
                     ? 'ml-auto max-w-[85%] rounded-lg rounded-tr-none bg-accent px-3 py-2 text-sm text-white'
@@ -246,7 +256,7 @@ export default function Chat() {
             {/* Indicador "escribiendo..." mientras esperamos al backend. */}
             {loading && (
               <div className="max-w-[85%] rounded-lg rounded-tl-none bg-bg px-3 py-2 text-sm text-text-muted">
-                escribiendo...
+                escribiendo…
               </div>
             )}
 
@@ -321,7 +331,7 @@ export default function Chat() {
                 type="submit"
                 disabled={loading || !turnstileToken || !input.trim()}
                 aria-label="Enviar"
-                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-accent text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                className="flex size-9 flex-shrink-0 items-center justify-center rounded-md bg-accent text-white transition-opacity hover:opacity-90 disabled:opacity-40"
               >
                 <Send size={16} aria-hidden="true" />
               </button>

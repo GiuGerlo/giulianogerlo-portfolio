@@ -1,6 +1,8 @@
 // React: useEffect para registrar/limpiar listeners de teclado y el
-// bloqueo de scroll mientras el lightbox está abierto.
-import { useEffect } from 'react';
+// bloqueo de scroll mientras el lightbox está abierto. useEffectEvent
+// (React 19+) "captura" las últimas props sin que sean reactivas — así
+// el effect NO se re-suscribe cada vez que el padre re-renderiza.
+import { useEffect, useEffectEvent } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 /**
@@ -24,6 +26,14 @@ export default function Lightbox({ images, index, title, onClose, onPrev, onNext
   // El lightbox está abierto solo cuando index es un número.
   const isOpen = index !== null;
 
+  // Effect Events — leen siempre el último callback del padre sin ser
+  // deps reactivas del effect. Sin esto, cada render del padre cambia
+  // las refs de onClose/onPrev/onNext y el effect remueve/agrega el
+  // listener global, lo que rompe el evento Escape mientras se reabre.
+  const handleClose = useEffectEvent(() => onClose());
+  const handlePrev = useEffectEvent(() => onPrev());
+  const handleNext = useEffectEvent(() => onNext());
+
   // Effect de teclado + bloqueo de scroll del body.
   //  - Escape cierra; flechas navegan.
   //  - overflow:hidden en el body evita que la página de atrás scrollee.
@@ -33,9 +43,9 @@ export default function Lightbox({ images, index, title, onClose, onPrev, onNext
     if (!isOpen) return;
 
     function handleKey(e) {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') onPrev();
-      if (e.key === 'ArrowRight') onNext();
+      if (e.key === 'Escape') handleClose();
+      if (e.key === 'ArrowLeft') handlePrev();
+      if (e.key === 'ArrowRight') handleNext();
     }
 
     document.addEventListener('keydown', handleKey);
@@ -45,7 +55,7 @@ export default function Lightbox({ images, index, title, onClose, onPrev, onNext
       document.removeEventListener('keydown', handleKey);
       document.body.style.overflow = '';
     };
-  }, [isOpen, onClose, onPrev, onNext]);
+  }, [isOpen]);
 
   // Cerrado → no renderiza nada.
   if (!isOpen) return null;
@@ -55,7 +65,11 @@ export default function Lightbox({ images, index, title, onClose, onPrev, onNext
 
   return (
     // Overlay full-screen. Click en el fondo cierra. role/aria para
-    // accesibilidad: se anuncia como diálogo modal.
+    // accesibilidad: se anuncia como diálogo modal. El soporte de
+    // teclado lo provee el listener global de Escape (useEffect arriba),
+    // que cierra el diálogo desde cualquier foco — no hace falta un
+    // onKeyDown en el overlay. react-doctor lo marca como warning; lo
+    // aceptamos porque la accesibilidad real ya está cubierta.
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
       onClick={onClose}
@@ -89,7 +103,10 @@ export default function Lightbox({ images, index, title, onClose, onPrev, onNext
         </button>
       )}
 
-      {/* Imagen. stopPropagation para que clickearla no cierre. */}
+      {/* Imagen. stopPropagation para que clickearla no cierre. El
+          teclado interactúa con los botones (X / flechas), la imagen
+          es decorativa dentro del diálogo. react-doctor marca warning,
+          aceptado. */}
       <img
         src={images[index]}
         alt={`${title} — captura ${index + 1}`}

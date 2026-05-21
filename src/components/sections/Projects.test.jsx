@@ -59,8 +59,13 @@ describe('Projects', () => {
   test('muestra el stack técnico de cada proyecto', () => {
     renderProjects();
     // Sample de tecnologías — si la data cambia, el test falla explícito.
-    expect(screen.getByText('PHP')).toBeInTheDocument();
-    expect(screen.getByText('MercadoPago')).toBeInTheDocument();
-    expect(screen.getByText('API REST')).toBeInTheDocument();
+    // PHP aparece en varios proyectos (Clovertecno, RAMCC, etc.) → usamos
+    // getAllByText y verificamos que haya al menos una ocurrencia.
+    // Varias tecnologías aparecen en > 1 proyecto, por eso usamos
+    // getAllByText con length > 0 en vez de getByText (que falla si hay
+    // duplicados). Sample de tags que están presentes en algún stack.
+    expect(screen.getAllByText('PHP').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('MySQL').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Mercado Pago').length).toBeGreaterThan(0);
   });
 });
