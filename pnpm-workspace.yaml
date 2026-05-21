@@ -8,4 +8,5 @@
 # sharp: false → no corre su build script. sharp funciona con el binario
 # prebuilt (@img/sharp-*), no necesita compilar nada.
 allowBuilds:
+  better-sqlite3: set this to true or false
   sharp: false

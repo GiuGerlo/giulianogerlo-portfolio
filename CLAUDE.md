@@ -14,6 +14,55 @@ Personal portfolio site for Giuliano Gerlo. Built with React 19 + Vite 8. Goal: 
 
 Lockfile: `pnpm-lock.yaml` (commiteado). `package-lock.json` NO existe.
 
+**Excepción documentada**: `@colbymchenry/codegraph` se instala vía `npm i -g` (no pnpm). Ver sección [CodeGraph](#codegraph) más abajo.
+
+## CodeGraph
+
+Este proyecto usa **CodeGraph** ([colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)) como MCP server para Claude Code. Es un índice AST (tree-sitter) de todos los símbolos del codebase — permite que Claude responda preguntas estructurales ("qué llama a X", "qué se rompe si cambio Y", "dónde está definido Z") en milisegundos, sin grep ni reads múltiples.
+
+### Setup en una PC nueva
+
+Si clonás el repo en otra máquina y `codegraph` NO está instalado, ejecutar **en este orden**:
+
+```bash
+# 1. Instalar el binario CLI + MCP server (excepción a la regla pnpm).
+#    Va con npm global porque better-sqlite3 11.x no tiene prebuild para
+#    Node 24, y compilarlo local requiere VS C++ Build Tools en Windows.
+#    Riesgo de supply chain: cero — codegraph NO está en package.json del
+#    proyecto, no se deploya, no corre en CI/CD ni Vercel build. Es solo
+#    una herramienta dev local.
+npm i -g @colbymchenry/codegraph
+
+# 2. Construir el índice del proyecto (crea `.codegraph/codegraph.db`).
+#    El dir `.codegraph/` ya está en `.gitignore`.
+codegraph init
+
+# 3. Registrar el MCP server en Claude Code a nivel proyecto.
+#    Esto crea/actualiza `.mcp.json` y `.claude.json` — ya están commiteados,
+#    así que en teoría con el repo clonado ya están, pero re-correr este
+#    comando regenera la config si está rota.
+codegraph install -t claude -l local -y
+
+# 4. Reiniciar Claude Code (cerrar sesión, abrir nueva en el proyecto).
+#    Las tools MCP se cargan al iniciar, no en runtime.
+
+# 5. Verificar que conectó:
+claude mcp list
+# → debe mostrar: `codegraph: codegraph serve --mcp - ✓ Connected`
+```
+
+### Cómo Claude usa CodeGraph
+
+Las instrucciones detalladas de cuándo usar cada tool (`codegraph_search`, `codegraph_callers`, `codegraph_callees`, `codegraph_impact`, `codegraph_node`, `codegraph_context`, `codegraph_explore`, `codegraph_files`, `codegraph_status`) viven en [.claude/CLAUDE.md](.claude/CLAUDE.md) — ese archivo se carga automáticamente en cada sesión.
+
+Resumen: preferir CodeGraph sobre grep/read para preguntas estructurales. Trust los resultados (vienen de un parse AST completo). No re-verificar con grep.
+
+### Si las tools no aparecen
+
+- `claude mcp list` no muestra `codegraph` → correr `codegraph install -t claude -l local -y`.
+- `claude mcp list` muestra `✗ Failed` → probar `codegraph status` (verifica binary + índice). Si el índice está corrupto, `codegraph uninit && codegraph init`.
+- Las tools `codegraph_*` no aparecen en la sesión → reiniciar Claude Code (cerrar/abrir).
+
 ## Commands
 
 - `pnpm dev` — Vite dev server with HMR
@@ -24,6 +73,7 @@ Lockfile: `pnpm-lock.yaml` (commiteado). `package-lock.json` NO existe.
 - `pnpm test:run` — Vitest single run (CI-style)
 - `pnpm test:ui` — Vitest web UI
 - `pnpm optimize:images` — convierte imágenes de `public/` a WebP (`scripts/optimize-images.js`)
+- `pnpm dlx react-doctor@latest` — auditoría React (perf, hooks, anti-patterns, accessibility). Correr sin instalar. Usar cuando se quiera diagnóstico del estado del código React.
 - `pnpm add <pkg>` — add dependency
 - `pnpm add -D <pkg>` — add dev dependency
 
