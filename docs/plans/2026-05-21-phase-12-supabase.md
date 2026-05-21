@@ -16,6 +16,8 @@ sincronizado entre PCs vía git.
 -->
 
 - **2026-05-21**: Plan creado y commiteado al repo (Task 12.0). MCP de Supabase agregado a `.mcp.json`. Pendiente: reinicio de Claude Code + creación de proyecto Supabase para arrancar Task 12.1.
+- **2026-05-21**: Task 12.1 cerrada. Proyecto Supabase `giulianogerlo-portfolio` creado en region `sa-east-1` (São Paulo), free tier, status `ACTIVE_HEALTHY`. MCP de Supabase verificado (`claude mcp list` → `supabase: ✓ Connected`). Env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) cargadas en `.env` local. `.env.example` actualizado con las 3 vars Supabase documentadas. Pendiente operativo: cargar las 3 vars en Vercel dashboard (scope Production + Preview + Development) antes del primer preview deploy con runtime fetch (recordatorio en Task 12.5).
+- **2026-05-21**: Task 12.2 cerrada. Migrations aplicadas vía MCP y versionadas en `supabase/migrations/`. **0001_projects_schema**: tabla `public.projects` (20 columnas, snake_case), índices (`order_index where published`, `slug`), trigger `set_updated_at`, RLS habilitada con 5 policies iniciales, bucket Storage `project-images` (public) + 4 policies. **0002_harden_security**: fix de `search_path` en función trigger; policies de mutación (projects + storage) lockeadas a `auth.jwt()->>'email' = 'ggiuliano526@gmail.com'` (defensa en profundidad); drop de policy SELECT del bucket público (URLs siguen funcionando via CDN, listado deshabilitado). Security advisor post-migrations limpio en lo nuestro — solo restan 3 warnings ajenos (Auto-RLS function de Supabase + leaked password protection N/A porque usamos magic link). Pendiente operativo: pasos manuales en Auth dashboard (crear user `ggiuliano526@gmail.com` vía Invite + desactivar "Allow new users to sign up").
 
 ---
 
@@ -249,16 +251,22 @@ Cada task = 1 dispatch de subagent + parada para que el usuario teste y commitee
 - [x] Referencia agregada en `CLAUDE.md` → "Source of truth for the project".
 - [ ] Usuario commitea y pushea a `master`.
 
-### Task 12.1 — Setup Supabase
+### Task 12.1 — Setup Supabase ✅ (2026-05-21)
 
-- Usuario: crear proyecto en supabase.com (free tier), elegir región `South America (São Paulo)`.
-- Reiniciar Claude Code para que cargue MCP de Supabase (`mcp__supabase__*` tools).
-- Cargar env vars en `.env` y en Vercel.
+- [x] Usuario: crear proyecto en supabase.com (free tier), elegir región `South America (São Paulo)`.
+- [x] Reiniciar Claude Code para que cargue MCP de Supabase (`mcp__supabase__*` tools).
+- [x] Cargar env vars en `.env`.
+- [ ] Cargar env vars en Vercel dashboard (Production + Preview + Development). **Pendiente — recordatorio en Task 12.5.**
 
-### Task 12.2 — Schema + RLS + Storage (via MCP)
+### Task 12.2 — Schema + RLS + Storage (via MCP) ✅ (2026-05-21)
 
-- Correr migration SQL desde MCP: crear tabla `projects`, índices, RLS policies, bucket Storage + policies.
-- Configurar allowlist de email en Auth Settings.
+- [x] Migration `0001_projects_schema` aplicada via MCP + versionada en `supabase/migrations/0001_projects_schema.sql`.
+- [x] Migration `0002_harden_security` aplicada via MCP + versionada en `supabase/migrations/0002_harden_security.sql` (search_path fix + email lock en policies + drop bucket listing).
+- [x] Bucket `project-images` (public) creado.
+- [x] Security advisor verificado: 0 warnings relevantes (Auto-RLS function de Supabase + leaked-password N/A magic link).
+- [ ] **Pendiente manual del usuario en Supabase Dashboard:**
+  - Authentication → Users → "Add user" → "Send invite" a `ggiuliano526@gmail.com`.
+  - Authentication → Sign In / Providers → Email → desactivar "Allow new users to sign up".
 
 ### Task 12.3 — Cliente Supabase + mapper
 

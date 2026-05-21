@@ -74,6 +74,16 @@ Si alguno no lo tenés en PDF y solo tenés URL externa (ej. CoderHouse a veces 
 - [x] API key generada y cargada en Vercel + `.env`
 - [x] Chatbot deshabilitado en local con aviso (el endpoint `/api/chat` solo corre en deploy de Vercel)
 
+### 7. Supabase (Phase 12 — backend dinámico + admin)
+- [x] Cuenta creada, proyecto `giulianogerlo-portfolio` en region South America (São Paulo)
+- [x] Free tier, GitHub linkeado, framework: React
+- [x] Security config: Data API ON / Auto-expose new tables OFF / Auto-RLS ON
+- [x] 3 env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) cargadas en `.env` local
+- [ ] 3 env vars cargadas en Vercel dashboard con scope **Production + Preview + Development**
+- [ ] Branch `feature/phase-12-supabase` creada y pusheada para testing en preview antes de merge a master
+- [ ] Auth Settings: allowlist de email (solo tu mail puede pedir magic link) — se configura en Task 12.2 vía MCP
+- [ ] Auth Settings: Site URL + Redirect URLs para magic link callback — se configura en Task 12.2
+
 ## 🔐 Seguridad — rotar keys
 
 - [ ] **Rotar las keys secretas** — `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY` y la API key de Gemini se pegaron en texto plano en el chat en algún momento. Antes/después de deployar, generá nuevas desde los dashboards correspondientes y actualizá el `.env` + las env vars de Vercel. (La `VITE_TURNSTILE_SITE_KEY` es pública, esa no hace falta rotarla.)
