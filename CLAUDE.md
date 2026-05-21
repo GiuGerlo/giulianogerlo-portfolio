@@ -142,7 +142,8 @@ Cada skill puede tener una carpeta `references/` con docs detallados — leerlos
 ## Source of truth for the project
 
 - [docs/plans/2026-05-13-portfolio-design.md](docs/plans/2026-05-13-portfolio-design.md) — design doc aprobado (sistema visual, arquitectura, decisiones técnicas).
-- [docs/plans/2026-05-13-portfolio-implementation-plan.md](docs/plans/2026-05-13-portfolio-implementation-plan.md) — plan de implementación task-por-task. Estado: **Phases 0-10 completas, sitio deployado** en https://giulianogerlo.vercel.app. Lo que queda es contenido real (assets del usuario).
+- [docs/plans/2026-05-13-portfolio-implementation-plan.md](docs/plans/2026-05-13-portfolio-implementation-plan.md) — plan de implementación task-por-task. Estado: **Phases 0-11 completas, sitio + chatbot deployados** en https://giulianogerlo.vercel.app.
+- [docs/plans/2026-05-21-phase-12-supabase.md](docs/plans/2026-05-21-phase-12-supabase.md) — **Phase 12 (en curso)**: backend dinámico + admin `/admin` con Supabase (Postgres + Auth magic link + Storage). Scope v1: solo Projects. Mantener el "Log de cambios" sincronizado entre PCs vía git.
 - [docs/dependencias.md](docs/dependencias.md) — qué hace cada dependencia del proyecto.
 - [docs/comandos.md](docs/comandos.md) — comandos, troubleshooting, estructura del repo.
 - [TODO-USUARIO.md](TODO-USUARIO.md) — checklist de cuentas/assets/keys que Giuliano tiene que conseguir fuera del código.
