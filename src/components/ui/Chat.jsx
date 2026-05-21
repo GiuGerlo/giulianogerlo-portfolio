@@ -1,7 +1,14 @@
-// useState  → estado del chat (abierto, mensajes, input, etc.).
-// useEffect → auto-scroll al último mensaje.
-// useRef    → referencia al fondo de la lista para scrollear ahí.
-import { useState, useEffect, useRef } from 'react';
+// useState  → solo para `isOpen` (UI del panel, independiente del flujo).
+// useReducer → estado del envío (messages, input, loading, error,
+//              website, turnstileToken, turnstileKey). Agrupados acá
+//              porque varias acciones tocan MÚLTIPLES campos a la vez:
+//              enviar arranca loading + push mensaje + clear input + clear
+//              error; el .finally resetea turnstile + corta loading.
+//              Con useState eran 4-6 setters por handler; con useReducer
+//              cada acción es UN dispatch con intención clara.
+// useEffect  → auto-scroll al último mensaje.
+// useRef     → referencia al fondo de la lista para scrollear ahí.
+import { useState, useReducer, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, AlertTriangle } from 'lucide-react';
 // react-markdown renderiza el texto del bot: Gemini puede devolver
 // **negrita**, listas, links — esto los convierte a HTML seguro.
@@ -18,9 +25,10 @@ import { Turnstile } from '@marsidev/react-turnstile';
  * Gemini con toda la data del portfolio como contexto (context-stuffing).
  *
  * Estado de la conversación:
- *  - messages → array de turnos { role: 'user' | 'model', text }.
+ *  - messages → array de turnos { id, role: 'user' | 'model', text }.
  *    NO incluye el saludo inicial (ese es JSX estático): el historial
  *    que se manda al backend debe arrancar con un turno 'user'.
+ *    `id` (uuid) sirve como key estable en el .map.
  *
  * Turnstile (token de un solo uso):
  *  - El token sirve UNA vez. Tras cada envío reseteamos el widget
@@ -46,22 +54,92 @@ const SUGERENCIAS = [
   '¿En qué proyectos trabajó?',
 ];
 
+// Estado inicial del reducer. Refleja un chat recién abierto: sin
+// mensajes, sin input, sin loading, sin error, sin token todavía.
+const initialState = {
+  messages: [],
+  input: '',
+  loading: false,
+  error: '',
+  website: '',
+  turnstileToken: null,
+  turnstileKey: 0,
+};
+
+/**
+ * chatReducer — transiciones de estado del flujo de envío.
+ *
+ * Convención (igual que en libros de Redux):
+ *  - Cada action es { type, payload? }.
+ *  - El reducer es PURO: no muta `state`, devuelve uno nuevo.
+ *  - Las acciones agrupan varios campos cuando cambian juntos
+ *    (SUBMIT_START toca messages + input + error + loading de una).
+ *
+ * Resetear turnstile (token=null, key+1) se hace en SUBMIT_SUCCESS y
+ * SUBMIT_ERROR: el token es de un solo uso, así que después de cualquier
+ * resultado del backend incrementamos la `key` para remontar el widget.
+ */
+function chatReducer(state, action) {
+  switch (action.type) {
+    case 'SET_INPUT':
+      return { ...state, input: action.payload };
+
+    case 'SET_WEBSITE':
+      return { ...state, website: action.payload };
+
+    case 'SET_TURNSTILE_TOKEN':
+      return { ...state, turnstileToken: action.payload };
+
+    case 'SUBMIT_START':
+      // Push del mensaje del usuario (UI optimista) + flags de envío.
+      return {
+        ...state,
+        messages: [...state.messages, action.payload],
+        input: '',
+        error: '',
+        loading: true,
+      };
+
+    case 'SUBMIT_SUCCESS':
+      // Push de la respuesta del bot + corta loading + resetea turnstile.
+      return {
+        ...state,
+        messages: [...state.messages, action.payload],
+        loading: false,
+        turnstileToken: null,
+        turnstileKey: state.turnstileKey + 1,
+      };
+
+    case 'SUBMIT_ERROR':
+      // Setea error + corta loading + resetea turnstile.
+      return {
+        ...state,
+        error: action.payload,
+        loading: false,
+        turnstileToken: null,
+        turnstileKey: state.turnstileKey + 1,
+      };
+
+    default:
+      return state;
+  }
+}
+
 export default function Chat() {
-  // Panel abierto/cerrado.
+  // Panel abierto/cerrado — UI pura, no depende del flujo de envío.
   const [isOpen, setIsOpen] = useState(false);
-  // Turnos de la conversación (sin el saludo inicial).
-  const [messages, setMessages] = useState([]);
-  // Texto que está escribiendo el visitante.
-  const [input, setInput] = useState('');
-  // true mientras esperamos la respuesta del backend.
-  const [loading, setLoading] = useState(false);
-  // Mensaje de error visible si algo falla.
-  const [error, setError] = useState('');
-  // Honeypot anti-bots: un humano nunca lo completa (no lo ve).
-  const [website, setWebsite] = useState('');
-  // Token de Turnstile + "llave" para remontar el widget tras usarlo.
-  const [turnstileToken, setTurnstileToken] = useState(null);
-  const [turnstileKey, setTurnstileKey] = useState(0);
+
+  // Reducer agrupando los 7 estados del flujo de envío.
+  const [state, dispatch] = useReducer(chatReducer, initialState);
+  const {
+    messages,
+    input,
+    loading,
+    error,
+    website,
+    turnstileToken,
+    turnstileKey,
+  } = state;
 
   // Referencia al div vacío del fondo de la lista de mensajes.
   const bottomRef = useRef(null);
@@ -84,18 +162,11 @@ export default function Chat() {
     // El historial que mandamos es lo que había ANTES de esta pregunta.
     const history = messages;
 
-    // Pintamos el mensaje del usuario al instante (UI optimista).
-    // Functional update: garantiza que partimos del último estado, sin
-    // depender del closure de `messages` (que podría estar stale si el
-    // usuario manda varios mensajes en rápida sucesión).
-    // `id` único por turno → key estable en el .map (no usar index).
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: 'user', text: pregunta },
-    ]);
-    setInput('');
-    setError('');
-    setLoading(true);
+    // SUBMIT_START — push mensaje user + arranca loading + limpia input/error.
+    dispatch({
+      type: 'SUBMIT_START',
+      payload: { id: crypto.randomUUID(), role: 'user', text: pregunta },
+    });
 
     try {
       const res = await fetch('/api/chat', {
@@ -115,18 +186,17 @@ export default function Chat() {
         throw new Error(body.error ?? 'No se pudo obtener la respuesta.');
       }
 
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: 'model', text: body.reply },
-      ]);
+      // SUBMIT_SUCCESS — push respuesta bot + corta loading + reset turnstile.
+      dispatch({
+        type: 'SUBMIT_SUCCESS',
+        payload: { id: crypto.randomUUID(), role: 'model', text: body.reply },
+      });
     } catch (err) {
-      setError(err.message || 'Error de conexión. Probá de nuevo.');
-    } finally {
-      setLoading(false);
-      // El token de Turnstile es de un solo uso: lo limpiamos y
-      // remontamos el widget para generar uno nuevo.
-      setTurnstileToken(null);
-      setTurnstileKey((k) => k + 1);
+      // SUBMIT_ERROR — set error + corta loading + reset turnstile.
+      dispatch({
+        type: 'SUBMIT_ERROR',
+        payload: err.message || 'Error de conexión. Probá de nuevo.',
+      });
     }
   }
 
@@ -253,7 +323,7 @@ export default function Chat() {
               </div>
             ))}
 
-            {/* Indicador "escribiendo..." mientras esperamos al backend. */}
+            {/* Indicador "escribiendo…" mientras esperamos al backend. */}
             {loading && (
               <div className="max-w-[85%] rounded-lg rounded-tl-none bg-bg px-3 py-2 text-sm text-text-muted">
                 escribiendo…
@@ -284,9 +354,15 @@ export default function Chat() {
             <Turnstile
               key={turnstileKey}
               siteKey={TURNSTILE_SITE_KEY}
-              onSuccess={setTurnstileToken}
-              onExpire={() => setTurnstileToken(null)}
-              onError={() => setTurnstileToken(null)}
+              onSuccess={(token) =>
+                dispatch({ type: 'SET_TURNSTILE_TOKEN', payload: token })
+              }
+              onExpire={() =>
+                dispatch({ type: 'SET_TURNSTILE_TOKEN', payload: null })
+              }
+              onError={() =>
+                dispatch({ type: 'SET_TURNSTILE_TOKEN', payload: null })
+              }
               options={{
                 theme: 'auto',
                 size: 'flexible',
@@ -313,14 +389,18 @@ export default function Chat() {
                   tabIndex={-1}
                   autoComplete="off"
                   value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
+                  onChange={(e) =>
+                    dispatch({ type: 'SET_WEBSITE', payload: e.target.value })
+                  }
                 />
               </div>
 
               <input
                 type="text"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) =>
+                  dispatch({ type: 'SET_INPUT', payload: e.target.value })
+                }
                 placeholder="Escribí tu pregunta..."
                 maxLength={1000}
                 aria-label="Mensaje"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useReducer } from 'react';
 import { Mail, MessageCircle, Send, FileDown } from 'lucide-react';
 // react-hook-form maneja el estado del formulario; zodResolver conecta
 // el schema de validación de zod con react-hook-form.
@@ -88,6 +88,65 @@ const ENCODED_EMAIL = 'Z2dpdWxpYW5vNTI2QGdtYWlsLmNvbQ==';
 // La SECRET KEY (verificación) vive solo en el backend, nunca acá.
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
+// Estado inicial del reducer del envío.
+//  - turnstileToken: null hasta que Cloudflare confirme humano.
+//  - turnstileKey:   se incrementa para remontar el widget tras un envío
+//                    (el token sirve una sola vez).
+//  - status:         'idle' | 'success' | 'error' — controla los avisos
+//                    debajo del botón.
+//  - errorMsg:       detalle del fallo cuando status === 'error'.
+const initialSubmitState = {
+  turnstileToken: null,
+  turnstileKey: 0,
+  status: 'idle',
+  errorMsg: '',
+};
+
+/**
+ * submitReducer — transiciones de estado del envío del formulario.
+ *
+ * Agrupamos turnstile + status + errorMsg en UN reducer porque las
+ * acciones del flujo de envío tocan varios de esos campos a la vez
+ * (SUBMIT_SUCCESS y SUBMIT_ERROR cambian status Y resetean turnstile).
+ * Con useState eran 3-4 setters por handler; con useReducer la
+ * intención de cada acción queda explícita en un solo dispatch.
+ */
+function submitReducer(state, action) {
+  switch (action.type) {
+    case 'SET_TURNSTILE_TOKEN':
+      return { ...state, turnstileToken: action.payload };
+
+    case 'SUBMIT_START':
+      // Limpia el resultado previo al arrancar un nuevo envío.
+      return { ...state, status: 'idle', errorMsg: '' };
+
+    case 'SUBMIT_SUCCESS':
+      // Mostramos el aviso de éxito Y reseteamos el widget de Turnstile
+      // (token=null + key+1 fuerza remontar para generar uno nuevo).
+      return {
+        ...state,
+        status: 'success',
+        errorMsg: '',
+        turnstileToken: null,
+        turnstileKey: state.turnstileKey + 1,
+      };
+
+    case 'SUBMIT_ERROR':
+      // Status error + detalle, y también reseteamos turnstile para que
+      // un retry pueda volver a verificar humano.
+      return {
+        ...state,
+        status: 'error',
+        errorMsg: action.payload,
+        turnstileToken: null,
+        turnstileKey: state.turnstileKey + 1,
+      };
+
+    default:
+      return state;
+  }
+}
+
 // Clases compartidas de cada card de contacto. Se aplican igual sea
 // `<a>` o `<button>`. text-left porque <button> centra el texto por
 // default y queremos alineado a la izquierda como las cards <a>.
@@ -119,25 +178,17 @@ const contactSchema = z.object({
 export default function Contact() {
   // Estado del email: false = oculto ("Click para ver email"),
   // true = revelado (se muestra la dirección y la card es mailto).
+  // Queda como useState porque es UI pura, no participa del flujo de
+  // envío que maneja el reducer de abajo.
   const [revealed, setRevealed] = useState(false);
 
-  // Token de Turnstile. null = el visitante todavía no pasó el chequeo
-  // anti-bot → el botón Enviar queda deshabilitado. Cuando el widget
-  // confirma que es humano (onSuccess), guardamos el token acá.
-  const [turnstileToken, setTurnstileToken] = useState(null);
-
-  // "Llave" del widget de Turnstile. En React, cambiar el `key` de un
-  // componente lo desmonta y lo vuelve a montar desde cero. Lo usamos
-  // para resetear el widget tras enviar: un token sirve una sola vez,
-  // así que incrementamos esta llave para forzar un widget nuevo.
-  const [turnstileKey, setTurnstileKey] = useState(0);
-
-  // Estado del resultado del envío al backend:
-  //   'idle'    → todavía no se envió (o se está enviando).
-  //   'success' → el backend confirmó el envío del email.
-  //   'error'   → algo falló; el detalle queda en `errorMsg`.
-  const [status, setStatus] = useState('idle');
-  const [errorMsg, setErrorMsg] = useState('');
+  // Reducer del flujo de envío. Agrupa turnstile + status + errorMsg
+  // porque SUBMIT_SUCCESS / SUBMIT_ERROR tocan esos campos juntos.
+  const [submitState, dispatch] = useReducer(
+    submitReducer,
+    initialSubmitState,
+  );
+  const { turnstileToken, turnstileKey, status, errorMsg } = submitState;
 
   // react-hook-form:
   //  - register  → conecta cada input al form (name, onChange, ref...).
@@ -158,7 +209,8 @@ export default function Contact() {
   // `isSubmitting` en true mientras la promesa esté pendiente, así el
   // botón queda deshabilitado y muestra "Enviando...".
   async function onSubmit(data) {
-    setStatus('idle');
+    // Limpia el resultado previo (si el usuario ya había intentado).
+    dispatch({ type: 'SUBMIT_START' });
     try {
       // POST al serverless function api/contact.js. El body va como
       // JSON: los 3 campos + el honeypot + el token de Turnstile (que
@@ -182,16 +234,15 @@ export default function Contact() {
         throw new Error(body.error ?? 'No se pudo enviar el mensaje.');
       }
 
-      setStatus('success');
+      // SUBMIT_SUCCESS — pinta el aviso de éxito y resetea turnstile.
+      dispatch({ type: 'SUBMIT_SUCCESS' });
       reset();
-      // El token de Turnstile es de un solo uso: lo limpiamos y
-      // cambiamos la llave para remontar el widget (genera uno nuevo).
-      setTurnstileToken(null);
-      setTurnstileKey((k) => k + 1);
     } catch (err) {
       // Cae acá tanto por error del backend como por fallo de red.
-      setStatus('error');
-      setErrorMsg(err.message || 'Error de conexión. Probá de nuevo.');
+      dispatch({
+        type: 'SUBMIT_ERROR',
+        payload: err.message || 'Error de conexión. Probá de nuevo.',
+      });
     }
   }
 
@@ -284,9 +335,15 @@ export default function Contact() {
               <Turnstile
                 key={turnstileKey}
                 siteKey={TURNSTILE_SITE_KEY}
-                onSuccess={setTurnstileToken}
-                onExpire={() => setTurnstileToken(null)}
-                onError={() => setTurnstileToken(null)}
+                onSuccess={(token) =>
+                  dispatch({ type: 'SET_TURNSTILE_TOKEN', payload: token })
+                }
+                onExpire={() =>
+                  dispatch({ type: 'SET_TURNSTILE_TOKEN', payload: null })
+                }
+                onError={() =>
+                  dispatch({ type: 'SET_TURNSTILE_TOKEN', payload: null })
+                }
                 options={{ theme: 'auto' }}
               />
             </div>
