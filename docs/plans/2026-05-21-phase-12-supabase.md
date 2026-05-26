@@ -19,6 +19,10 @@ sincronizado entre PCs vía git.
 - **2026-05-21**: Task 12.1 cerrada. Proyecto Supabase `giulianogerlo-portfolio` creado en region `sa-east-1` (São Paulo), free tier, status `ACTIVE_HEALTHY`. MCP de Supabase verificado (`claude mcp list` → `supabase: ✓ Connected`). Env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) cargadas en `.env` local. `.env.example` actualizado con las 3 vars Supabase documentadas. Pendiente operativo: cargar las 3 vars en Vercel dashboard (scope Production + Preview + Development) antes del primer preview deploy con runtime fetch (recordatorio en Task 12.5).
 - **2026-05-21**: Task 12.2 cerrada. Migrations aplicadas vía MCP y versionadas en `supabase/migrations/`. **0001_projects_schema**: tabla `public.projects` (20 columnas, snake_case), índices (`order_index where published`, `slug`), trigger `set_updated_at`, RLS habilitada con 5 policies iniciales, bucket Storage `project-images` (public) + 4 policies. **0002_harden_security**: fix de `search_path` en función trigger; policies de mutación (projects + storage) lockeadas a `auth.jwt()->>'email' = 'ggiuliano526@gmail.com'` (defensa en profundidad); drop de policy SELECT del bucket público (URLs siguen funcionando via CDN, listado deshabilitado). Security advisor post-migrations limpio en lo nuestro — solo restan 3 warnings ajenos (Auto-RLS function de Supabase + leaked password protection N/A porque usamos magic link). Pendiente operativo: pasos manuales en Auth dashboard (crear user `ggiuliano526@gmail.com` vía Invite + desactivar "Allow new users to sign up"). Usuario confirmó pasos manuales hechos + signups desactivados + Site URL/Redirect URLs configuradas (incluyendo `http://localhost:5173`).
 - **2026-05-21**: Task 12.3 cerrada. Instalada dep `@supabase/supabase-js@2.106.1`. Creado `src/lib/supabase.js` (singleton del cliente con `persistSession`, `autoRefreshToken`, `detectSessionInUrl` activos; fail-fast si faltan env vars). Creado `src/lib/projects-mapper.js` con `dbToProject(row)` (devuelve TODOS los campos en camelCase — sitio público ignora los que no usa, admin los necesita) y `projectToDb(project)` (omite id/timestamps managed por Postgres). Suite `src/lib/projects-mapper.test.js`: 8 tests covering renombrado snake↔camel, passthrough de arrays, null en columnas opcionales, defaults razonables, round-trip. `pnpm lint` clean, `pnpm test:run` 109/109 passing.
+- **2026-05-26**: Task 12.4 cerrada. Creado `scripts/seed-projects.js` (idempotente vía `upsert` onConflict slug, usa `SUPABASE_SERVICE_ROLE_KEY` para bypassear RLS, lee `.env` con `node --env-file=.env`). Agregado script `pnpm seed:projects` en `package.json`. Bug surfaceado al primer run: `permission denied for table projects` — las migrations 0001/0002 corrieron via MCP con rol distinto de `postgres`, así que los default privileges de Supabase no se aplicaron a `anon`/`authenticated`/`service_role`. Fix: migration 0003_grant_table_privileges aplicada via MCP + versionada en `supabase/migrations/`. GRANT explícito: `service_role` ALL, `authenticated` SELECT/INSERT/UPDATE/DELETE, `anon` SELECT (RLS sigue siendo la capa de filtrado por fila). Post-fix: 6 proyectos sembrados con `order_index 0-5` y `published=true`.
+- **2026-05-26**: Task 12.5 cerrada. Creados hooks `src/hooks/useProjects.js` (lista publicada, ordenada por `order_index`) y `src/hooks/useProject.js` (single by slug, con "stale check" en render porque React 19 prohibe `setState` sincrónico en effects — derivamos `loading: true` cuando el slug actual no matchea el guardado en el state, en lugar de setearlo en el effect). Creado `src/components/sections/ProjectCardSkeleton.jsx` con `animate-pulse`. Migrados `Projects.jsx` y `ProjectDetail.jsx` a runtime fetch desde Supabase, con 4 estados (loading/error/empty/data) y aria-busy/role=alert para a11y. `src/data/projects.js` mantenido como referencia hasta Task 12.12. Tests actualizados (mock de hooks): 8 en Projects, 5 en ProjectDetail. Total: 114/114 passing.
+- **2026-05-26**: Pendiente operativo de Task 12.1 cerrado: las 3 env vars Supabase (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) ya están cargadas en Vercel dashboard con scope Production + Preview. Falta scope Development (no crítico — solo afecta a `vercel env pull` para clonar setup en PC nueva). Convención del proyecto: scope Prod+Preview+Dev en todas las vars para que `vercel env pull` funcione.
+- **2026-05-26**: Task 12.6 cerrada. Creados `src/lib/admin-config.js` (constante `ADMIN_EMAIL`), `src/hooks/useAuth.js` (sesión + listener `onAuthStateChange` con cleanup), `src/components/admin/AdminRoute.jsx` (gatea por sesión + email allowlisteado, doble redirect: sin sesión o email no admin → /admin/login), `src/pages/admin/Login.jsx` (form magic link con `react-hook-form` + zod, `shouldCreateUser: false`, `useReducer` para 4 estados idle/sending/sent/error), `src/pages/admin/AuthCallback.jsx` (espera SIGNED_IN del cliente Supabase con `detectSessionInUrl`, timeout 5s para evitar limbo), `src/pages/admin/Dashboard.jsx` (STUB con logout). Todo lazy-loaded fuera del Layout público — admin chunks separados (Login 4.20kB, Dashboard 1.51kB, AdminRoute 0.85kB). Tests: 4 AdminRoute (loading/sin sesión/email no admin/admin OK), 4 Login (render/validación/success/error). Total: 122/122 passing. Pasos manuales Supabase Auth confirmados por usuario: Site URL `http://localhost:5173`, Redirect URLs con `http://localhost:5173/admin/auth/callback` + `https://giulianogerlo.vercel.app/admin/auth/callback`. Para previews de Vercel queda pendiente sumar wildcard `https://giulianogerlo-*-giugerlos-projects.vercel.app/admin/auth/callback`.
 
 ---
 
@@ -277,24 +281,26 @@ Cada task = 1 dispatch de subagent + parada para que el usuario teste y commitee
 - [x] `src/lib/projects-mapper.test.js` (8 tests, passing).
 - [x] `pnpm lint` + `pnpm test:run` OK.
 
-### Task 12.4 — Seed inicial
+### Task 12.4 — Seed inicial ✅ (2026-05-26)
 
-- `scripts/seed-projects.js` migra `src/data/projects.js` → DB.
-- Verificar en MCP/dashboard que entraron los 6 proyectos.
-- Marcar todos `published=true` (orden = índice del array).
+- [x] `scripts/seed-projects.js` migra `src/data/projects.js` → DB.
+- [x] Verificar en MCP/dashboard que entraron los 6 proyectos.
+- [x] Marcar todos `published=true` (orden = índice del array).
+- [x] Migration 0003: GRANT privileges para los 3 roles managed (bug surfaceado al primer run).
 
-### Task 12.5 — Hooks públicos + switch del sitio
+### Task 12.5 — Hooks públicos + switch del sitio ✅ (2026-05-26)
 
-- `useProjects` + `useProject` con loading/error.
-- Skeleton component para cards mientras carga.
-- `Projects.jsx` y `ProjectDetail.jsx` migran al hook.
-- Verificar visualmente: home + detalle se ven idénticos a hoy.
+- [x] `useProjects` + `useProject` con loading/error.
+- [x] Skeleton component para cards mientras carga.
+- [x] `Projects.jsx` y `ProjectDetail.jsx` migran al hook.
+- [x] Verificar visualmente: home + detalle se ven idénticos a hoy.
 
-### Task 12.6 — Auth + AdminRoute
+### Task 12.6 — Auth + AdminRoute ✅ (2026-05-26)
 
-- `Login.jsx` (form magic link) + `AuthCallback.jsx` + `AdminRoute.jsx` wrapper.
-- Rutas en `App.jsx`.
-- Test: link a `/admin` sin sesión → redirect a `/admin/login`. Click link del mail → adentro.
+- [x] `Login.jsx` (form magic link) + `AuthCallback.jsx` + `AdminRoute.jsx` wrapper.
+- [x] Rutas en `App.jsx` (todas lazy, fuera del Layout público).
+- [x] Test: link a `/admin` sin sesión → redirect a `/admin/login`. Click link del mail → adentro.
+- [x] Dashboard STUB (placeholder hasta Task 12.7).
 
 ### Task 12.7 — Dashboard (list + toggle publicado + drag-drop reorder)
 

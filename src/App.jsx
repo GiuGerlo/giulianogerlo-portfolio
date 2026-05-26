@@ -24,6 +24,7 @@ const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 // panel — se baja solo cuando un visitante navega a /admin/*.
 // Esto es importante para no inflar el JS que carga un usuario casual.
 const AdminRoute = lazy(() => import('./components/admin/AdminRoute.jsx'));
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout.jsx'));
 const Login = lazy(() => import('./pages/admin/Login.jsx'));
 const AuthCallback = lazy(() => import('./pages/admin/AuthCallback.jsx'));
 const Dashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
@@ -82,9 +83,10 @@ function App() {
           }
         />
 
-        {/* Rutas protegidas: AdminRoute gatea el acceso (chequea sesión
-            + email allowlisteado). Si OK, renderiza <Outlet /> que
-            sirve a la ruta hija matcheada. */}
+        {/* Rutas protegidas: AdminRoute gatea el acceso (sesión + email
+            allowlisteado). Dentro, AdminLayout aporta la topbar común
+            (link al sitio, email, logout). Cada ruta hija se renderiza
+            dentro del <Outlet /> de AdminLayout. */}
         <Route
           element={
             <Suspense fallback={<div className="min-h-screen" />}>
@@ -92,7 +94,15 @@ function App() {
             </Suspense>
           }
         >
-          <Route path="/admin" element={<Dashboard />} />
+          <Route
+            element={
+              <Suspense fallback={<div className="min-h-screen" />}>
+                <AdminLayout />
+              </Suspense>
+            }
+          >
+            <Route path="/admin" element={<Dashboard />} />
+          </Route>
         </Route>
       </Routes>
 
