@@ -1,7 +1,7 @@
 // `Routes` y `Route` son los componentes que definen el sistema de rutas.
 // Routes es como un switch: mira la URL actual y renderiza UNA Route
 // que matchee. Si ninguna matchea, la Route con path="*" actúa de fallback.
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 // Vercel Web Analytics — registra visitas/page views sin cookies.
@@ -20,29 +20,79 @@ import Home from './pages/Home.jsx';
 const ProjectDetail = lazy(() => import('./pages/ProjectDetail.jsx'));
 const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 
+// Admin: TODO lazy. El bundle público del sitio NO incluye nada del
+// panel — se baja solo cuando un visitante navega a /admin/*.
+// Esto es importante para no inflar el JS que carga un usuario casual.
+const AdminRoute = lazy(() => import('./components/admin/AdminRoute.jsx'));
+const Login = lazy(() => import('./pages/admin/Login.jsx'));
+const AuthCallback = lazy(() => import('./pages/admin/AuthCallback.jsx'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
+
 /**
  * App = árbol de rutas del portfolio.
  *
- * Patrón "layout route": la <Route element={<Layout />}> NO tiene `path`,
- * solo envuelve. React Router primero renderiza Layout (Navbar + main +
- * Footer), y donde está el <Outlet /> dentro de Layout mete la página
- * matcheada (Home / ProjectDetail / NotFound).
+ * Estructura:
+ *  - Bloque público: rutas envueltas en <Layout /> (Navbar + main + Footer).
+ *  - Bloque admin: rutas fuera del Layout (no muestran nav pública).
+ *    Tiene su propio <Suspense> porque está afuera del que vive en
+ *    Layout.jsx.
  *
- * Esto evita repetir <Navbar /> y <Footer /> en cada página.
+ * Patrón "layout route" del bloque público: la <Route element={<Layout />}>
+ * NO tiene `path`, solo envuelve. React Router renderiza Layout y donde
+ * está el <Outlet /> dentro de Layout mete la página matcheada.
  *
- * Rutas:
+ * Rutas públicas:
  *  - "/"                  → Home
- *  - "/proyectos/:slug"   → ProjectDetail (slug = parámetro dinámico)
- *  - "*"                  → NotFound (cualquier URL no definida)
+ *  - "/proyectos/:slug"   → ProjectDetail
+ *  - "*"                  → NotFound
+ *
+ * Rutas admin (sin layout público, todas lazy):
+ *  - "/admin/login"         → Login (form magic link)
+ *  - "/admin/auth/callback" → AuthCallback (exchange del token)
+ *  - "/admin"               → Dashboard (protegido por AdminRoute)
  */
 function App() {
   return (
     <>
       <Routes>
+        {/* ── Bloque público ── */}
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/proyectos/:slug" element={<ProjectDetail />} />
           <Route path="*" element={<NotFound />} />
+        </Route>
+
+        {/* ── Bloque admin (fuera del Layout público) ──
+            Suspense propio: los chunks lazy del admin tardan en bajar
+            la primera vez (1-2KB), mostramos un fallback minimal. */}
+        <Route
+          path="/admin/login"
+          element={
+            <Suspense fallback={<div className="min-h-screen" />}>
+              <Login />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin/auth/callback"
+          element={
+            <Suspense fallback={<div className="min-h-screen" />}>
+              <AuthCallback />
+            </Suspense>
+          }
+        />
+
+        {/* Rutas protegidas: AdminRoute gatea el acceso (chequea sesión
+            + email allowlisteado). Si OK, renderiza <Outlet /> que
+            sirve a la ruta hija matcheada. */}
+        <Route
+          element={
+            <Suspense fallback={<div className="min-h-screen" />}>
+              <AdminRoute />
+            </Suspense>
+          }
+        >
+          <Route path="/admin" element={<Dashboard />} />
         </Route>
       </Routes>
 
