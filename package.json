@@ -8,6 +8,7 @@
     "build": "node scripts/generate-sitemap.js && vite build",
     "lint": "eslint .",
     "optimize:images": "node scripts/optimize-images.js",
+    "seed:projects": "node --env-file=.env scripts/seed-projects.js",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
