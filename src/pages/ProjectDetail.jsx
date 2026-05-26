@@ -9,6 +9,10 @@ import { useParams, Navigate, Link } from 'react-router-dom';
 
 // Custom hook que gestiona el <title> de la pestaña.
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
+// Hook nuevo: trae el proyecto por slug desde Supabase. Devuelve
+// { data, loading, error }.
+import { useProject } from '../hooks/useProject.js';
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,22 +22,23 @@ import {
 } from 'lucide-react';
 
 import Lightbox from '../components/ui/Lightbox.jsx';
-import { projects } from '../data/projects.js';
 
 /**
  * ProjectDetail — página de detalle de un proyecto (ruta /proyectos/:slug).
  *
  * Flujo:
- *  1. Lee el slug de la URL y busca el proyecto en src/data/projects.js.
- *  2. Si no existe → redirige a /404 (la cubre la ruta "*" → NotFound).
- *  3. Si existe → renderiza back link, hero, resumen, rol, stack y
- *     —si hay data— galería y desafíos.
+ *  1. Lee el slug de la URL.
+ *  2. Llama `useProject(slug)`. Mientras carga: skeleton.
+ *  3. Si terminó de cargar y NO encontró proyecto (data === null) →
+ *     redirige a /404. Esto cubre dos casos: slug inexistente y slug
+ *     existente pero draft (RLS lo filtra como invisible para anon).
+ *  4. Si hubo error de red → mensaje de error in-place.
+ *  5. Si hay data → render normal.
  *
  * Secciones condicionales:
- *  - Las URLs (liveUrl/repoUrl) y los arrays (gallery/challenges) hoy
- *    están vacíos para todos los proyectos (ver projects.js). Por eso
- *    esos bloques se renderizan SOLO si tienen contenido — así la
- *    página no muestra secciones vacías hasta que llegue la data real.
+ *  - Las URLs (liveUrl/repoUrl) y los arrays (gallery/challenges) pueden
+ *    estar vacíos en proyectos viejos. Esos bloques se renderizan SOLO
+ *    si tienen contenido — la página no muestra secciones vacías.
  */
 
 // Meses abreviados en español. formatMonth convierte 'YYYY-MM' →
@@ -71,22 +76,69 @@ export default function ProjectDetail() {
   // slug dinámico de la URL. Para /proyectos/clovertecno → slug = 'clovertecno'.
   const { slug } = useParams();
 
-  // Buscamos el proyecto que matchee el slug. Puede ser undefined.
-  const project = projects.find((p) => p.slug === slug);
+  // Fetch del proyecto. Mientras `loading` es true, data es null.
+  // Si el slug no existe, al terminar de cargar data sigue siendo null.
+  const { data: project, loading, error } = useProject(slug);
 
   // Setea el <title> de la pestaña con el nombre del proyecto. Se llama
-  // SIEMPRE (antes del return condicional de abajo) para respetar la
-  // regla de hooks. Si el proyecto no existe, pasamos null y el hook
+  // SIEMPRE (antes de cualquier return condicional) para respetar la
+  // regla de hooks. Si todavía no hay proyecto, pasamos null y el hook
   // no toca el título.
   useDocumentTitle(project ? `${project.title} — Giuliano Gerlo` : null);
 
   // Estado del lightbox de la galería: null = cerrado, número = índice
-  // de la imagen abierta. Se declara ANTES del return condicional para
-  // respetar la regla de hooks (siempre se ejecutan en el mismo orden).
+  // de la imagen abierta. Se declara ANTES de cualquier return condicional
+  // para respetar la regla de hooks (siempre se ejecutan en el mismo orden).
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
-  // Slug inexistente → redirección declarativa. `replace` evita que la
-  // URL rota quede en el historial (back no vuelve a ella).
+  // ── Estado: loading ── (skeleton mínimo: estructura visible pero sin texto)
+  if (loading) {
+    return (
+      <article
+        aria-busy="true"
+        aria-label="Cargando proyecto"
+        className="mx-auto max-w-[900px] animate-pulse px-4 py-12 md:px-8 md:py-16"
+      >
+        <div className="mb-8 h-4 w-40 rounded bg-border/60" />
+        <div className="mb-3 h-5 w-32 rounded bg-border/60" />
+        <div className="mb-4 h-10 w-3/4 rounded bg-border/60" />
+        <div className="mb-8 h-4 w-1/2 rounded bg-border/40" />
+        <div className="mb-2 h-4 w-full rounded bg-border/40" />
+        <div className="mb-2 h-4 w-5/6 rounded bg-border/40" />
+        <div className="h-4 w-4/6 rounded bg-border/40" />
+      </article>
+    );
+  }
+
+  // ── Estado: error de red ── (no redirige a 404; el usuario puede recargar)
+  if (error) {
+    return (
+      <article className="mx-auto max-w-[900px] px-4 py-12 md:px-8 md:py-16">
+        <Link
+          to="/"
+          className="mb-8 flex w-fit items-center gap-1.5 font-mono text-[13px] text-text-muted transition-colors hover:text-accent"
+        >
+          <ArrowLeft size={14} aria-hidden="true" />
+          Volver a proyectos
+        </Link>
+        <div
+          role="alert"
+          className="rounded-xl border border-border bg-bg-elevated p-6 text-text-muted"
+        >
+          <p className="mb-2 font-medium text-text-primary">
+            No pude cargar el proyecto.
+          </p>
+          <p className="text-sm">
+            Revisá tu conexión y recargá la página.
+          </p>
+        </div>
+      </article>
+    );
+  }
+
+  // ── Estado: terminó el fetch pero proyecto no existe (404).
+  // `replace` evita que la URL rota quede en el historial (back no
+  // vuelve a ella).
   if (!project) return <Navigate to="/404" replace />;
 
   // Flags de las secciones condicionales.
