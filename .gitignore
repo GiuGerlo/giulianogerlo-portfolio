@@ -26,8 +26,16 @@ coverage
 # CodeGraph (índice local, no commitear)
 .codegraph
 
-# Claude Code (local per-user config)
+# Claude Code — versionar la estructura compartida (rules/, commands/, agents/,
+# hooks/, settings.json, CLAUDE.md) para que sincronice entre PCs vía git.
+# Fuera de git: config local per-PC, datos de sesión/auth, y las SKILLS.
 .claude/settings.local.json
+.claude.json
+# Skills: se versionan como carpetas REALES en .claude/skills/ (convertidas de los
+# symlinks que crea skills.sh) para que sincronicen entre PCs — git en Windows tiene
+# core.symlinks=false, así que un symlink commiteado se rompería en la otra PC.
+# .agents/ es el store interno de skills.sh (metadata local) — ese NO va a git.
+.agents/
 # OS
 Thumbs.db
 
@@ -42,12 +50,11 @@ Thumbs.db
 *.sln
 *.sw?
 
-# Skills/agents
+# Skills/agents (otras herramientas — NO tocar .claude que sí se versiona)
 .kiro
-.agents
 skills-lock.json
-.claude
-.env*.local
-.claude.json
-AGENTS.md
 opencode.jsonc
+
+# Solo el AGENTS.md de la raíz se ignora; los AGENTS.md internos de las skills
+# (composition-patterns, react-best-practices) SÍ se versionan.
+/AGENTS.md
