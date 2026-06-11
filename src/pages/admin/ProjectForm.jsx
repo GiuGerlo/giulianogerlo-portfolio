@@ -23,6 +23,7 @@ import ChipsEditor from '../../components/admin/ChipsEditor.jsx';
 import ParagraphsEditor from '../../components/admin/ParagraphsEditor.jsx';
 import MonthPicker from '../../components/admin/MonthPicker.jsx';
 import ProjectPreview from '../../components/admin/ProjectPreview.jsx';
+import ImageUpload from '../../components/admin/ImageUpload.jsx';
 
 /**
  * ProjectForm — crear o editar un proyecto.
@@ -153,6 +154,10 @@ export default function ProjectForm() {
   // recomienda para suscribirse a campos desde efectos / preview
   // (memoizable, estable entre renders). watch() pinta warning de hooks.
   const watchedTitle = useWatch({ control, name: 'title' });
+
+  // Slug actual — lo pasamos a ImageUpload para nombrar los archivos que
+  // suben al bucket (`${slug}-${timestamp}-${random}.ext`).
+  const watchedSlug = useWatch({ control, name: 'slug' });
 
   // Snapshot completo del form para el preview en tiempo real.
   // Sin `name`, useWatch suscribe al form entero — re-renderea cuando
@@ -528,26 +533,40 @@ export default function ProjectForm() {
             Media
           </h2>
           <p className="mb-3 text-xs text-text-muted">
-            Por ahora, pegá URLs manualmente. En Task 12.9 habrá uploader
-            con drag-and-drop a Supabase Storage.
+            Arrastrá imágenes o hacé click para subirlas a Supabase Storage.
+            Las URLs se guardan solas.
           </p>
 
-          <Input
-            label="Imagen de portada (URL)"
-            placeholder="/projects/gym-tracker-1.webp"
-            {...register('image')}
-            error={errors.image?.message}
+          {/* Portada (single). Controller traduce value+onChange porque
+              ImageUpload no es un <input> nativo. Pasamos `slug` para
+              nombrar el archivo en el bucket; en create mode puede estar
+              vacío todavía (storage.js usa 'project' como fallback). */}
+          <Controller
+            name="image"
+            control={control}
+            render={({ field }) => (
+              <ImageUpload
+                value={field.value}
+                onChange={field.onChange}
+                slug={watchedSlug}
+                label="Imagen de portada"
+                error={errors.image?.message}
+              />
+            )}
           />
 
+          {/* Galería (multiple). Mismo componente con multiple → value
+              es un string[] de URLs. */}
           <Controller
             name="gallery"
             control={control}
             render={({ field }) => (
-              <ChipsEditor
+              <ImageUpload
                 value={field.value}
                 onChange={field.onChange}
-                label="Galería (URLs)"
-                placeholder="/projects/gym-tracker-2.webp"
+                multiple
+                slug={watchedSlug}
+                label="Galería"
                 error={errors.gallery?.message}
               />
             )}

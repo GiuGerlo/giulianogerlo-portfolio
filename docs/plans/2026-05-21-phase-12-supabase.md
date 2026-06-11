@@ -23,6 +23,9 @@ sincronizado entre PCs vía git.
 - **2026-05-26**: Task 12.5 cerrada. Creados hooks `src/hooks/useProjects.js` (lista publicada, ordenada por `order_index`) y `src/hooks/useProject.js` (single by slug, con "stale check" en render porque React 19 prohibe `setState` sincrónico en effects — derivamos `loading: true` cuando el slug actual no matchea el guardado en el state, en lugar de setearlo en el effect). Creado `src/components/sections/ProjectCardSkeleton.jsx` con `animate-pulse`. Migrados `Projects.jsx` y `ProjectDetail.jsx` a runtime fetch desde Supabase, con 4 estados (loading/error/empty/data) y aria-busy/role=alert para a11y. `src/data/projects.js` mantenido como referencia hasta Task 12.12. Tests actualizados (mock de hooks): 8 en Projects, 5 en ProjectDetail. Total: 114/114 passing.
 - **2026-05-26**: Pendiente operativo de Task 12.1 cerrado: las 3 env vars Supabase (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) ya están cargadas en Vercel dashboard con scope Production + Preview. Falta scope Development (no crítico — solo afecta a `vercel env pull` para clonar setup en PC nueva). Convención del proyecto: scope Prod+Preview+Dev en todas las vars para que `vercel env pull` funcione.
 - **2026-05-26**: Task 12.6 cerrada. Creados `src/lib/admin-config.js` (constante `ADMIN_EMAIL`), `src/hooks/useAuth.js` (sesión + listener `onAuthStateChange` con cleanup), `src/components/admin/AdminRoute.jsx` (gatea por sesión + email allowlisteado, doble redirect: sin sesión o email no admin → /admin/login), `src/pages/admin/Login.jsx` (form magic link con `react-hook-form` + zod, `shouldCreateUser: false`, `useReducer` para 4 estados idle/sending/sent/error), `src/pages/admin/AuthCallback.jsx` (espera SIGNED_IN del cliente Supabase con `detectSessionInUrl`, timeout 5s para evitar limbo), `src/pages/admin/Dashboard.jsx` (STUB con logout). Todo lazy-loaded fuera del Layout público — admin chunks separados (Login 4.20kB, Dashboard 1.51kB, AdminRoute 0.85kB). Tests: 4 AdminRoute (loading/sin sesión/email no admin/admin OK), 4 Login (render/validación/success/error). Total: 122/122 passing. Pasos manuales Supabase Auth confirmados por usuario: Site URL `http://localhost:5173`, Redirect URLs con `http://localhost:5173/admin/auth/callback` + `https://giulianogerlo.vercel.app/admin/auth/callback`. Para previews de Vercel queda pendiente sumar wildcard `https://giulianogerlo-*-giugerlos-projects.vercel.app/admin/auth/callback`.
+- **2026-05-26**: Task 12.7 cerrada. Dashboard admin funcional reemplaza el STUB. Creado `src/hooks/useAdminProjects.js` (análogo a `useProjects` pero SIN filtro `published` — el admin ve drafts; expone `refetch()` + `setData` para optimistic updates). Creado `src/components/admin/AdminLayout.jsx` (shell del panel con nav + logout), `src/components/admin/ProjectListItem.jsx` (fila con thumbnail/título/estado + toggle published inline), `src/components/admin/SortableProjectsList.jsx` (wrapper de `@dnd-kit/sortable`: drag-drop reorder que persiste `order_index` en batch). Creado `src/lib/format-date.js` + test (formateo `YYYY-MM` → legible para la lista). Instaladas deps `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`. `Dashboard.jsx` reescrito: lista + toggle + drag-drop. Tests: `Dashboard.test.jsx` + `format-date.test.js`.
+- **2026-05-26**: Task 12.8 cerrada **(parcial — el upload de imágenes va en Task 12.9)**. Creado `src/pages/admin/ProjectForm.jsx` (~700 líneas: crear + editar reusando un mismo componente, validación zod, slug autogenerado del título vía `src/lib/slugify.js` pero editable, delete con confirm). Editores custom de arrays: `src/components/admin/ChipsEditor.jsx` (stack/challenges como chips add/remove) + `ParagraphsEditor.jsx` (description multi-párrafo). `src/components/admin/MonthPicker.jsx` (date picker `YYYY-MM` con `react-datepicker` + `date-fns`). `src/components/admin/ProjectPreview.jsx` (preview live del proyecto mientras se edita). Hooks: `useAdminProject.js` (single fetch by id para edit mode) + `useProjectSuggestions.js` (query slim de `category`/`stack` para autocomplete vía `<datalist>`, degradación elegante si no llega). Instaladas deps `date-fns`, `react-datepicker`. Fix: el status del proyecto se setea bien tras crear. **Pendiente arrastrado a 12.9:** los campos `image` y `gallery` son TODAVÍA inputs de texto con URL a mano — falta el widget de upload a Supabase Storage.
+- **2026-06-11**: Task 12.9 cerrada. Instalada dep `react-dropzone@15.0.0`. Creado `src/lib/storage.js` (toda la lógica de Storage centralizada: constantes `BUCKET`/`MAX_SIZE_BYTES`/`ACCEPTED_MIME`, `uploadImage(file, slug)` con validación mime+size de defensa en profundidad y nombre único `${slug}-${timestamp}-${random}.ext`, `removeImage(url)` que borra del bucket solo si la URL es de NUESTRO Storage — no-op para paths relativos viejos `/projects/*.webp` y URLs externas; cleanup best-effort, no propaga errores). Creado `src/components/admin/ImageUpload.jsx` (dropzone con react-dropzone, doble modo `multiple`: portada single string / galería string[]; previews con remove + cleanup; spinner durante upload; errores de archivo rechazado vía `onDropRejected`; placeholder si la URL está rota). Enchufado en el bloque Media de `ProjectForm.jsx` vía `Controller` (reemplaza los inputs de texto de URL): portada single + galería multiple, ambos pasan `watchedSlug` para nombrar archivos. Suite `src/lib/storage.test.js`: 9 tests (rechazo mime/size, slug fallback 'project', URL pública, error de upload, remove no-op para externas/relativas/null). `pnpm lint` clean, `pnpm test:run` 157/157 passing, `pnpm build` OK. Verificado: react-dropzone quedó en el chunk lazy `ProjectForm` (279kB), NO en el bundle público.
 
 ---
 
@@ -302,27 +305,27 @@ Cada task = 1 dispatch de subagent + parada para que el usuario teste y commitee
 - [x] Test: link a `/admin` sin sesión → redirect a `/admin/login`. Click link del mail → adentro.
 - [x] Dashboard STUB (placeholder hasta Task 12.7).
 
-### Task 12.7 — Dashboard (list + toggle publicado + drag-drop reorder)
+### Task 12.7 — Dashboard (list + toggle publicado + drag-drop reorder) ✅ (2026-05-26)
 
-- Lista de proyectos con thumbnail, título, estado (published/draft).
-- Toggle published inline.
-- Drag-drop con `@dnd-kit` → actualiza `order_index` en batch.
+- [x] Lista de proyectos con thumbnail, título, estado (published/draft).
+- [x] Toggle published inline.
+- [x] Drag-drop con `@dnd-kit` → actualiza `order_index` en batch.
 
-### Task 12.8 — ProjectForm (crear/editar)
+### Task 12.8 — ProjectForm (crear/editar) ✅ parcial (2026-05-26)
 
-- Form con todos los campos. Validación zod.
-- Editores custom para arrays (`stack`, `challenges`).
-- ImageUpload para `image` (cover) y `gallery`.
-- Slug autogenerado del título pero editable.
-- Botón delete con confirm.
+- [x] Form con todos los campos. Validación zod.
+- [x] Editores custom para arrays (`stack`, `challenges`).
+- [ ] ImageUpload para `image` (cover) y `gallery`. **→ movido a Task 12.9** (hoy son inputs de texto con URL).
+- [x] Slug autogenerado del título pero editable.
+- [x] Botón delete con confirm.
 
-### Task 12.9 — Image upload + Storage
+### Task 12.9 — Image upload + Storage ✅ (2026-06-11)
 
-- `ImageUpload.jsx` con react-dropzone.
-- Validación mime + size client.
-- Subir a `project-images` bucket.
-- Guardar URL pública en el campo correspondiente.
-- Borrar imagen del bucket al desasociarla del proyecto (cleanup).
+- [x] `ImageUpload.jsx` con react-dropzone.
+- [x] Validación mime + size client (+ defensa en profundidad en `storage.js`).
+- [x] Subir a `project-images` bucket.
+- [x] Guardar URL pública en el campo correspondiente (portada single + galería multiple).
+- [x] Borrar imagen del bucket al desasociarla del proyecto (cleanup, no-op para URLs no-Storage).
 
 ### Task 12.10 — Hardening de seguridad
 
