@@ -5,7 +5,12 @@ import { Mail, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { socials } from '../../data/socials.js';
+import { useSiteSettings } from '../../hooks/useSiteSettings.js';
 import Logo from '../ui/Logo.jsx';
+
+// Tagline fallback (= seed de site_settings) si la DB no cargó.
+const FALLBACK_TAGLINE =
+  'Full-Stack Developer enfocado en construir productos robustos con PHP/Laravel, React y workflows asistidos con IA.';
 
 /**
  * Helper interno (mismo patrón que en Navbar): renderiza un símbolo del
@@ -33,6 +38,15 @@ export default function Footer() {
   // `new Date().getFullYear()` se calcula en cada render → siempre actualizado.
   // Cuando llegue 2027, el copyright del footer dice 2027 sin tocar nada.
   const year = new Date().getFullYear();
+
+  // Contenido editable desde /admin/sitio. Fallback campo a campo a socials.js
+  // / FALLBACK_TAGLINE si la DB no cargó (degradación elegante).
+  const { data } = useSiteSettings();
+  const tagline = data?.footerTagline || FALLBACK_TAGLINE;
+  const github = data?.socialGithub || socials.github;
+  const linkedin = data?.socialLinkedin || socials.linkedin;
+  const email = data?.socialEmail || socials.email;
+  const location = data?.socialLocation || socials.location;
 
   return (
     // <footer> = elemento semántico HTML.
@@ -65,14 +79,13 @@ export default function Footer() {
               </Link>
             </div>
             <p className="text-sm text-text-muted">
-              Full-Stack Developer enfocado en construir productos
-              robustos con PHP/Laravel, React y workflows asistidos con IA.
+              {tagline}
             </p>
             {/* `inline-flex` no toma `text-align`, por eso para centrar
                 la ubicación en mobile envolvemos en un <p> con flex justify. */}
             <p className="flex items-center justify-center gap-2 text-sm text-text-muted md:justify-start">
               <MapPin size={14} />
-              {socials.location}
+              {location}
             </p>
           </div>
 
@@ -106,7 +119,7 @@ export default function Footer() {
                 justify-center en mobile, justify-start en md+ (queda alineado a izquierda). */}
             <div className="mb-4 flex items-center justify-center gap-2 md:justify-start">
               <a
-                href={socials.github}
+                href={github}
                 target="_blank"
                 rel="noreferrer noopener"
                 aria-label="GitHub"
@@ -115,7 +128,7 @@ export default function Footer() {
                 <Icon id="github-icon" />
               </a>
               <a
-                href={socials.linkedin}
+                href={linkedin}
                 target="_blank"
                 rel="noreferrer noopener"
                 aria-label="LinkedIn"
@@ -127,7 +140,7 @@ export default function Footer() {
                   En Phase 4.8 vamos a sumar email obfuscation para anti-scraping,
                   por ahora queda como link directo. */}
               <a
-                href={`mailto:${socials.email}`}
+                href={`mailto:${email}`}
                 aria-label="Email"
                 className="inline-flex size-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
               >

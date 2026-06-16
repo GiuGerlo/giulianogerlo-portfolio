@@ -1,5 +1,12 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+
+// Hero ahora lee site_settings vía useSiteSettings. Lo mockeamos a "sin data"
+// → Hero usa su FALLBACK hardcodeado (= los textos que estos tests esperan).
+vi.mock('../../hooks/useSiteSettings.js', () => ({
+  useSiteSettings: () => ({ data: null, loading: false, error: null }),
+}));
+
 import Hero from './Hero.jsx';
 
 describe('Hero', () => {

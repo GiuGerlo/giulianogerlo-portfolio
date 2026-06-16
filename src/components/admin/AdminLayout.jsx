@@ -28,6 +28,15 @@ import { useAuth } from '../../hooks/useAuth.js';
  * El logout no necesita navegar a mano: useAuth detecta el SIGNED_OUT y
  * AdminRoute (que está más arriba) redirige a /admin/login solo.
  */
+// Links de la nav del panel. `end` solo en /admin (sino prefija las hijas).
+// Se va completando a medida que se suman secciones editables (Phase 13 cont.).
+const NAV_ITEMS = [
+  { to: '/admin', label: 'Proyectos', end: true },
+  { to: '/admin/perfil', label: 'Perfil' },
+  { to: '/admin/sitio', label: 'Sitio' },
+  { to: '/admin/skills', label: 'Skills' },
+];
+
 export default function AdminLayout() {
   const { session } = useAuth();
 
@@ -50,38 +59,28 @@ export default function AdminLayout() {
             <span className="hidden sm:inline">Volver al sitio</span>
           </Link>
 
-          {/* Nav interna del panel: alterna entre las secciones editables.
-              NavLink agrega `isActive` solo → resaltamos la sección actual
-              en accent. `end` en Proyectos evita que matchee /admin/perfil
-              (sino "/" del path /admin prefijaría todo). */}
-          <nav className="flex items-center gap-1 font-mono text-xs">
-            <NavLink
-              to="/admin"
-              end
-              className={({ isActive }) =>
-                cn(
-                  'rounded-md px-3 py-1.5 transition-colors',
-                  isActive
-                    ? 'bg-accent/10 text-accent'
-                    : 'text-text-muted hover:text-accent',
-                )
-              }
-            >
-              Proyectos
-            </NavLink>
-            <NavLink
-              to="/admin/perfil"
-              className={({ isActive }) =>
-                cn(
-                  'rounded-md px-3 py-1.5 transition-colors',
-                  isActive
-                    ? 'bg-accent/10 text-accent'
-                    : 'text-text-muted hover:text-accent',
-                )
-              }
-            >
-              Perfil
-            </NavLink>
+          {/* Nav interna del panel: links a cada sección editable. NavLink
+              agrega `isActive` solo → resaltamos la sección actual en accent.
+              `end` en Proyectos (/admin) evita que matchee las rutas hijas.
+              flex-wrap porque son varios links (entran en 1-2 filas). */}
+          <nav className="flex flex-wrap items-center gap-1 font-mono text-xs">
+            {NAV_ITEMS.map(({ to, label, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  cn(
+                    'rounded-md px-3 py-1.5 transition-colors',
+                    isActive
+                      ? 'bg-accent/10 text-accent'
+                      : 'text-text-muted hover:text-accent',
+                  )
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
           </nav>
 
           {/* User info + logout. El email se trunca en pantallas chicas. */}

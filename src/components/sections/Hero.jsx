@@ -2,9 +2,18 @@ import { MapPin } from 'lucide-react';
 
 import { useTheme } from '../../hooks/useTheme.js';
 import { lenisScrollTo } from '../../hooks/useLenis.js';
+import { useSiteSettings } from '../../hooks/useSiteSettings.js';
 import Button from '../ui/Button.jsx';
 import Plasma from '../ui/Plasma.jsx';
 import AnimatedName from '../ui/AnimatedName.jsx';
+
+// Fallback hardcodeado (= seed de site_settings) para degradación elegante
+// si la DB falla/no cargó. Mismo patrón que About.
+const FALLBACK = {
+  heroName: 'Giuliano Gerlo',
+  heroTagline: 'Full-Stack Developer · React · PHP · MySQL',
+  heroLocation: 'Rosario, Santa Fe, Argentina',
+};
 
 /**
  * Hero — primera sección de la home. Saludo + CTAs sobre fondo animado.
@@ -38,6 +47,10 @@ export default function Hero() {
   const isDark = theme === 'dark';
 
   const overlayClass = isDark ? 'bg-bg/55' : 'bg-bg/80';
+
+  // Contenido editable desde /admin/sitio. Si la DB falla/no cargó → FALLBACK.
+  const { data, error } = useSiteSettings();
+  const site = data && !error ? data : FALLBACK;
 
   return (
     <section
@@ -87,11 +100,11 @@ export default function Hero() {
             desktop sin breakpoints intermedios. El nombre entra con
             animación de chars en cascada (AnimatedName). */}
         <h1 className="mb-5 text-[clamp(2.5rem,8vw,4.5rem)] font-semibold leading-[1.05] tracking-tight">
-          <AnimatedName text="Giuliano Gerlo" />
+          <AnimatedName text={site.heroName} />
         </h1>
 
         <p className="mb-3 text-lg text-text-muted md:text-2xl">
-          Full-Stack Developer · React · PHP · MySQL
+          {site.heroTagline}
         </p>
 
         <p className="mb-10 inline-flex items-center gap-1.5 font-mono text-sm text-text-muted">
@@ -99,7 +112,7 @@ export default function Hero() {
               describe la ubicación; el ícono es decoración semántica
               redundante para screen readers. */}
           <MapPin size={14} aria-hidden="true" />
-          Rosario, Santa Fe, Argentina
+          {site.heroLocation}
         </p>
 
         {/* CTAs. flex-wrap para que en mobile bajen una abajo de la

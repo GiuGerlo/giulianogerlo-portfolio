@@ -1,15 +1,10 @@
-import {
-  Layout,
-  Server,
-  Database,
-  Wrench,
-  Heart,
-} from 'lucide-react';
-
 import SectionHeading from '../ui/SectionHeading.jsx';
 import BorderGlow from '../ui/BorderGlow.jsx';
 import Reveal from '../ui/Reveal.jsx';
-import { skillGroups } from '../../data/skills.js';
+import { useSkillGroups } from '../../hooks/useSkillGroups.js';
+import { SKILL_ICONS } from '../../lib/skill-icons.js';
+// Fallback hardcodeado (= seed de skill_groups) por si la DB falla/no cargó.
+import { skillGroups as FALLBACK } from '../../data/skills.js';
 
 /**
  * Skills — sección 02 del portfolio. Muestra el stack técnico agrupado en
@@ -42,17 +37,12 @@ import { skillGroups } from '../../data/skills.js';
  *   el `<article>` con border/hover plano que había antes.
  */
 
-// Lookup string → componente lucide. Mantener sincronizado con los
-// `icon:` de skillGroups en src/data/skills.js.
-const ICONS = {
-  Layout,
-  Server,
-  Database,
-  Wrench,
-  Heart,
-};
-
 export default function Skills() {
+  // Grupos editables desde /admin/skills. Fallback al data file si la DB
+  // falla/no cargó (degradación elegante, mismo patrón que About).
+  const { data, error } = useSkillGroups();
+  const groups = data && !error ? data : FALLBACK;
+
   return (
     <section
       id="skills"
@@ -68,11 +58,10 @@ export default function Skills() {
         {/* Grid: 1 col mobile · 2 cols tablet · 5 cols desktop (una
             fila con los 5 grupos). gap-5 (20px) matchea mockup. */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-          {skillGroups.map((group, index) => {
-            // Resolver ícono por nombre. Si la data tiene un nombre que
-            // no está mapeado, dejamos null — el render salta el ícono
-            // en vez de explotar.
-            const Icon = ICONS[group.icon] ?? null;
+          {groups.map((group, index) => {
+            // Resolver ícono por nombre con el set curado compartido. Si el
+            // nombre no está mapeado, null → el render salta el ícono.
+            const Icon = SKILL_ICONS[group.icon] ?? null;
 
             return (
               // Reveal: fade-up al scrollear. delay escalonado por

@@ -19,6 +19,7 @@ import SectionHeading from '../../components/ui/SectionHeading.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Textarea from '../../components/ui/Textarea.jsx';
 import Button from '../../components/ui/Button.jsx';
+import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
 import ChipsEditor from '../../components/admin/ChipsEditor.jsx';
 import ParagraphsEditor from '../../components/admin/ParagraphsEditor.jsx';
 import MonthPicker from '../../components/admin/MonthPicker.jsx';
@@ -137,6 +138,8 @@ export default function ProjectForm() {
   const [slugTouched, setSlugTouched] = useState(isEdit);
   const [status, setStatus] = useState('idle');
   const [serverError, setServerError] = useState(null);
+  // Abre el modal de confirmación de borrado.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const {
     register,
@@ -290,13 +293,8 @@ export default function ProjectForm() {
     // referencias a `project.X` y romper en create mode. Salida temprana.
     if (!project) return;
 
-    // Confirm nativo: simple y suficiente para v1. Si después hay tiempo,
-    // se reemplaza por un modal custom.
-    const ok = window.confirm(
-      `¿Borrar "${project.title}"? Esta acción no se puede deshacer.`,
-    );
-    if (!ok) return;
-
+    // Cierra el modal de confirmación y procede al borrado.
+    setConfirmingDelete(false);
     setStatus('deleting');
     const { error: err } = await supabase
       .from('projects')
@@ -655,7 +653,7 @@ export default function ProjectForm() {
             <Button
               type="button"
               variant="secondary"
-              onClick={handleDelete}
+              onClick={() => setConfirmingDelete(true)}
               disabled={status === 'saving' || status === 'deleting'}
               className="text-red-500 hover:border-red-500 hover:text-red-500"
             >
@@ -696,6 +694,15 @@ export default function ProjectForm() {
           <ProjectPreview values={watchedAll} />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title="Borrar proyecto"
+        message={`¿Borrar "${project?.title}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Borrar"
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmingDelete(false)}
+      />
     </article>
   );
 }

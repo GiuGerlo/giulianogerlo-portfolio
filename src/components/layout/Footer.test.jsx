@@ -1,6 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+
+// Footer lee site_settings vía useSiteSettings → mock a "sin data" para que
+// use el fallback (socials.js / FALLBACK_TAGLINE = lo que estos tests esperan).
+vi.mock('../../hooks/useSiteSettings.js', () => ({
+  useSiteSettings: () => ({ data: null, loading: false, error: null }),
+}));
+
 import Footer from './Footer.jsx';
 
 // Footer usa <Link> de React Router (el logo navega al Home), así que

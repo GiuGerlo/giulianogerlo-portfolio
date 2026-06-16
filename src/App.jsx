@@ -30,6 +30,8 @@ const AuthCallback = lazy(() => import('./pages/admin/AuthCallback.jsx'));
 const Dashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
 const ProjectForm = lazy(() => import('./pages/admin/ProjectForm.jsx'));
 const Profile = lazy(() => import('./pages/admin/Profile.jsx'));
+const Site = lazy(() => import('./pages/admin/Site.jsx'));
+const SkillsAdmin = lazy(() => import('./pages/admin/Skills.jsx'));
 
 /**
  * App = árbol de rutas del portfolio.
@@ -107,6 +109,8 @@ function App() {
             <Route path="/admin/projects/new" element={<ProjectForm />} />
             <Route path="/admin/projects/:id" element={<ProjectForm />} />
             <Route path="/admin/perfil" element={<Profile />} />
+            <Route path="/admin/sitio" element={<Site />} />
+            <Route path="/admin/skills" element={<SkillsAdmin />} />
           </Route>
         </Route>
       </Routes>

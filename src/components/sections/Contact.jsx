@@ -16,6 +16,7 @@ import Textarea from '../ui/Textarea.jsx';
 import Button from '../ui/Button.jsx';
 import { decodeEmail } from '../../lib/obfuscate-email.js';
 import { socials } from '../../data/socials.js';
+import { useSiteSettings } from '../../hooks/useSiteSettings.js';
 
 /**
  * Contact — sección 07 del portfolio. Dos columnas: formulario de
@@ -181,6 +182,23 @@ export default function Contact() {
   // Queda como useState porque es UI pura, no participa del flujo de
   // envío que maneja el reducer de abajo.
   const [revealed, setRevealed] = useState(false);
+
+  // Redes + CV editables desde /admin/sitio (fallback a socials.js / cv estático).
+  const { data: site } = useSiteSettings();
+  const whatsapp = site?.socialWhatsapp || socials.whatsapp;
+  const linkedin = site?.socialLinkedin || socials.linkedin;
+  const github = site?.socialGithub || socials.github;
+  // CV: el atributo `download` del <a> se IGNORA cross-origin (el archivo
+  // vive en supabase.co, el sitio en vercel.app). Para forzar la descarga,
+  // Supabase respeta `?download` (manda Content-Disposition: attachment). En
+  // el fallback same-origin (/cv.pdf) el atributo download ya alcanza.
+  const cvUrl = site?.cvUrl || '/cv.pdf';
+  // `?download=<nombre>` le dice a Supabase el filename del attachment (sino
+  // baja con el nombre random del bucket, cv-1781...pdf). En el fallback
+  // same-origin el atributo download del <a> hace lo mismo.
+  const cvHref = cvUrl.includes('/storage/v1/object/public/')
+    ? `${cvUrl}?download=cv-giuliano-gerlo.pdf`
+    : cvUrl;
 
   // Reducer del flujo de envío. Agrupa turnstile + status + errorMsg
   // porque SUBMIT_SUCCESS / SUBMIT_ERROR tocan esos campos juntos.
@@ -413,7 +431,7 @@ export default function Contact() {
                 vive únicamente dentro del href. MessageCircle de lucide:
                 ícono genérico de mensajería (no trae el logo de marca). */}
             <a
-              href={`https://wa.me/${socials.whatsapp}`}
+              href={`https://wa.me/${whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
               className={cardClass}
@@ -427,7 +445,7 @@ export default function Contact() {
 
             {/* LinkedIn — ícono del sprite (lucide v1 sacó brand icons). */}
             <a
-              href={socials.linkedin}
+              href={linkedin}
               target="_blank"
               rel="noopener noreferrer"
               className={cardClass}
@@ -441,7 +459,7 @@ export default function Contact() {
 
             {/* GitHub — ícono del sprite. */}
             <a
-              href={socials.github}
+              href={github}
               target="_blank"
               rel="noopener noreferrer"
               className={cardClass}
@@ -459,7 +477,7 @@ export default function Contact() {
                 browsers ignoran este hint y lo abren igual, pero el
                 comportamiento "correcto" es bajarlo). No lleva target
                 _blank porque la descarga no abre una pestaña. */}
-            <a href="/cv.pdf" download className={cardClass}>
+            <a href={cvHref} download="cv-giuliano-gerlo.pdf" className={cardClass}>
               <ContactRow
                 icon={<FileDown size={18} aria-hidden="true" />}
                 label="Curriculum Vitae"

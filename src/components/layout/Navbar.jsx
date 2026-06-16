@@ -16,8 +16,9 @@ import ThemeToggle from '../ui/ThemeToggle.jsx';
 // Logo de marca — swappea PNG según theme actual.
 import Logo from '../ui/Logo.jsx';
 
-// "Single source of truth" para datos de contacto / redes.
+// "Single source of truth" para datos de contacto / redes (fallback).
 import { socials } from '../../data/socials.js';
+import { useSiteSettings } from '../../hooks/useSiteSettings.js';
 
 // Helper de scroll suave (Lenis). Mismo motor que el resto del sitio.
 import { lenisScrollTo } from '../../hooks/useLenis.js';
@@ -70,6 +71,11 @@ export default function Navbar() {
   // Función para cerrar el menú al hacer click en un link.
   // Si no la usáramos, el menú quedaría abierto tras navegar — mala UX.
   const closeMenu = () => setOpen(false);
+
+  // Links de redes editables desde /admin/sitio (fallback a socials.js).
+  const { data } = useSiteSettings();
+  const github = data?.socialGithub || socials.github;
+  const linkedin = data?.socialLinkedin || socials.linkedin;
 
   // Click en un link del navbar.
   //  - Si estamos en el Home: prevenimos el salto nativo del <a> y
@@ -139,7 +145,7 @@ export default function Navbar() {
               - rel="noreferrer noopener":     seguridad anti tabnabbing.
               - aria-label:                    nombre accesible (solo hay ícono). */}
           <a
-            href={socials.github}
+            href={github}
             target="_blank"
             rel="noreferrer noopener"
             aria-label="GitHub"
@@ -150,7 +156,7 @@ export default function Navbar() {
 
           {/* LinkedIn (mismo patrón). */}
           <a
-            href={socials.linkedin}
+            href={linkedin}
             target="_blank"
             rel="noreferrer noopener"
             aria-label="LinkedIn"

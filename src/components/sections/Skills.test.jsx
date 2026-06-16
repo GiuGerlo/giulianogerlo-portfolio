@@ -1,8 +1,16 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
-import Skills from './Skills.jsx';
 import { skillGroups } from '../../data/skills.js';
+
+// Skills lee de la DB vía useSkillGroups. Lo mockeamos devolviendo los grupos
+// del data file (mismo shape: id/title/icon/items) → las assertions de
+// títulos/íconos/items se mantienen sin tocar la DB real.
+vi.mock('../../hooks/useSkillGroups.js', () => ({
+  useSkillGroups: () => ({ data: skillGroups, loading: false, error: null }),
+}));
+
+import Skills from './Skills.jsx';
 
 describe('Skills', () => {
   test('renderiza heading "Stack técnico"', () => {

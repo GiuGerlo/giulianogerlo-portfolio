@@ -4,6 +4,12 @@ import userEvent from '@testing-library/user-event';
 
 import Contact from './Contact.jsx';
 
+// Contact lee site_settings vía useSiteSettings → mock a "sin data" para que
+// use el fallback (socials.js / cv estático).
+vi.mock('../../hooks/useSiteSettings.js', () => ({
+  useSiteSettings: () => ({ data: null, loading: false, error: null }),
+}));
+
 // Mock del widget de Turnstile. El componente real carga un script de
 // Cloudflare que no funciona en jsdom (entorno de tests). Lo reemplazamos
 // por un <button>: clickearlo simula que el visitante "pasó" el anti-bot

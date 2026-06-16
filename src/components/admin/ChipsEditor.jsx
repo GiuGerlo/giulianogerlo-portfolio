@@ -1,29 +1,45 @@
 import { useId, useState } from 'react';
 import { X, Plus } from 'lucide-react';
 
+// dnd-kit: mismo stack que el reorder de la galería (ImageUpload) y del
+// dashboard. Acá lo usamos para reordenar los chips arrastrándolos.
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  arrayMove,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
 import { cn } from '../../lib/cn.js';
 
 /**
- * ChipsEditor — editor para arrays de strings (stack, gallery, etc).
+ * ChipsEditor — editor para arrays de strings (stack, tecnologías, etc).
  *
  * Props (controlado):
  *  - value: string[] — el array actual.
  *  - onChange: (next: string[]) => void — handler cuando cambia el array.
- *  - label: string — label arriba del editor.
- *  - placeholder: string — texto del input "agregar nuevo".
- *  - error: string | undefined — mensaje de validación.
- *  - suggestions: string[] — opcional, valores que el browser sugiere
- *    via <datalist> mientras el usuario tipea (autocomplete nativo).
- *    Útil para Stack: muestra techs ya usadas en otros proyectos.
+ *  - label, placeholder, error, suggestions (datalist) — ver más abajo.
  *
  * UI:
  *  - Lista de chips con el valor + botón X para borrar c/u.
- *  - Input + botón "+" para agregar uno nuevo.
- *  - Enter en el input también agrega (UX común en chip editors).
+ *  - Los chips se REORDENAN arrastrándolos (el orden del array = orden en
+ *    que se muestran en el sitio). El click en la X no dispara drag gracias
+ *    al `distance` del PointerSensor.
+ *  - Input + botón "+" para agregar uno nuevo (Enter también agrega).
  *
- * Patrón "controlled" puro: el componente NO mantiene el array, solo
- * el draft del input que se está tipeando. El array vive en el parent
- * (react-hook-form via Controller), garantizando una sola fuente de verdad.
+ * Patrón "controlled" puro: el array vive en el parent (react-hook-form via
+ * Controller). El `id` sortable de cada chip es su propio string (los chips
+ * son únicos: `add` evita duplicados case-insensitive).
  */
 export default function ChipsEditor({
   value = [],
@@ -33,13 +49,15 @@ export default function ChipsEditor({
   error,
   suggestions = [],
 }) {
-  // useId genera un id único estable para vincular <input list> con
-  // <datalist id>. Sin esto, dos ChipsEditor en la misma página
-  // compartirían el datalist.
   const datalistId = useId();
-  // Estado SOLO del input "agregar nuevo". El array de chips lo controla
-  // el parent vía onChange.
   const [draft, setDraft] = useState('');
+
+  // Sensores del drag: distance 6px → un click en la X no arranca un drag
+  // fantasma. KeyboardSensor para reorder accesible con teclado.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   function add() {
     const trimmed = draft.trim();
@@ -53,18 +71,25 @@ export default function ChipsEditor({
     setDraft('');
   }
 
-  function remove(index) {
-    // filter por índice (en vez de por valor) — soporta strings iguales
-    // si en algún momento permitimos duplicados.
-    onChange(value.filter((_, i) => i !== index));
+  function remove(chip) {
+    onChange(value.filter((v) => v !== chip));
   }
 
-  // Enter agrega el chip. preventDefault evita que el form-parent haga submit.
   function handleKeyDown(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
       add();
     }
+  }
+
+  // Reorder al soltar: arrayMove sobre los índices del array.
+  function handleReorder(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = value.indexOf(active.id);
+    const newIndex = value.indexOf(over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    onChange(arrayMove(value, oldIndex, newIndex));
   }
 
   return (
@@ -75,27 +100,20 @@ export default function ChipsEditor({
         </label>
       )}
 
-      {/* Lista de chips actuales. Si está vacío, no renderiza la línea
-          de chips para que el input quede más cerca del label. */}
       {value.length > 0 && (
-        <ul className="mb-2 flex flex-wrap gap-1.5">
-          {value.map((chip, i) => (
-            <li
-              key={`${chip}-${i}`}
-              className="inline-flex items-center gap-1 rounded border border-border bg-bg-elevated px-2 py-1 font-mono text-[11px] text-text-muted"
-            >
-              <span className="break-all">{chip}</span>
-              <button
-                type="button"
-                onClick={() => remove(i)}
-                aria-label={`Quitar ${chip}`}
-                className="rounded p-0.5 transition-colors hover:bg-red-500/20 hover:text-red-500"
-              >
-                <X size={12} aria-hidden="true" />
-              </button>
-            </li>
-          ))}
-        </ul>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleReorder}
+        >
+          <SortableContext items={value} strategy={rectSortingStrategy}>
+            <ul className="mb-2 flex flex-wrap gap-1.5">
+              {value.map((chip) => (
+                <SortableChip key={chip} chip={chip} onRemove={remove} />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
       )}
 
       {/* Input + botón + de agregar. */}
@@ -106,8 +124,6 @@ export default function ChipsEditor({
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          // Conecta el input al datalist (si hay suggestions). El browser
-          // muestra las opciones que matchean lo tipeado.
           list={suggestions.length > 0 ? datalistId : undefined}
           className={cn(
             'flex-1 rounded-md border bg-bg px-3 py-2 text-sm text-text-primary transition-colors focus:outline-none',
@@ -126,16 +142,10 @@ export default function ChipsEditor({
         </button>
       </div>
 
-      {/* Datalist con las sugerencias. Excluimos los valores que ya
-          están en `value` (no tiene sentido sugerir un chip que ya
-          existe en este proyecto). */}
       {suggestions.length > 0 && (
         <datalist id={datalistId}>
           {suggestions
-            .filter(
-              (s) =>
-                !value.some((v) => v.toLowerCase() === s.toLowerCase()),
-            )
+            .filter((s) => !value.some((v) => v.toLowerCase() === s.toLowerCase()))
             .map((s) => (
               <option key={s} value={s} />
             ))}
@@ -148,5 +158,50 @@ export default function ChipsEditor({
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * SortableChip — un chip arrastrable. Los listeners de drag van en el texto
+ * (cursor-grab); la X queda fuera de ellos para que el click la dispare sin
+ * iniciar un drag.
+ */
+function SortableChip({ chip, onRemove }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: chip });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'inline-flex items-center gap-1 rounded border border-border bg-bg-elevated px-2 py-1 font-mono text-[11px] text-text-muted',
+        isDragging && 'opacity-60',
+      )}
+    >
+      {/* Texto = handle de drag. touch-none evita que el scroll táctil
+          robe el gesto en mobile. */}
+      <span
+        {...attributes}
+        {...listeners}
+        className="cursor-grab touch-none break-all active:cursor-grabbing"
+      >
+        {chip}
+      </span>
+      <button
+        type="button"
+        onClick={() => onRemove(chip)}
+        aria-label={`Quitar ${chip}`}
+        className="rounded p-0.5 transition-colors hover:bg-red-500/20 hover:text-red-500"
+      >
+        <X size={12} aria-hidden="true" />
+      </button>
+    </li>
   );
 }

@@ -1,7 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, expect, test } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
+
+// Navbar lee site_settings vía useSiteSettings → mock a "sin data" para que
+// use el fallback (socials.js).
+vi.mock('../../hooks/useSiteSettings.js', () => ({
+  useSiteSettings: () => ({ data: null, loading: false, error: null }),
+}));
+
 import Navbar from './Navbar.jsx';
 
 // Reset de localStorage + atributo data-theme antes de cada test.
