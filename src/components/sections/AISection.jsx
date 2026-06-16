@@ -1,6 +1,8 @@
 import BorderGlow from '../ui/BorderGlow.jsx';
 import Reveal from '../ui/Reveal.jsx';
-import { aiSkills } from '../../data/skills.js';
+import { useAiSkills } from '../../hooks/useAiSkills.js';
+// Fallback (= seed de ai_skills) si la DB falla/no cargó.
+import { aiSkills as FALLBACK } from '../../data/skills.js';
 
 /**
  * AISection — sección 03 del portfolio. Bloque destacado con las skills
@@ -31,6 +33,11 @@ import { aiSkills } from '../../data/skills.js';
  *  - Si NO tiene items, solo se renderiza la descripción.
  */
 export default function AISection() {
+  // Skills de IA editables desde /admin/ai. Fallback al data file si la DB
+  // falla/no cargó (degradación elegante).
+  const { data, error } = useAiSkills();
+  const skills = data && !error ? data : FALLBACK;
+
   return (
     <section
       id="ai"
@@ -59,7 +66,7 @@ export default function AISection() {
 
             {/* Grid de features. mt-10 (40px) matchea mockup. */}
             <div className="mt-10 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
-              {aiSkills.map((skill) => (
+              {skills.map((skill) => (
                 <div
                   key={skill.id}
                   className="border-l-2 border-accent pl-4"
@@ -67,7 +74,10 @@ export default function AISection() {
                   <h4 className="mb-1.5 font-mono text-[13px] text-accent">
                     {skill.title}
                   </h4>
-                  <p className="text-sm text-text-muted">{skill.desc}</p>
+                  {/* DB usa `description`; el data file (fallback) usa `desc`. */}
+                  <p className="text-sm text-text-muted">
+                    {skill.description ?? skill.desc}
+                  </p>
 
                   {/* items[] opcional. Si la entry agrupa herramientas
                       (ej. ai_dev_tooling), las muestro como tags chicos.

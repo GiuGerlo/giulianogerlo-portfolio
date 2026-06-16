@@ -1,9 +1,16 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-import Experience from './Experience.jsx';
 import { experience } from '../../data/experience.js';
+
+// Experience lee de la DB vía useExperience. Mock con el data file (shape
+// compatible: usa `desc`, que el render lee vía `description ?? desc`).
+vi.mock('../../hooks/useExperience.js', () => ({
+  useExperience: () => ({ data: experience, loading: false, error: null }),
+}));
+
+import Experience from './Experience.jsx';
 
 /**
  * Helper — Experience usa <Link> (items con projectSlug), así que

@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
 import Reveal from '../ui/Reveal.jsx';
-import { experience } from '../../data/experience.js';
+import { useExperience } from '../../hooks/useExperience.js';
+// Fallback (= seed de experience) si la DB falla/no cargó.
+import { experience as FALLBACK } from '../../data/experience.js';
 
 /**
  * Experience — sección 05 del portfolio. Timeline vertical de experiencia
@@ -30,6 +32,10 @@ import { experience } from '../../data/experience.js';
  *     posición absoluta, no forma parte del área clickeable útil.
  */
 export default function Experience() {
+  // Timeline editable desde /admin/experiencia. Fallback al data file.
+  const { data, error } = useExperience();
+  const items = data && !error ? data : FALLBACK;
+
   return (
     <section
       id="experience"
@@ -52,7 +58,7 @@ export default function Experience() {
             className="absolute left-2 top-2 bottom-2 w-0.5 bg-border"
           />
 
-          {experience.map((item, index) => {
+          {items.map((item, index) => {
             // Contenido de la card — idéntico linkee o no. Lo definimos
             // una vez y abajo decidimos en qué contenedor lo metemos.
             // group-hover en el <h3>: cuando el item es link, al pasar
@@ -72,7 +78,8 @@ export default function Experience() {
                 </div>
 
                 <p className="text-sm leading-relaxed text-text-muted">
-                  {item.desc}
+                  {/* DB usa `description`; el data file (fallback) usa `desc`. */}
+                  {item.description ?? item.desc}
                 </p>
               </>
             );
@@ -82,7 +89,7 @@ export default function Experience() {
             // en su propio <Reveal> → siempre sería "último hijo" de su
             // wrapper y `last:pb-0` aplicaría a todos. Lo resolvemos por
             // index contra el largo del array.
-            const isLast = index === experience.length - 1;
+            const isLast = index === items.length - 1;
 
             return (
               // Reveal: fade-up al scrollear, escalonado por index.

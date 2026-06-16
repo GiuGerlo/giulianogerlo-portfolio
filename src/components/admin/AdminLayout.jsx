@@ -35,6 +35,8 @@ const NAV_ITEMS = [
   { to: '/admin/perfil', label: 'Perfil' },
   { to: '/admin/sitio', label: 'Sitio' },
   { to: '/admin/skills', label: 'Skills' },
+  { to: '/admin/ai', label: 'AI' },
+  { to: '/admin/experiencia', label: 'Experiencia' },
 ];
 
 export default function AdminLayout() {

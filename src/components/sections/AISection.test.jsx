@@ -1,8 +1,15 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
-import AISection from './AISection.jsx';
 import { aiSkills } from '../../data/skills.js';
+
+// AISection lee de la DB vía useAiSkills. Mock devolviendo el data file
+// (shape compatible: id/title/desc/items) → assertions se mantienen.
+vi.mock('../../hooks/useAiSkills.js', () => ({
+  useAiSkills: () => ({ data: aiSkills, loading: false, error: null }),
+}));
+
+import AISection from './AISection.jsx';
 
 describe('AISection', () => {
   test('renderiza heading "AI-Augmented Development"', () => {
