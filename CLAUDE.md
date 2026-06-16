@@ -96,6 +96,6 @@ Del plugin Vercel: `supabase:supabase` (RLS/auth/migrations), `supabase:supabase
 - [docs/plans/2026-05-13-portfolio-design.md](docs/plans/2026-05-13-portfolio-design.md) — design doc aprobado.
 - [docs/plans/2026-05-13-portfolio-implementation-plan.md](docs/plans/2026-05-13-portfolio-implementation-plan.md) — plan principal. Phases 0-11 completas.
 - [docs/plans/2026-05-21-phase-12-supabase.md](docs/plans/2026-05-21-phase-12-supabase.md) — **Phase 12 (cerrada, en prod)**: backend dinámico + admin `/admin` con Supabase (projects).
-- [docs/plans/2026-06-16-phase-13-perfil-editable.md](docs/plans/2026-06-16-phase-13-perfil-editable.md) — **Phase 13 (cerrada)**: sección "Perfil" editable (foto + texto + chips del About) con el mismo patrón Supabase. Incluye editor WYSIWYG TipTap + conversión a WebP en uploads.
+- [docs/plans/2026-06-16-phase-13-perfil-editable.md](docs/plans/2026-06-16-phase-13-perfil-editable.md) — **Phase 13 (cerrada)**: TODO el contenido del sitio editable desde `/admin` (Hero, About, Stack Técnico, AI Integration, Experiencia, Educación+certs, CV, Footer/redes). Tablas `profile` + `site_settings` (singletons) + `skill_groups`/`ai_skills`/`experience`/`education` (listas con CRUD inline) + bucket `documents`. Editor WYSIWYG TipTap, WebP en uploads, `ConfirmDialog`, reorder de chips.
 - [docs/dependencias.md](docs/dependencias.md) — qué hace cada dependencia.
 - [TODO-USUARIO.md](TODO-USUARIO.md) — checklist de cuentas/assets/keys a conseguir fuera del código.
