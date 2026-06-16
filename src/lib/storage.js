@@ -32,20 +32,33 @@ export const ACCEPTED_MIME = {
   'image/webp': ['.webp'],
 };
 
-// Fragmento que aparece en TODA URL pública de nuestro bucket:
-//   https://<proj>.supabase.co/storage/v1/object/public/project-images/<path>
-// Lo usamos para distinguir una imagen que vive en NUESTRO Storage (y por
-// ende hay que borrar del bucket al desasociarla) de una URL externa o un
-// path relativo viejo (ej. `/projects/gym-1.webp` de los proyectos seedeados).
-const PUBLIC_URL_MARKER = `/storage/v1/object/public/${BUCKET}/`;
+// Bucket `documents` (migration 0007): certificados (Education) y CV
+// (site_settings). Acepta PDF además de imágenes.
+export const DOCUMENTS_BUCKET = 'documents';
+
+// Mime aceptados para documentos: imágenes + PDF. Tamaño mayor (los PDF
+// pesan más que una imagen optimizada).
+export const DOCUMENT_ACCEPTED_MIME = {
+  ...ACCEPTED_MIME,
+  'application/pdf': ['.pdf'],
+};
+export const MAX_DOC_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
+
+// Buckets propios. Sirve para detectar a cuál pertenece una URL pública al
+// borrar (removeFile) sin hardcodear uno solo.
+const OWN_BUCKETS = [BUCKET, DOCUMENTS_BUCKET];
+
+// Prefijo común de TODA URL pública de Storage:
+//   https://<proj>.supabase.co/storage/v1/object/public/<bucket>/<path>
+const PUBLIC_URL_PREFIX = '/storage/v1/object/public/';
 
 /**
  * extFromMime — devuelve la extensión canónica para un mime aceptado.
- * Usamos la PRIMERA extensión del mapa (jpeg → '.jpg') en vez de confiar
- * en el nombre original del archivo (que puede venir raro o sin extensión).
+ * Mira el set de documentos (superset: imágenes + pdf). Usamos la PRIMERA
+ * extensión del mapa (jpeg → '.jpg') en vez de confiar en el nombre original.
  */
 function extFromMime(mime) {
-  const exts = ACCEPTED_MIME[mime];
+  const exts = DOCUMENT_ACCEPTED_MIME[mime];
   return exts ? exts[0] : '';
 }
 
@@ -178,37 +191,80 @@ export async function uploadImage(file, slug, opts) {
 }
 
 /**
- * pathFromPublicUrl — extrae el path interno del bucket desde una URL
- * pública. Devuelve null si la URL NO pertenece a nuestro bucket (URL
- * externa, path relativo viejo, string vacío, etc.).
+ * uploadDocument — sube un documento (PDF o imagen) al bucket `documents` y
+ * devuelve su URL pública. A diferencia de uploadImage NO convierte a WebP
+ * (un PDF no es convertible; y un cert imagen lo dejamos tal cual).
+ *
+ * @param {File} file - archivo del input/dropzone.
+ * @param {string} slug - prefijo para el nombre (ej. 'cv', 'cert-react').
+ * @returns {Promise<string>} URL pública.
+ * @throws {Error} con mensaje legible si validación o upload fallan.
  */
-function pathFromPublicUrl(url) {
-  if (typeof url !== 'string') return null;
-  const idx = url.indexOf(PUBLIC_URL_MARKER);
-  if (idx === -1) return null;
-  return url.slice(idx + PUBLIC_URL_MARKER.length);
+export async function uploadDocument(file, slug) {
+  if (!DOCUMENT_ACCEPTED_MIME[file.type]) {
+    throw new Error('Formato no permitido. Usá PDF, JPG, PNG o WebP.');
+  }
+  if (file.size > MAX_DOC_SIZE_BYTES) {
+    throw new Error('El archivo supera los 8 MB.');
+  }
+
+  const fileName = buildFileName(slug, file.type);
+
+  const { error } = await supabase.storage
+    .from(DOCUMENTS_BUCKET)
+    .upload(fileName, file, { cacheControl: '31536000', upsert: false });
+
+  if (error) {
+    console.error('[storage] upload documento falló:', error);
+    throw new Error('No pude subir el archivo. Probá de nuevo.');
+  }
+
+  const { data } = supabase.storage.from(DOCUMENTS_BUCKET).getPublicUrl(fileName);
+  return data.publicUrl;
 }
 
 /**
- * removeImage — borra del bucket la imagen que apunta `url`.
- *
- * Es NO-OP silencioso si la URL no es de nuestro Storage (ej. los paths
- * relativos `/projects/*.webp` de los proyectos seedeados, que viven en
- * `public/` y no en el bucket). Así el caller puede llamar `removeImage`
- * sobre cualquier valor sin chequear el origen.
- *
- * No tira si el remove falla: el cleanup del bucket es best-effort. Lo
- * importante es desasociar la imagen del proyecto (eso lo hace el caller
- * vía onChange); que quede un huérfano en el bucket no rompe nada.
+ * pathFromPublicUrl — extrae { bucket, path } desde una URL pública de
+ * Storage. Devuelve null si la URL NO pertenece a NINGUNO de nuestros
+ * buckets (URL externa, path relativo viejo, string vacío, etc.).
  */
-export async function removeImage(url) {
-  const path = pathFromPublicUrl(url);
-  if (!path) return; // URL externa o path relativo: nada que borrar.
+function pathFromPublicUrl(url) {
+  if (typeof url !== 'string') return null;
+  for (const bucket of OWN_BUCKETS) {
+    const marker = `${PUBLIC_URL_PREFIX}${bucket}/`;
+    const idx = url.indexOf(marker);
+    if (idx !== -1) {
+      return { bucket, path: url.slice(idx + marker.length) };
+    }
+  }
+  return null;
+}
 
-  const { error } = await supabase.storage.from(BUCKET).remove([path]);
+/**
+ * removeFile — borra de Storage el archivo que apunta `url`, detectando el
+ * bucket automáticamente (project-images o documents).
+ *
+ * Es NO-OP silencioso si la URL no es de nuestro Storage (ej. paths relativos
+ * `/projects/*.webp` o `/certs/*.pdf` seedeados, que viven en `public/`). Así
+ * el caller puede llamar removeFile sobre cualquier valor sin chequear origen.
+ *
+ * No tira si el remove falla: el cleanup es best-effort; un huérfano en el
+ * bucket no rompe nada.
+ */
+export async function removeFile(url) {
+  const parsed = pathFromPublicUrl(url);
+  if (!parsed) return; // URL externa o path relativo: nada que borrar.
+
+  const { error } = await supabase.storage
+    .from(parsed.bucket)
+    .remove([parsed.path]);
   if (error) {
-    // Logueamos pero no propagamos: que falle el cleanup no debe bloquear
-    // al usuario que solo quería sacar la imagen del proyecto.
     console.error('[storage] remove falló (huérfano en bucket):', error);
   }
 }
+
+/**
+ * removeImage — alias retrocompatible de removeFile (lo usa ImageUpload).
+ * Mantiene el nombre histórico mientras detecta el bucket por la URL.
+ */
+export const removeImage = removeFile;
