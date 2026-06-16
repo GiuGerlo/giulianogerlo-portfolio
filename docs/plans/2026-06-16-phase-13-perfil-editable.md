@@ -18,6 +18,10 @@
 - **2026-06-16**: Task 6 cerrada. Prop `previewAspect` (`'video'` default | `'square'`) en `ImageUpload.jsx`, threaded a `Thumb`/`SortableThumb` (img + placeholder usan `aspect-square` cuando corresponde). `Profile.jsx` pasa `previewAspect="square"` → preview matchea el About. Proyectos sin cambios (default video). Lint + Profile tests OK.
 - **2026-06-16**: Task 7 cerrada. `fileToWebp(file, {maxWidth=1600, quality=0.82})` en `storage.js` (canvas API nativa, guard `getContext('2d')` null → fallback al original sin colgar/tirar). `uploadImage(file, slug, opts)` convierte tras validar; nombre por el type del archivo final. `ImageUpload` prop `uploadOpts` → `Profile` pasa `{maxWidth:800}`. `storage.test.js` +1 test (fallback). 10/10 + lint OK. Aplica a TODOS los uploads (perfil + proyectos).
 - **2026-06-16**: Task 8 cerrada. Editor WYSIWYG TipTap v3. Deps: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/extension-link`, `@tiptap/markdown` (oficial v3 — NO el comunitario `tiptap-markdown` que es v2). `RichTextEditor.jsx`: controlado en markdown (`getMarkdown`/`setContent contentType:'markdown'`), StarterKit solo-inline (negrita/itálica, sin bloques), toolbar + link via prompt. `Profile.jsx`: las 2 textareas → `Controller`+`RichTextEditor`. `About.jsx`: wrapper párrafos suma `[&_em]`/`[&_a]`. Tests: `RichTextEditor.test.jsx` (smoke, TipTap monta en jsdom) + `Profile.test.jsx` mockea RichTextEditor (textarea stand-in). 172/172 + lint + build OK. Bundle: chunk `Profile` lazy 485kB/151kB gz (TipTap) — público intacto. Deps documentadas en `docs/dependencias.md`.
+- **2026-06-16**: Continuación de Phase 13 aprobada (Tasks 9-18): TODO el sitio editable. Plan + decisiones cerradas (site_settings singleton, CRUD inline, icon picker curado, bucket documents).
+- **2026-06-16**: Task 9 cerrada. Migration `0005_site_settings` aplicada vía MCP + versionada. Tabla singleton id=1 (hero_name/tagline/location, footer_tagline, cv_url, social_*), RLS/grants/trigger mirror de 0004, seed con valores actuales de Hero/Footer/socials. Verificado: fila id=1 OK; `get_advisors` sin warnings nuevos. Next: Task 10 (migration 0006 listas).
+- **2026-06-16**: Task 6.1 (ajuste post-uso) — preview `square` capado a `max-w-[280px]` en `ImageUpload` (sino una foto 3000x3000 llenaba la columna del form). Lint OK.
+- **2026-06-16**: Task 5 cerrada → **PHASE 13 CERRADA**. Verificación end-to-end OK: fila profile presente; público idéntico + admin editable (confirmado por el owner en navegador); RLS verificada vía SQL (`set local role anon`: SELECT count=1 ✓, INSERT → `permission denied for table profile` ✓); `pnpm test:run` 172/172 + `pnpm lint` + `pnpm build` OK. Foto >2MB rechazada por validación existente; fallback hardcodeado cubierto por tests de About. About 100% editable desde `/admin/perfil` sin redeploy.
 - **2026-06-16**: Task 4 cerrada. Página admin `/admin/perfil` (`src/pages/admin/Profile.jsx`, RHF+zod, `ImageUpload` single slug `'about'`, 2 Textarea con hint markdown, 4 Input chips, submit → `update(profileToDb).eq('id',1)`). Ruta lazy en `App.jsx`. Nav en `AdminLayout.jsx`: links NavLink "Proyectos"/"Perfil" (reemplazan el span `// admin`). `Profile.test.jsx` (4 tests: loading/error/populate/submit). Full suite 170/170 + lint + build OK. **DESVÍO**: el plan pedía crear `useAdminProfile.js` espejo de `useAdminProject.js`; se reusó `useProfile` en su lugar — la fila profile es pública e idéntica para anon/authenticated (RLS `using(true)` ambos, sin drafts ni filtro published), así que un segundo hook sería duplicado muerto. Archivo `useAdminProfile.js` NO creado. Next: Task 5 (verificación end-to-end + cierre).
 - **2026-06-16**: Task 3 cerrada. `About.jsx` migrado a `useProfile()` runtime fetch con degradación elegante: const `FALLBACK` (= seed) cubre loading/error/null; fila OK usa DB y respeta campos vacíos (chip vacío oculto). Párrafos con `react-markdown` (`[&_strong]` para negritas), foto = `aboutImage` o `<picture>` estático. `About.test.jsx` reescrito mockeando `useProfile` (7 tests: fallback + DB-driven + chip vacío + img URL). Tests 7/7 + lint OK. Next: Task 4 (página admin `/admin/perfil` + nav).
 
@@ -142,6 +146,28 @@ create table public.profile (
 - `src/pages/admin/Profile.jsx`: reemplazar las 2 `<Textarea>` (about_p1/p2) por `<Controller>` + `<RichTextEditor>`. El hint "podés usar **negrita**" se saca (ahora es visual).
 - `src/components/sections/About.jsx`: sumar `[&_em]` (itálica) y `[&_a]:text-accent [&_a]:underline` (links) al wrapper de los párrafos.
 - Test: `RichTextEditor` mínimo (render + que onChange emite markdown). Actualizar `Profile.test.jsx` (el query de los párrafos cambia de `<textarea>` a contenteditable).
+
+---
+
+## Tasks de continuación — TODO el sitio editable (aprobado 2026-06-16)
+
+> El owner pidió que toda la info de la web sea editable con CRUD (Hero, Stack Técnico,
+> AI Integration, Experiencia, Educación+certs, CV, Footer/redes). Decisiones cerradas:
+> tabla singleton `site_settings` (no extender profile); CRUD inline (1 página por
+> entidad, reorder con botones ↑/↓); selector curado de íconos lucide; bucket `documents`
+> (PDF+imágenes). Render público sin cambios visuales (fallback como About). Detalle
+> completo en el plan de trabajo de la sesión.
+
+- **Task 9 — Migration 0005 `site_settings`** (singleton: Hero/Footer/CV/redes). ✅
+- **Task 10 — Migration 0006 listas**: `skill_groups`, `ai_skills`, `experience`, `education` (con `order_index`) + seed desde `data/*.js`.
+- **Task 11 — Migration 0007 bucket `documents`** + `storage.js` (`uploadDocument`/`removeFile` con detección de bucket) + `DocumentUpload`.
+- **Task 12 — Capa de datos**: 5 mappers (+tests) + hooks públicos + `useAdminList` genérico + `skill-icons.js` + `IconPicker.jsx`.
+- **Task 13 — Hero + Footer + redes** → `useSiteSettings` con fallback + página `/admin/sitio` (incluye CV upload).
+- **Task 14 — Stack Técnico** → `Skills.jsx` runtime + `/admin/skills` (CRUD inline + IconPicker + ChipsEditor).
+- **Task 15 — AI Integration** → `AISection.jsx` runtime + `/admin/ai`.
+- **Task 16 — Experiencia** → `Experience.jsx` runtime + `/admin/experiencia` (`project_slug` dropdown).
+- **Task 17 — Educación + certificados** → `Education.jsx` runtime + `/admin/educacion` (DocumentUpload del cert).
+- **Task 18 — Verificación + cierre**: lint/test/build, RLS anon por tabla, recorrido completo, limpiar `data/*.js` sin consumidores.
 
 ---
 
