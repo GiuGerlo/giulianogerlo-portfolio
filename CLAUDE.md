@@ -95,6 +95,7 @@ Del plugin Vercel: `supabase:supabase` (RLS/auth/migrations), `supabase:supabase
 
 - [docs/plans/2026-05-13-portfolio-design.md](docs/plans/2026-05-13-portfolio-design.md) — design doc aprobado.
 - [docs/plans/2026-05-13-portfolio-implementation-plan.md](docs/plans/2026-05-13-portfolio-implementation-plan.md) — plan principal. Phases 0-11 completas.
-- [docs/plans/2026-05-21-phase-12-supabase.md](docs/plans/2026-05-21-phase-12-supabase.md) — **Phase 12 (en curso)**: backend dinámico + admin `/admin` con Supabase.
+- [docs/plans/2026-05-21-phase-12-supabase.md](docs/plans/2026-05-21-phase-12-supabase.md) — **Phase 12 (cerrada, en prod)**: backend dinámico + admin `/admin` con Supabase (projects).
+- [docs/plans/2026-06-16-phase-13-perfil-editable.md](docs/plans/2026-06-16-phase-13-perfil-editable.md) — **Phase 13 (en curso)**: sección "Perfil" editable (foto + texto + chips del About) con el mismo patrón Supabase.
 - [docs/dependencias.md](docs/dependencias.md) — qué hace cada dependencia.
 - [TODO-USUARIO.md](TODO-USUARIO.md) — checklist de cuentas/assets/keys a conseguir fuera del código.
