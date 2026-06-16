@@ -3,7 +3,9 @@ import { ExternalLink } from 'lucide-react';
 import SectionHeading from '../ui/SectionHeading.jsx';
 import BorderGlow from '../ui/BorderGlow.jsx';
 import Reveal from '../ui/Reveal.jsx';
-import { education } from '../../data/education.js';
+import { useEducation } from '../../hooks/useEducation.js';
+// Fallback (= seed de education) si la DB falla/no cargó.
+import { education as FALLBACK } from '../../data/education.js';
 
 /**
  * Education — sección 06 del portfolio. Grid de cards de educación formal
@@ -29,6 +31,10 @@ import { education } from '../../data/education.js';
  * Grid: `auto-fit minmax(280px,1fr)` — replica mockup.
  */
 export default function Education() {
+  // Educación editable desde /admin/educacion. Fallback al data file.
+  const { data, error } = useEducation();
+  const items = data && !error ? data : FALLBACK;
+
   return (
     <section
       id="education"
@@ -42,7 +48,7 @@ export default function Education() {
 
         {/* Grid auto-fit. gap-4 (16px) matchea mockup. */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
-          {education.map((item, index) => {
+          {items.map((item, index) => {
             // Flags de los 3 casos. Se calculan una vez acá arriba para
             // que el JSX de abajo quede legible.
             const isInProgress = item.status === 'in-progress';

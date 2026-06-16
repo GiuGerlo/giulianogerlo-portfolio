@@ -1,8 +1,15 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
-import Education from './Education.jsx';
 import { education } from '../../data/education.js';
+
+// Education lee de la DB vía useEducation. Mock con el data file (shape
+// idéntico: dateLabel/title/org/status/certUrl) → assertions se mantienen.
+vi.mock('../../hooks/useEducation.js', () => ({
+  useEducation: () => ({ data: education, loading: false, error: null }),
+}));
+
+import Education from './Education.jsx';
 
 describe('Education', () => {
   test('renderiza heading "Educación y certificaciones"', () => {

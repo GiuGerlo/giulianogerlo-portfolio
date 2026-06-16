@@ -37,6 +37,7 @@ const NAV_ITEMS = [
   { to: '/admin/skills', label: 'Skills' },
   { to: '/admin/ai', label: 'AI' },
   { to: '/admin/experiencia', label: 'Experiencia' },
+  { to: '/admin/educacion', label: 'Educación' },
 ];
 
 export default function AdminLayout() {

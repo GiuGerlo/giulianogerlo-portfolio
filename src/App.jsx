@@ -34,6 +34,7 @@ const Site = lazy(() => import('./pages/admin/Site.jsx'));
 const SkillsAdmin = lazy(() => import('./pages/admin/Skills.jsx'));
 const AiSkillsAdmin = lazy(() => import('./pages/admin/AiSkills.jsx'));
 const ExperienceAdmin = lazy(() => import('./pages/admin/Experience.jsx'));
+const EducationAdmin = lazy(() => import('./pages/admin/Education.jsx'));
 
 /**
  * App = árbol de rutas del portfolio.
@@ -115,6 +116,7 @@ function App() {
             <Route path="/admin/skills" element={<SkillsAdmin />} />
             <Route path="/admin/ai" element={<AiSkillsAdmin />} />
             <Route path="/admin/experiencia" element={<ExperienceAdmin />} />
+            <Route path="/admin/educacion" element={<EducationAdmin />} />
           </Route>
         </Route>
       </Routes>
