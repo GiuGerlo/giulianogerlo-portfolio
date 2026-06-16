@@ -38,6 +38,16 @@ Paquetes que forman parte de la app que corre en el browser (o en las serverless
 | `@hookform/resolvers` | Puente entre `zod` y `react-hook-form` (el `zodResolver`). |
 | `@marsidev/react-turnstile` | Widget de Cloudflare Turnstile (anti-bot) embebido en el form. |
 
+### Editor de texto del admin (`/admin/perfil`)
+
+| Paquete | Para qué |
+|---|---|
+| `@tiptap/react` | Editor WYSIWYG (sobre ProseMirror). Usado en `RichTextEditor.jsx` para los párrafos del About. Carga lazy (solo en el admin). |
+| `@tiptap/starter-kit` | Set base de extensiones de TipTap. Se configura solo-inline (negrita/itálica), sin bloques. |
+| `@tiptap/pm` | Bindings de ProseMirror que TipTap necesita en runtime. |
+| `@tiptap/extension-link` | Extensión de links para el editor. |
+| `@tiptap/markdown` | Serializa/parsea markdown (`getMarkdown()` / `setContent(md)`). La DB sigue guardando markdown. |
+
 ### Backend (serverless `api/`)
 
 | Paquete | Para qué |

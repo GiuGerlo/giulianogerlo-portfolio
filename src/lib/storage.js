@@ -50,6 +50,68 @@ function extFromMime(mime) {
 }
 
 /**
+ * fileToWebp — convierte un File de imagen a WebP y lo achica a `maxWidth`,
+ * usando la canvas API NATIVA del navegador (sin dependencias).
+ *
+ * Por qué client-side y no `sharp`: sharp es Node puro (solo el script
+ * `optimize-images.js`), no corre en el browser. La canvas API sí, y de
+ * paso resizea y descarta los metadatos EXIF (privacidad).
+ *
+ * Robustez (clave): si CUALQUIER paso falla —navegador sin canvas (jsdom en
+ * los tests), `toBlob` no soporta webp, imagen corrupta— devuelve el archivo
+ * ORIGINAL sin tirar. Así el upload nunca se rompe por la optimización.
+ *
+ * @param {File} file - imagen original (ya validada por mime+tamaño).
+ * @param {{maxWidth?: number, quality?: number}} opts
+ * @returns {Promise<File>} archivo WebP nuevo, o el original si no se pudo.
+ */
+export async function fileToWebp(file, { maxWidth = 1600, quality = 0.82 } = {}) {
+  try {
+    // Guard temprano: si no hay canvas 2d (jsdom/entorno sin DOM gráfico),
+    // getContext devuelve null. Salimos ACÁ, antes de crear cualquier
+    // promesa de carga de imagen (que en jsdom nunca resolvería → colgaría).
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext && canvas.getContext('2d');
+    if (!ctx) return file;
+
+    // Cargamos el archivo en un <img> via blob URL. La promesa resuelve en
+    // onload y rechaza en onerror (imagen corrupta) → el catch externo
+    // devuelve el original.
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = url;
+      });
+
+      // Escala manteniendo proporción, sin agrandar (withoutEnlargement).
+      const scale = Math.min(1, maxWidth / img.naturalWidth);
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // toBlob es callback-based → lo envolvemos en promesa. Devuelve null
+      // si el navegador no sabe codificar webp.
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, 'image/webp', quality),
+      );
+      if (!blob) return file;
+
+      // Reempaquetamos el Blob como File con nombre .webp y el type correcto.
+      const name = file.name ? file.name.replace(/\.[^.]+$/, '.webp') : 'image.webp';
+      return new File([blob], name, { type: 'image/webp' });
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  } catch {
+    // Cualquier fallo → archivo original (el upload sigue funcionando).
+    return file;
+  }
+}
+
+/**
  * buildFileName — nombre único para evitar colisiones en el bucket.
  * Formato: `${slug}-${timestamp}-${random}${ext}`.
  *  - slug    → para reconocer a qué proyecto pertenece la imagen.
@@ -71,14 +133,20 @@ function buildFileName(slug, mime) {
  *
  * @param {File} file - archivo del input/dropzone.
  * @param {string} slug - slug del proyecto (para el nombre del archivo).
+ * @param {{maxWidth?: number, quality?: number}} [opts] - opciones de
+ *   conversión a WebP (ver fileToWebp). Default: 1600px / quality 0.82.
  * @returns {Promise<string>} URL pública (servida por el CDN de Supabase).
  * @throws {Error} con mensaje legible si la validación o el upload fallan.
  *
- * Validamos mime + tamaño acá de nuevo (además del `accept` del dropzone)
- * porque el dropzone solo filtra el picker — un archivo arrastrado o un
- * mime spoofeado podría colarse. Defensa en profundidad.
+ * Validamos mime + tamaño sobre el archivo ORIGINAL (además del `accept` del
+ * dropzone) porque el dropzone solo filtra el picker — un archivo arrastrado
+ * o un mime spoofeado podría colarse. Defensa en profundidad.
+ *
+ * Después de validar, convertimos a WebP + resize (fileToWebp). Si la
+ * conversión no es posible, fileToWebp devuelve el original → subimos eso.
+ * El nombre del archivo usa la extensión del resultado (.webp si convirtió).
  */
-export async function uploadImage(file, slug) {
+export async function uploadImage(file, slug, opts) {
   if (!ACCEPTED_MIME[file.type]) {
     throw new Error('Formato no permitido. Usá JPG, PNG o WebP.');
   }
@@ -86,14 +154,17 @@ export async function uploadImage(file, slug) {
     throw new Error('La imagen supera los 2 MB.');
   }
 
-  const fileName = buildFileName(slug, file.type);
+  // Optimización: WebP + resize. Cae al original si no se puede.
+  const finalFile = await fileToWebp(file, opts);
+
+  const fileName = buildFileName(slug, finalFile.type);
 
   // upload() sube el archivo. `cacheControl` le dice al CDN cuánto cachear
   // (1 año). `upsert: false` → si por casualidad el nombre ya existe, falla
   // en vez de pisar (no debería pasar por el random, pero es la opción segura).
   const { error } = await supabase.storage
     .from(BUCKET)
-    .upload(fileName, file, { cacheControl: '31536000', upsert: false });
+    .upload(fileName, finalFile, { cacheControl: '31536000', upsert: false });
 
   if (error) {
     console.error('[storage] upload falló:', error);

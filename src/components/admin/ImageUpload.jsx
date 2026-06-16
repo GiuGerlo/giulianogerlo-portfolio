@@ -69,6 +69,12 @@ export default function ImageUpload({
   slug,
   label,
   error,
+  // Relación de aspecto de la preview: 'video' (16:9, default — proyectos)
+  // o 'square' (1:1 — matchea el aspect-square del About en /admin/perfil).
+  previewAspect = 'video',
+  // Opciones de conversión WebP pasadas a uploadImage (ej. { maxWidth: 800 }
+  // para la foto del perfil). Default undefined → uploadImage usa 1600px.
+  uploadOpts,
 }) {
   // Estados locales:
   //  - uploading: hay al menos un upload en curso → mostramos spinner y
@@ -105,7 +111,7 @@ export default function ImageUpload({
       // Subimos en paralelo (Promise.all). Cada uploadImage devuelve la
       // URL pública. Si una falla, el catch corta todo y avisa.
       const uploaded = await Promise.all(
-        acceptedFiles.map((file) => uploadImage(file, slug)),
+        acceptedFiles.map((file) => uploadImage(file, slug, uploadOpts)),
       );
 
       if (multiple) {
@@ -199,14 +205,26 @@ export default function ImageUpload({
                     key={url}
                     url={url}
                     onRemove={handleRemove}
+                    previewAspect={previewAspect}
                   />
                 ))}
               </ul>
             </SortableContext>
           </DndContext>
         ) : (
-          <ul className="mb-3 grid grid-cols-1 gap-3">
-            <Thumb url={urls[0]} onRemove={handleRemove} />
+          <ul
+            className={cn(
+              'mb-3 grid grid-cols-1 gap-3 alins-center justify-start',
+              // Square: capamos a 280px = mismo tamaño que el About público
+              // (sino una foto 3000x3000 llena toda la columna del form).
+              previewAspect === 'square' && 'max-w-[300px]',
+            )}
+          >
+            <Thumb
+              url={urls[0]}
+              onRemove={handleRemove}
+              previewAspect={previewAspect}
+            />
           </ul>
         ))}
 
@@ -296,7 +314,10 @@ export default function ImageUpload({
  *  - handleProps: props del drag handle (opcional; solo en sortable).
  *  - isDragging: para bajar opacidad del item levantado (opcional).
  */
-function Thumb({ url, onRemove, ref, style, handleProps, isDragging }) {
+function Thumb({ url, onRemove, ref, style, handleProps, isDragging, previewAspect = 'video' }) {
+  // Caja de la preview: square (1:1, matchea el About) o video (16:9, default).
+  const aspectClass = previewAspect === 'square' ? 'aspect-square' : 'aspect-video';
+
   return (
     <li
       ref={ref}
@@ -306,12 +327,12 @@ function Thumb({ url, onRemove, ref, style, handleProps, isDragging }) {
         isDragging && 'opacity-60',
       )}
     >
-      {/* aspect-video da una caja consistente sin importar el ratio de la
+      {/* aspect-* da una caja consistente sin importar el ratio de la
           imagen. object-cover recorta para llenar. */}
       <img
         src={url}
         alt=""
-        className="aspect-video w-full object-cover"
+        className={cn(aspectClass, 'w-full object-cover')}
         // Si la URL está rota (404), escondemos la imagen y mostramos el
         // placeholder (el div hermano inmediatamente siguiente).
         onError={(e) => {
@@ -321,7 +342,7 @@ function Thumb({ url, onRemove, ref, style, handleProps, isDragging }) {
       />
       <div
         hidden
-        className="flex aspect-video w-full items-center justify-center bg-bg-elevated text-text-muted"
+        className={cn(aspectClass, 'flex w-full items-center justify-center bg-bg-elevated text-text-muted')}
       >
         <ImageOff size={20} aria-hidden="true" />
       </div>
@@ -357,7 +378,7 @@ function Thumb({ url, onRemove, ref, style, handleProps, isDragging }) {
  * galería que se puede arrastrar). El `id` es la URL (única por el random
  * del nombre de archivo → sirve como key estable para dnd-kit).
  */
-function SortableThumb({ url, onRemove }) {
+function SortableThumb({ url, onRemove, previewAspect }) {
   const {
     attributes,
     listeners,
@@ -380,6 +401,7 @@ function SortableThumb({ url, onRemove }) {
     <Thumb
       url={url}
       onRemove={onRemove}
+      previewAspect={previewAspect}
       ref={setNodeRef}
       style={style}
       handleProps={{ ...attributes, ...listeners }}

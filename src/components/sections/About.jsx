@@ -1,34 +1,57 @@
 import { MapPin, Languages, GraduationCap } from 'lucide-react';
+// react-markdown convierte el texto markdown (con **negritas**) a JSX. NO
+// renderiza HTML crudo por default (sin rehype-raw) → no hay XSS aunque el
+// texto venga de la DB. Mismo uso que en Chat.jsx para el output del bot.
+import ReactMarkdown from 'react-markdown';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
 import Reveal from '../ui/Reveal.jsx';
 import Chip from '../ui/Chip.jsx';
+import { useProfile } from '../../hooks/useProfile.js';
 
 /**
- * About — segunda sección de la home. Bio corta + chips de estado +
- * placeholder de foto.
+ * FALLBACK — contenido hardcodeado que iguala el seed de la DB
+ * (migration 0004). Se usa mientras el fetch carga, si falla, o si no hay
+ * fila. Garantiza que el About NUNCA se vea roto o vacío. Los párrafos van
+ * en markdown (negritas con **...**) — los renderiza react-markdown.
+ */
+const FALLBACK = {
+  aboutImage: null,
+  aboutP1:
+    'Soy **Giuliano Gerlo**, Técnico Superior en Desarrollo de Software egresado del Brigadier López (Rosario). Programador con experiencia en desarrollo **Full Stack**, especializado en automatización de procesos, gestión de bases de datos y creación de soluciones eficientes.',
+  aboutP2:
+    'Actualmente me desempeño como **Asistente de Desarrollo** en RAMCC, donde participo en software a medida en front-end y back-end. Me interesa la optimización continua de sistemas y cada vez más el desarrollo asistido por **IA** (Claude Code, MCP, agentes).',
+  chipAvailable: 'Disponible para proyectos',
+  chipLocation: 'Rosario, AR',
+  chipLanguage: 'Español',
+  chipEducation: 'Cursando React Cert · DigitalHouse',
+};
+
+/**
+ * About — segunda sección de la home. Bio + chips de estado + foto.
  *
- * Layout:
- *  - Mobile: 1 columna, foto arriba o abajo según orden DOM (definido
- *    aquí como texto primero, foto después — orden lógico de lectura).
- *  - Desktop (md+): grid 2 columnas. Texto a la izquierda (flex-1) y
- *    foto a la derecha con ancho fijo 280px (matchea mockup).
+ * Phase 13: el contenido ahora es editable desde /admin (tabla `profile`,
+ * fila única). El componente lee runtime con useProfile() y degrada elegante:
+ *  - loading / error / sin fila → muestra FALLBACK (idéntico al seed).
+ *  - fila cargada OK → usa los valores de la DB; un campo vacío se respeta
+ *    (chip vacío = oculto, porque el admin lo borró a propósito).
  *
- * Chips:
- *  - "Disponible para proyectos" → variant 'dot' (punto accent verde,
- *    señala estado activo).
- *  - "Rosario, AR" → MapPin icon.
- *  - "Español" → Languages icon (reemplaza el emoji 🇪🇸 del mockup —
- *    regla del proyecto: NO emojis Unicode).
- *  - "Cursando React Cert · DigitalHouse" → GraduationCap icon.
+ * Layout (sin cambios):
+ *  - Mobile: 1 columna. Desktop (md+): grid 2 cols, texto izq + foto der 280px.
  *
- * Foto placeholder:
- *  - Cuadrado (aspect-ratio:1, w-full hasta el max del column).
- *  - Background: gradient diagonal accent → bg-elevated (matchea mockup).
- *  - Texto "GG" centrado, blanco, 80px font-weight 700.
- *  - Cuando Giuliano suba foto real, esto se reemplaza por <img />.
+ * Chips → cada uno mapea a su ícono lucide en código (los íconos no se editan,
+ * solo el texto):
+ *  - available → variant 'dot' (punto accent verde, estado activo).
+ *  - location  → MapPin. language → Languages. education → GraduationCap.
  */
 export default function About() {
+  // Hook custom: trae la fila id=1 de Supabase. { data, loading, error }.
+  const { data, error } = useProfile();
+
+  // Si el fetch terminó OK y trajo fila, usamos la DB; en cualquier otro caso
+  // (cargando, error, null) caemos al FALLBACK. Así no hay flash de vacío.
+  const profile = data && !error ? data : FALLBACK;
+
   return (
     <section
       id="about"
@@ -44,83 +67,82 @@ export default function About() {
         <div className="grid gap-12 md:grid-cols-[1fr_280px] md:gap-16 md:items-start">
           {/* Columna texto + chips. */}
           <div>
-            <p className="mb-4 text-base text-text-muted">
-              Soy{' '}
-              <strong className="font-semibold text-text-primary">
-                Giuliano Gerlo
-              </strong>
-              , Técnico Superior en Desarrollo de Software egresado del
-              Brigadier López (Rosario). Programador con experiencia en
-              desarrollo{' '}
-              <strong className="font-semibold text-text-primary">
-                Full Stack
-              </strong>
-              , especializado en automatización de procesos, gestión de
-              bases de datos y creación de soluciones eficientes.
-            </p>
+            {/* Párrafos en markdown. El wrapper div lleva el estilo del
+                párrafo; react-markdown genera un <p> interno (sin margin
+                propio por el preflight de Tailwind) y las **negritas** se
+                vuelven <strong>, que estilamos con el selector arbitrario
+                [&_strong]. */}
+            {profile.aboutP1 && (
+              <div className="mb-4 text-base text-text-muted [&_a]:text-accent [&_a]:underline [&_em]:italic [&_strong]:font-semibold [&_strong]:text-text-primary">
+                <ReactMarkdown>{profile.aboutP1}</ReactMarkdown>
+              </div>
+            )}
 
-            <p className="mb-6 text-base text-text-muted">
-              Actualmente me desempeño como{' '}
-              <strong className="font-semibold text-text-primary">
-                Asistente de Desarrollo
-              </strong>{' '}
-              en RAMCC, donde participo en software a medida en front-end
-              y back-end. Me interesa la optimización continua de
-              sistemas y cada vez más el desarrollo asistido por{' '}
-              <strong className="font-semibold text-text-primary">
-                IA
-              </strong>{' '}
-              (Claude Code, MCP, agentes).
-            </p>
+            {profile.aboutP2 && (
+              <div className="mb-6 text-base text-text-muted [&_a]:text-accent [&_a]:underline [&_em]:italic [&_strong]:font-semibold [&_strong]:text-text-primary">
+                <ReactMarkdown>{profile.aboutP2}</ReactMarkdown>
+              </div>
+            )}
 
             {/* Chips con flex-wrap para que se acomoden en varias filas
-                en mobile. gap-2 separa horizontal Y verticalmente al
-                hacer wrap. */}
+                en mobile. gap-2 separa horizontal Y verticalmente al wrap.
+                Cada chip se renderiza solo si su campo no está vacío. */}
             <div className="mt-6 flex flex-wrap gap-2">
-              <Chip variant="dot">Disponible para proyectos</Chip>
+              {profile.chipAvailable && (
+                <Chip variant="dot">{profile.chipAvailable}</Chip>
+              )}
 
-              <Chip>
-                <MapPin size={12} aria-hidden="true" />
-                Rosario, AR
-              </Chip>
+              {profile.chipLocation && (
+                <Chip>
+                  <MapPin size={12} aria-hidden="true" />
+                  {profile.chipLocation}
+                </Chip>
+              )}
 
-              <Chip>
-                <Languages size={12} aria-hidden="true" />
-                Español
-              </Chip>
+              {profile.chipLanguage && (
+                <Chip>
+                  <Languages size={12} aria-hidden="true" />
+                  {profile.chipLanguage}
+                </Chip>
+              )}
 
-              <Chip>
-                <GraduationCap size={12} aria-hidden="true" />
-                Cursando React Cert · DigitalHouse
-              </Chip>
+              {profile.chipEducation && (
+                <Chip>
+                  <GraduationCap size={12} aria-hidden="true" />
+                  {profile.chipEducation}
+                </Chip>
+              )}
             </div>
           </div>
 
-          {/* Columna foto. aspect-square = cuadrado puro. El gradient
-              queda como background fallback (se ve solo mientras
-              carga la imagen, o si el src falla).
-              IMPORTANTE: en Vite los archivos de /public se sirven
-              desde la raíz "/" — NO "public/...". Path final = "/foto-...".
-              <img> con h-full w-full object-cover llena el cuadrado y
-              recorta si la imagen no es 1:1 (sin distorsionar). */}
+          {/* Columna foto. aspect-square = cuadrado puro. El gradient queda
+              como background fallback (se ve mientras carga / si el src falla). */}
           <div className="aspect-square w-full overflow-hidden rounded-xl border border-border bg-gradient-to-br from-accent to-bg-elevated md:max-w-[280px]">
-            {/* <picture>: el browser elige el .webp (liviano, moderno) y
-                cae al .jpg solo si no soporta WebP. width/height son los
-                del archivo real (600x800): le dan al browser la
-                proporción y evitan el salto de layout (CLS) mientras
-                la imagen carga. loading="lazy" la difiere hasta que
-                está por entrar en viewport. */}
-            <picture>
-              <source srcSet="/foto-giulianogerlo.webp" type="image/webp" />
+            {profile.aboutImage ? (
+              // Foto subida desde /admin (URL de Supabase Storage). object-cover
+              // llena el cuadrado y recorta si no es 1:1, sin distorsionar.
               <img
-                src="/foto-giulianogerlo.jpg"
+                src={profile.aboutImage}
                 alt="Giuliano Gerlo"
-                width={600}
-                height={800}
                 className="h-full w-full object-cover"
                 loading="lazy"
               />
-            </picture>
+            ) : (
+              // Sin foto en DB → <picture> estático de /public. El browser elige
+              // el .webp (liviano) y cae al .jpg si no lo soporta. width/height
+              // reales (600x800) evitan el salto de layout (CLS) al cargar.
+              <picture>
+                <source srcSet="/foto-giulianogerlo.webp" type="image/webp" />
+                <img
+                  src="/foto-giulianogerlo.jpg"
+                  alt="Giuliano Gerlo"
+                  width={600}
+                  height={800}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </picture>
+            )}
           </div>
         </div>
         </Reveal>

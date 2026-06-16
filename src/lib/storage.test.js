@@ -20,7 +20,7 @@ vi.mock('./supabase.js', () => ({
 }));
 
 // Import DESPUÉS del mock.
-import { uploadImage, removeImage, MAX_SIZE_BYTES } from './storage.js';
+import { uploadImage, removeImage, fileToWebp, MAX_SIZE_BYTES } from './storage.js';
 
 // Helper: fabrica un objeto tipo File falso (no necesitamos contenido real,
 // solo `type` y `size` que es lo que validamos).
@@ -73,6 +73,17 @@ describe('uploadImage', () => {
     await expect(uploadImage(fakeFile('image/png', 100), 'x')).rejects.toThrow(
       /No pude subir/,
     );
+  });
+});
+
+describe('fileToWebp', () => {
+  // En jsdom no hay canvas 2d (getContext devuelve null) → fileToWebp cae
+  // al archivo original sin tirar ni colgar. Eso es exactamente el fallback
+  // robusto que queremos en navegadores sin soporte.
+  it('devuelve el archivo original si no hay canvas (fallback)', async () => {
+    const f = fakeFile('image/jpeg', 5000);
+    const result = await fileToWebp(f);
+    expect(result).toBe(f);
   });
 });
 

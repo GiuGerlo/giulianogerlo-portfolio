@@ -1,5 +1,7 @@
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, NavLink } from 'react-router-dom';
 import { LogOut, Home as HomeIcon } from 'lucide-react';
+
+import { cn } from '../../lib/cn.js';
 
 import { supabase } from '../../lib/supabase.js';
 import { useAuth } from '../../hooks/useAuth.js';
@@ -48,9 +50,39 @@ export default function AdminLayout() {
             <span className="hidden sm:inline">Volver al sitio</span>
           </Link>
 
-          <span className="font-mono text-xs uppercase tracking-wider text-text-muted">
-            // admin
-          </span>
+          {/* Nav interna del panel: alterna entre las secciones editables.
+              NavLink agrega `isActive` solo → resaltamos la sección actual
+              en accent. `end` en Proyectos evita que matchee /admin/perfil
+              (sino "/" del path /admin prefijaría todo). */}
+          <nav className="flex items-center gap-1 font-mono text-xs">
+            <NavLink
+              to="/admin"
+              end
+              className={({ isActive }) =>
+                cn(
+                  'rounded-md px-3 py-1.5 transition-colors',
+                  isActive
+                    ? 'bg-accent/10 text-accent'
+                    : 'text-text-muted hover:text-accent',
+                )
+              }
+            >
+              Proyectos
+            </NavLink>
+            <NavLink
+              to="/admin/perfil"
+              className={({ isActive }) =>
+                cn(
+                  'rounded-md px-3 py-1.5 transition-colors',
+                  isActive
+                    ? 'bg-accent/10 text-accent'
+                    : 'text-text-muted hover:text-accent',
+                )
+              }
+            >
+              Perfil
+            </NavLink>
+          </nav>
 
           {/* User info + logout. El email se trunca en pantallas chicas. */}
           <div className="flex items-center gap-3">
