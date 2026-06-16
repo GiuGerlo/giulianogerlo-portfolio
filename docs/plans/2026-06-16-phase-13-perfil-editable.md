@@ -12,6 +12,7 @@
 <!-- Una línea por task cerrada o desvío. Mantener sincronizado entre PCs vía git. -->
 
 - **2026-06-16**: Plan creado y persistido en el repo (Task 0). Puntero agregado en `CLAUDE.md`. Pendiente: arrancar Task 1 (migration `0004_profile_schema`).
+- **2026-06-16**: Task 1 cerrada. Migration `0004_profile_schema` aplicada via MCP (project `yyvchycnqhkzjuggbbtp`) + copia versionada en `supabase/migrations/0004_profile_schema.sql`. Tabla `public.profile` single-row (id=1, check), RLS (anon SELECT, authenticated SELECT/INSERT/UPDATE lockeado al email), GRANTs por rol, trigger `set_updated_at` reusado, seed con valores actuales del JSX. Verificado: `select * from profile` → 1 fila; `get_advisors security` sin warnings nuevos (3 WARN pre-existentes ajenos a profile); `list_tables` muestra las 9 columnas. Next: Task 2 (mapper + hook `useProfile`).
 
 ---
 
