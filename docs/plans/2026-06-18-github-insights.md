@@ -40,6 +40,14 @@ Tres mejoras post deploy del dashboard + chatbot logging:
   TODO-USUARIO. Tests: `api/github.test.js` + `GitHub.test.jsx` + ajuste Navbar/Footer.
   Suite 230/230, lint limpio. Nota: la sección solo trae data bajo `vercel dev` o prod
   (pnpm dev no sirve /api/*).
+- **2026-06-18 — T2 (revisión, pedido del owner)**: SACADOS los repos destacados (solo queda
+  el grid de contribuciones). `api/github.js` simplificado a solo contribuciones (jogruber,
+  sin token, sin REST de repos); borrado `api/github.test.js` (testeaba los helpers de repos).
+  `GitHub.jsx` solo grid de contribuciones. Sobre el conteo (717 perfil vs 181 público): el
+  calendario público no cuenta repos privados → el owner debe activar GitHub Settings →
+  "Include private contributions on my profile" para que coincida (sin token/código).
+  `GITHUB_TOKEN` ya NO se usa → reemplazado en TODO-USUARIO por la nota del setting. Suite
+  225/225, lint limpio.
 - **T3**: `chat-insights.js` + bloque insights en `Chats.jsx` + test.
 - **T4**: QA + cierre.
 

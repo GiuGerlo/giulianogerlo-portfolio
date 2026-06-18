@@ -89,11 +89,11 @@ Si alguno no lo tenés en PDF y solo tenés URL externa (ej. CoderHouse a veces 
 - [ ] Auth Settings: Site URL + Redirect URLs para magic link callback — se configura en Task 12.2
 
 ### 8. GitHub (sección "Actividad en GitHub")
-- [ ] **(Opcional)** `GITHUB_TOKEN` en Vercel (scope Production + Preview) — un Personal
-  Access Token *classic* sin permisos (solo lectura pública alcanza) o fine-grained con
-  acceso público. Sube el límite de la API de GitHub de 60 a 5000 req/h. **No es
-  obligatorio**: sin el token la sección anda igual (60 req/h, mitigado por el cache del
-  CDN). La API de contribuciones no necesita token.
+- [ ] **Para que el total coincida con tu perfil** (incluir repos privados): GitHub →
+  Settings → Public profile → activar **"Include private contributions on my profile"**.
+  Sin esto, la sección muestra solo las contribuciones PÚBLICAS (número más bajo). Activado,
+  muestra el total real (anonimizado: solo el número/verde, sin nombres de repos privados).
+  No requiere token ni nada en el código.
 
 ## 🔐 Seguridad — rotar keys
 
