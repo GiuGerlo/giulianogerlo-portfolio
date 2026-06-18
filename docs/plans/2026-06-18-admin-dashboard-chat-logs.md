@@ -36,8 +36,13 @@ un **registro de chats** del chatbot, agrupado por conversación, para ver qué 
   en `api/chat.js` (valida uuid o genera uno, insert fire-and-forget tras el reply, try/catch
   que nunca tumba el chat, no-op sin service key); 3 tests nuevos de `logChat`; nota en
   `TODO-USUARIO.md` (logging necesita `SUPABASE_SERVICE_ROLE_KEY` en Vercel). Suite 211/211.
-- **T3**: `useChatLogs` + `Chats.jsx` (`/admin/chats`, agrupado por conversación, borrar con
-  ConfirmDialog) + nav + test.
+- **T3** ✅: `src/hooks/useChatLogs.js` (trae chat_logs desc, agrupa por
+  `conversation_id` → conversaciones con turnos cronológicos, `remove(convId)` borra toda la
+  conversación + refetch). `src/pages/admin/Chats.jsx` (lista de conversaciones, turnos
+  visitante/bot, borrar con ConfirmDialog, estados loading/error/vacío). Ruta lazy
+  `/admin/chats` en `App.jsx` + item "Chats" en `AdminLayout`. `Chats.test.jsx` (5 tests).
+  Suite 216/216 (el fallo intermitente de `App.test "renders Home"` es flaky por su fetch
+  real a Supabase, no relacionado).
 - **T4**: Dashboard home (stats/accesos/estado/últimos chats) + mover proyectos a
   `/admin/proyectos` + `useDashboardStats` + rutas/nav.
 - **T5**: QA + cierre.
