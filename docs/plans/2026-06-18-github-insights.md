@@ -48,7 +48,12 @@ Tres mejoras post deploy del dashboard + chatbot logging:
   "Include private contributions on my profile" para que coincida (sin token/código).
   `GITHUB_TOKEN` ya NO se usa → reemplazado en TODO-USUARIO por la nota del setting. Suite
   225/225, lint limpio.
-- **T3**: `chat-insights.js` + bloque insights en `Chats.jsx` + test.
+- **T3** ✅: `src/lib/chat-insights.js` (puro: totales, promedio msgs/charla, conversaciones
+  por semana últimas 8, preguntas frecuentes por texto normalizado) + bloque "Insights" en
+  `Chats.jsx` (métricas + mini-barras semanales + top preguntas). `chat-insights.test.js`.
+  GitHub: grid pasado a CSS grid (columnas 1fr) → llena todo el contenedor + `min-w` para
+  scroll mobile. Fix flaky `App.test` (assert `$ whoami` estático en vez del h1 async).
+  Suite 233/233, lint limpio.
 - **T4**: QA + cierre.
 
 ## Verificación end-to-end

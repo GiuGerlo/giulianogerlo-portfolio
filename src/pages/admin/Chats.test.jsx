@@ -68,9 +68,11 @@ describe('Chats (admin)', () => {
       remove: vi.fn(),
     });
     renderChats();
-    expect(screen.getByText('¿Sabe React?')).toBeInTheDocument();
+    // La pregunta aparece en el turno y también en "Preguntas frecuentes".
+    expect(screen.getAllByText('¿Sabe React?').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/está cursando una certificación/i)).toBeInTheDocument();
-    expect(screen.getByText(/1 conversación/i)).toBeInTheDocument();
+    // El panel de insights muestra la métrica de conversaciones.
+    expect(screen.getByText(/^conversaciones$/i)).toBeInTheDocument();
   });
 
   test('borrar: confirma y llama remove con el id de la conversación', async () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
@@ -43,51 +43,50 @@ function monthLabel(weeks, i) {
 }
 
 function ContributionsGrid({ weeks }) {
+  const cols = weeks.length;
+  // CSS grid: 1ª columna fija (etiquetas de día) + una columna 1fr por semana.
+  // `1fr` hace que las columnas se estiren para llenar TODO el contenedor; las
+  // celdas son aspect-square → crecen/achican con el ancho. min-w fuerza scroll
+  // horizontal en pantallas chicas (sino las celdas quedarían diminutas).
+  const gridStyle = {
+    gridTemplateColumns: `1.75rem repeat(${cols}, minmax(0, 1fr))`,
+  };
+
   return (
     <div className="scroll-slim overflow-x-auto pb-2">
-      <div className="inline-flex flex-col gap-1">
-        {/* Fila de meses. El primer hueco (w-8) alinea con la columna de días. */}
-        <div className="flex gap-1">
-          <div className="w-8 shrink-0" aria-hidden="true" />
-          {weeks.map((_, i) => (
-            <div
-              key={i}
-              className="w-3 shrink-0 whitespace-nowrap font-mono text-[10px] text-text-muted"
-            >
-              {monthLabel(weeks, i)}
-            </div>
-          ))}
-        </div>
-
-        {/* Etiquetas de día + columnas (una por semana). */}
-        <div className="flex gap-1">
-          <div className="flex w-8 shrink-0 flex-col gap-1 pr-1 text-right">
-            {WEEKDAYS.map((label, wd) => (
-              <div
-                key={wd}
-                className="flex h-3 items-center justify-end font-mono text-[9px] leading-none text-text-muted"
-              >
-                {label}
-              </div>
-            ))}
+      <div className="grid w-full min-w-[680px] gap-1" style={gridStyle}>
+        {/* Fila de meses: esquina vacía + una etiqueta por semana. */}
+        <div aria-hidden="true" />
+        {weeks.map((_, i) => (
+          <div
+            key={`m-${i}`}
+            className="mb-1 whitespace-nowrap font-mono text-[10px] text-text-muted"
+          >
+            {monthLabel(weeks, i)}
           </div>
+        ))}
 
-          {weeks.map((week, i) => (
-            <div key={i} className="flex shrink-0 flex-col gap-1">
-              {Array.from({ length: 7 }).map((_, wd) => {
-                const day = week.find((d) => d.weekday === wd);
-                if (!day) return <div key={wd} className="size-3" aria-hidden="true" />;
-                return (
-                  <div
-                    key={wd}
-                    title={`${day.count} contribuciones el ${day.date}`}
-                    className={`size-3 rounded-[2px] ${LEVEL_CLASS[day.level] ?? LEVEL_CLASS[0]}`}
-                  />
-                );
-              })}
+        {/* 7 filas (una por día de la semana): etiqueta + celda por semana. */}
+        {WEEKDAYS.map((label, wd) => (
+          <Fragment key={wd}>
+            <div className="flex items-center justify-end pr-1 font-mono text-[9px] leading-none text-text-muted">
+              {label}
             </div>
-          ))}
-        </div>
+            {weeks.map((week, i) => {
+              const day = week.find((d) => d.weekday === wd);
+              if (!day) {
+                return <div key={i} className="aspect-square" aria-hidden="true" />;
+              }
+              return (
+                <div
+                  key={i}
+                  title={`${day.count} contribuciones el ${day.date}`}
+                  className={`aspect-square rounded-[2px] ${LEVEL_CLASS[day.level] ?? LEVEL_CLASS[0]}`}
+                />
+              );
+            })}
+          </Fragment>
+        ))}
       </div>
     </div>
   );

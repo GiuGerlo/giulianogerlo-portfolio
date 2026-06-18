@@ -3,6 +3,7 @@ import { MessageCircle, Trash2, User, Bot } from 'lucide-react';
 
 import { useChatLogs } from '../../hooks/useChatLogs.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
+import { computeChatInsights } from '../../lib/chat-insights.js';
 
 import SectionHeading from '../../components/ui/SectionHeading.jsx';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
@@ -76,11 +77,8 @@ export default function Chats() {
         subtitle="Lo que preguntan los visitantes al asistente. Agrupado por conversación."
       />
 
-      {/* Contador rápido. */}
-      <p className="mb-6 font-mono text-xs text-text-muted">
-        {conversations.length}{' '}
-        {conversations.length === 1 ? 'conversación' : 'conversaciones'}
-      </p>
+      {/* Panel de insights (solo si hay data). */}
+      {conversations.length > 0 && <Insights conversations={conversations} />}
 
       {conversations.length === 0 ? (
         <div className="rounded-xl border border-border bg-bg-elevated p-6 text-center text-text-muted">
@@ -145,5 +143,82 @@ export default function Chats() {
         onCancel={() => setPendingDelete(null)}
       />
     </article>
+  );
+}
+
+/**
+ * Insights — panel de métricas arriba del listado: totales, conversaciones por
+ * semana (mini-barras) y preguntas más frecuentes. Todo derivado de las
+ * conversaciones ya traídas (computeChatInsights, sin queries nuevas).
+ */
+function Insights({ conversations }) {
+  const { totalConversations, totalMessages, avgMessages, weekly, topQuestions } =
+    computeChatInsights(conversations);
+
+  // Máximo para escalar las barras (mín 1 para no dividir por cero).
+  const maxWeek = Math.max(1, ...weekly.map((w) => w.count));
+
+  return (
+    <section className="mb-8 grid gap-4 lg:grid-cols-3">
+      {/* Métricas. */}
+      <div className="grid grid-cols-3 gap-3 lg:col-span-1 lg:grid-cols-1">
+        <Metric label="Conversaciones" value={totalConversations} />
+        <Metric label="Mensajes" value={totalMessages} />
+        <Metric label="Prom. / charla" value={avgMessages} />
+      </div>
+
+      {/* Conversaciones por semana. */}
+      <div className="rounded-xl border border-border bg-bg-elevated p-5 lg:col-span-2">
+        <h2 className="mb-4 font-mono text-xs uppercase tracking-wider text-text-muted">
+          Conversaciones por semana
+        </h2>
+        <div className="flex h-24 items-end gap-2">
+          {weekly.map((w) => (
+            <div key={w.label} className="flex flex-1 flex-col items-center gap-1">
+              <div className="flex w-full flex-1 items-end">
+                <div
+                  className="w-full rounded-t bg-accent/70"
+                  style={{ height: `${(w.count / maxWeek) * 100}%` }}
+                  title={`${w.count} conversación(es)`}
+                />
+              </div>
+              <span className="font-mono text-[10px] text-text-muted">{w.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Preguntas frecuentes. */}
+      {topQuestions.length > 0 && (
+        <div className="rounded-xl border border-border bg-bg-elevated p-5 lg:col-span-3">
+          <h2 className="mb-4 font-mono text-xs uppercase tracking-wider text-text-muted">
+            Preguntas más frecuentes
+          </h2>
+          <ul className="space-y-2">
+            {topQuestions.map((q) => (
+              <li key={q.question} className="flex items-center justify-between gap-3 text-sm">
+                <span className="min-w-0 flex-1 truncate text-text-primary" title={q.question}>
+                  {q.question}
+                </span>
+                <span className="shrink-0 rounded-full bg-accent-bg px-2 py-0.5 font-mono text-xs text-accent">
+                  {q.count}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function Metric({ label, value }) {
+  return (
+    <div className="rounded-xl border border-border bg-bg-elevated p-4">
+      <p className="text-2xl font-semibold text-text-primary">{value}</p>
+      <p className="font-mono text-[11px] uppercase tracking-wider text-text-muted">
+        {label}
+      </p>
+    </div>
   );
 }
