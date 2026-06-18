@@ -21,6 +21,9 @@ export function dbToSiteSettings(row) {
     socialEmail: row.social_email,
     socialWhatsapp: row.social_whatsapp,
     socialLocation: row.social_location,
+    // Texto libre que SOLO usa el chatbot (api/chat.js) como contexto extra.
+    // No se renderiza en ninguna sección pública.
+    chatbotContext: row.chatbot_context,
     updatedAt: row.updated_at,
   };
 }
@@ -43,5 +46,6 @@ export function siteSettingsToDb(s) {
     social_email: s.socialEmail ?? '',
     social_whatsapp: s.socialWhatsapp ?? '',
     social_location: s.socialLocation ?? '',
+    chatbot_context: s.chatbotContext ?? '',
   };
 }
