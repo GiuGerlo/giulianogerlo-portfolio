@@ -79,7 +79,11 @@ Si alguno no lo tenés en PDF y solo tenés URL externa (ej. CoderHouse a veces 
 - [x] Free tier, GitHub linkeado, framework: React
 - [x] Security config: Data API ON / Auto-expose new tables OFF / Auto-RLS ON
 - [x] 3 env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) cargadas en `.env` local
-- [ ] 3 env vars cargadas en Vercel dashboard con scope **Production + Preview + Development**
+- [x] 3 env vars cargadas en Vercel dashboard (scope **Production + Preview**)
+  - El **registro de chats** del chatbot (`/admin/chats`) usa
+    `SUPABASE_SERVICE_ROLE_KEY` — ya está en Vercel, así que loguea en prod.
+    (Si querés probar el logging con `vercel dev` en local, agregá también el
+    scope **Development** a esa var; para prod no hace falta.)
 - [ ] Branch `feature/phase-12-supabase` creada y pusheada para testing en preview antes de merge a master
 - [ ] Auth Settings: allowlist de email (solo tu mail puede pedir magic link) — se configura en Task 12.2 vía MCP
 - [ ] Auth Settings: Site URL + Redirect URLs para magic link callback — se configura en Task 12.2

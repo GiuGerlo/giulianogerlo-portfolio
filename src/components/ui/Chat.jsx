@@ -144,6 +144,12 @@ export default function Chat() {
   // Referencia al div vacío del fondo de la lista de mensajes.
   const bottomRef = useRef(null);
 
+  // ID de la conversación: un uuid generado UNA vez al montar el componente
+  // (useRef no se regenera entre renders). Se manda en cada request para que
+  // el backend agrupe todos los turnos de esta sesión bajo el mismo id en
+  // chat_logs → el admin ve el hilo completo.
+  const conversationId = useRef(crypto.randomUUID());
+
   // Cada vez que cambian los mensajes o el estado de carga, scrolleamos
   // al fondo para que se vea siempre el último mensaje.
   useEffect(() => {
@@ -177,6 +183,7 @@ export default function Chat() {
           history,
           website,
           turnstileToken,
+          conversationId: conversationId.current,
         }),
       });
 

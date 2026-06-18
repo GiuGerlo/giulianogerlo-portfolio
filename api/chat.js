@@ -26,7 +26,7 @@ import { Redis } from '@upstash/redis';
 // Cliente Supabase server-side (anon key, RLS de lectura pública). Es la
 // FUENTE PRIMARIA del contenido del chatbot: lee lo mismo que muestra la web,
 // así editar en /admin actualiza al bot sin tocar este archivo ni redeployar.
-import { supabaseServer } from '../src/lib/supabase-server.js';
+import { supabaseServer, supabaseAdmin } from '../src/lib/supabase-server.js';
 
 // Mappers snake↔camel (reusados del front) para serializar las filas DB igual
 // que los componentes.
@@ -342,6 +342,35 @@ async function callGemini(systemPrompt, contents) {
   }
 }
 
+// Regex de UUID v4 para validar el conversationId que manda el frontend.
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * logChat — guarda el par pregunta/respuesta en chat_logs (registro privado).
+ *
+ * Fire-and-forget: se llama SIN await desde el handler para no demorar la
+ * respuesta al visitante, y con try/catch interno para que un error de logueo
+ * NUNCA tumbe el chat. Si no hay service key (supabaseAdmin null) no hace nada.
+ *
+ * Exportada para tests.
+ */
+export async function logChat({ conversationId, message, reply }) {
+  if (!supabaseAdmin) return; // logueo opcional: sin service key, no se loguea.
+  try {
+    // conversationId válido o uno nuevo (no rompemos por un id mal formado).
+    const convId = UUID_RE.test(conversationId ?? '')
+      ? conversationId
+      : crypto.randomUUID();
+    const { error } = await supabaseAdmin
+      .from('chat_logs')
+      .insert({ conversation_id: convId, message, reply });
+    if (error) console.error('[chat] logChat insert falló:', error);
+  } catch (err) {
+    console.error('[chat] logChat excepción:', err);
+  }
+}
+
 // Handler principal. Vercel lo invoca con (req, res) estilo Node/Express.
 export default async function handler(req, res) {
   // ── 1. Solo POST ──────────────────────────────────────────────────
@@ -349,7 +378,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido.' });
   }
 
-  const { message, history, website, turnstileToken } = req.body ?? {};
+  const { message, history, website, turnstileToken, conversationId } =
+    req.body ?? {};
 
   // x-forwarded-for trae la IP real del visitante (Vercel está delante).
   const ip = req.headers['x-forwarded-for'] ?? '';
@@ -401,6 +431,11 @@ export default async function handler(req, res) {
     ];
 
     const reply = await callGemini(await buildSystemPrompt(), contents);
+
+    // Logueo fire-and-forget: NO await → no demora la respuesta al visitante.
+    // logChat maneja sus propios errores (nunca tumba el chat).
+    logChat({ conversationId, message: message.trim(), reply });
+
     return res.status(200).json({ reply });
   } catch (err) {
     // No filtramos el detalle al cliente; lo logueamos para Vercel.

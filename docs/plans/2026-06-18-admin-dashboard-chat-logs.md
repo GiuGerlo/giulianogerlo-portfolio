@@ -31,8 +31,11 @@ un **registro de chats** del chatbot, agrupado por conversación, para ver qué 
 
 - **T1** ✅: migración 0009 `chat_logs` (RLS privado, service_role write, admin read/delete)
   + `chat-logs-mapper.js`.
-- **T2**: `supabaseAdmin` + `conversation_id` en Chat.jsx + `logChat()` en api/chat.js +
-  test + TODO-USUARIO (env var).
+- **T2** ✅: `supabaseAdmin` (service_role, guard null) en `supabase-server.js`;
+  `conversationId` (uuid por sesión, `useRef`) en `Chat.jsx` enviado en el body; `logChat()`
+  en `api/chat.js` (valida uuid o genera uno, insert fire-and-forget tras el reply, try/catch
+  que nunca tumba el chat, no-op sin service key); 3 tests nuevos de `logChat`; nota en
+  `TODO-USUARIO.md` (logging necesita `SUPABASE_SERVICE_ROLE_KEY` en Vercel). Suite 211/211.
 - **T3**: `useChatLogs` + `Chats.jsx` (`/admin/chats`, agrupado por conversación, borrar con
   ConfirmDialog) + nav + test.
 - **T4**: Dashboard home (stats/accesos/estado/últimos chats) + mover proyectos a
