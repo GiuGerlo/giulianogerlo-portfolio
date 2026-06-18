@@ -1,16 +1,19 @@
 // api/github.js — Vercel Serverless Function (proxy de contribuciones GitHub).
 //
-// GET /api/github → { contributions, totalContributions }
+// GET /api/github            → contribuciones del ÚLTIMO AÑO (rolling).
+// GET /api/github?year=2025  → contribuciones del AÑO CALENDARIO 2025.
+//
+// Respuesta: { weeks, totalContributions, year, years }
+//   - weeks: [[{date,count,level,weekday}, …], …]  (columnas tipo GitHub)
+//   - year:  el año pedido, o null si es "último año"
+//   - years: años con actividad (para el selector de años)
 //
 // Dos fuentes:
-//   1. GraphQL de GitHub autenticado (si hay GITHUB_TOKEN): el
-//      contributionsCollection del DUEÑO del token incluye las contribuciones
-//      PRIVADAS → el total coincide con el del perfil (ej. 717). Es la única
-//      forma de contar lo privado.
-//   2. Fallback público (API de jogruber, sin token): solo cuenta lo PÚBLICO
-//      (número más bajo). Se usa si no hay token o si GraphQL falla.
+//   1. GraphQL autenticado (GITHUB_TOKEN): incluye contribuciones PRIVADAS →
+//      total coincide con el perfil. Único modo de contar lo privado.
+//   2. Fallback público (jogruber, sin token): solo lo público. Sin years.
 //
-// El CDN de Vercel cachea la respuesta (Cache-Control abajo). Corre en Node.
+// Cacheado por el CDN de Vercel (Cache-Control abajo, varía por query). Node.
 
 const GITHUB_USER = 'GiuGerlo';
 
@@ -24,40 +27,72 @@ const LEVEL_MAP = {
 };
 
 /**
- * calendarToContributions — aplana el contributionCalendar de GraphQL
- * (weeks → days) a [{ date, count, level }]. Helper puro, exportado para test.
+ * calendarToWeeks — el contributionCalendar de GraphQL ya viene agrupado en
+ * weeks; mapeamos cada día al shape mínimo (+ weekday para ubicar la celda).
+ * Helper puro, exportado para test.
  */
-export function calendarToContributions(calendar) {
-  const days = [];
-  for (const week of calendar?.weeks ?? []) {
-    for (const d of week.contributionDays ?? []) {
-      days.push({
-        date: d.date,
-        count: d.contributionCount ?? 0,
-        level: LEVEL_MAP[d.contributionLevel] ?? 0,
-      });
-    }
-  }
-  return days;
+export function calendarToWeeks(calendar) {
+  return (calendar?.weeks ?? []).map((w) =>
+    (w.contributionDays ?? []).map((d) => ({
+      date: d.date,
+      count: d.contributionCount ?? 0,
+      level: LEVEL_MAP[d.contributionLevel] ?? 0,
+      weekday: d.weekday ?? new Date(d.date).getUTCDay(),
+    })),
+  );
 }
 
 /**
- * fetchContributionsGraphQL — total + calendario INCLUYENDO privados, vía la
- * API GraphQL autenticada. Lanza si falla (el handler cae al fallback público).
+ * daysToWeeks — agrupa una lista plana de días (fallback jogruber) en semanas
+ * que arrancan en domingo. Helper puro, exportado para test.
  */
-async function fetchContributionsGraphQL(token, signal) {
-  // `viewer` = el dueño del token. Es la forma confiable de incluir las
-  // contribuciones PRIVADAS (querying `user(login)` a veces solo trae públicas
-  // aunque seas vos). El token tiene que ser de GITHUB_USER.
+export function daysToWeeks(days) {
+  const weeks = [];
+  let current = [];
+  for (const d of days) {
+    const weekday = new Date(d.date).getUTCDay();
+    if (weekday === 0 && current.length) {
+      weeks.push(current);
+      current = [];
+    }
+    current.push({ ...d, weekday });
+  }
+  if (current.length) weeks.push(current);
+  return weeks;
+}
+
+/**
+ * yearRange — devuelve { from, to } ISO para un año calendario, o null si el
+ * año no es válido (→ "último año" rolling).
+ */
+function yearRange(yearParam) {
+  const year = Number(yearParam);
+  const now = new Date().getUTCFullYear();
+  if (!Number.isInteger(year) || year < 2008 || year > now) return null;
+  return {
+    from: `${year}-01-01T00:00:00Z`,
+    to: `${year}-12-31T23:59:59Z`,
+    year,
+  };
+}
+
+/**
+ * fetchGraphQL — calendario (rolling o por año) INCLUYENDO privados, + la lista
+ * de años con actividad. Lanza si falla (el handler cae al fallback público).
+ */
+async function fetchGraphQL(token, range, signal) {
+  // `viewer` = dueño del token (incluye privados). `allYears` (colección por
+  // defecto) da SIEMPRE la lista completa de años para el selector.
   const query = `
-    query {
+    query($from: DateTime, $to: DateTime) {
       viewer {
-        contributionsCollection {
+        contributionsCollection(from: $from, to: $to) {
           contributionCalendar {
             totalContributions
-            weeks { contributionDays { date contributionCount contributionLevel } }
+            weeks { contributionDays { date contributionCount contributionLevel weekday } }
           }
         }
+        allYears: contributionsCollection { contributionYears }
       }
     }`;
 
@@ -69,7 +104,10 @@ async function fetchContributionsGraphQL(token, signal) {
       'Content-Type': 'application/json',
       'User-Agent': 'giulianogerlo-portfolio',
     },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({
+      query,
+      variables: { from: range?.from ?? null, to: range?.to ?? null },
+    }),
   });
 
   if (!res.ok) throw new Error(`GitHub GraphQL respondió ${res.status}`);
@@ -78,34 +116,37 @@ async function fetchContributionsGraphQL(token, signal) {
     throw new Error(`GitHub GraphQL: ${json.errors[0].message}`);
   }
 
-  const calendar =
-    json.data?.viewer?.contributionsCollection?.contributionCalendar;
+  const viewer = json.data?.viewer;
+  const calendar = viewer?.contributionsCollection?.contributionCalendar;
   return {
-    contributions: calendarToContributions(calendar),
+    weeks: calendarToWeeks(calendar),
     total: calendar?.totalContributions ?? 0,
+    years: viewer?.allYears?.contributionYears ?? [],
   };
 }
 
 /**
- * fetchContributionsPublic — fallback sin token (API de jogruber). Solo cuenta
- * contribuciones públicas. Fail-soft: si falla, { contributions: [], total: 0 }.
+ * fetchPublic — fallback sin token (jogruber). Solo público, sin years.
+ * Fail-soft: { weeks: [], total: 0, years: [] } si falla.
  */
-async function fetchContributionsPublic(signal) {
+async function fetchPublic(range, signal) {
   try {
+    const y = range?.year ?? 'last';
     const res = await fetch(
-      `https://github-contributions-api.jogruber.de/v4/${GITHUB_USER}?y=last`,
+      `https://github-contributions-api.jogruber.de/v4/${GITHUB_USER}?y=${y}`,
       { signal },
     );
     if (!res.ok) throw new Error(`Contribuciones respondió ${res.status}`);
     const data = await res.json();
-    const contributions = data.contributions ?? [];
+    const days = data.contributions ?? [];
     const total =
+      data.total?.[range?.year] ??
       data.total?.lastYear ??
-      contributions.reduce((acc, d) => acc + (d.count ?? 0), 0);
-    return { contributions, total };
+      days.reduce((acc, d) => acc + (d.count ?? 0), 0);
+    return { weeks: daysToWeeks(days), total, years: [] };
   } catch (err) {
-    console.error('[github] fetchContributionsPublic falló:', err);
-    return { contributions: [], total: 0 };
+    console.error('[github] fetchPublic falló:', err);
+    return { weeks: [], total: 0, years: [] };
   }
 }
 
@@ -113,6 +154,8 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método no permitido.' });
   }
+
+  const range = yearRange(req.query?.year);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
@@ -122,31 +165,34 @@ export default async function handler(req, res) {
     let result;
 
     if (token) {
-      // Con token: GraphQL (incluye privados). Si falla, caemos al público.
       try {
-        result = await fetchContributionsGraphQL(token, controller.signal);
+        result = await fetchGraphQL(token, range, controller.signal);
         console.log('[github] vía GraphQL (con token) → total', result.total);
       } catch (err) {
         console.error('[github] GraphQL falló, uso fallback público:', err);
-        result = await fetchContributionsPublic(controller.signal);
+        result = await fetchPublic(range, controller.signal);
       }
     } else {
-      console.warn('[github] SIN GITHUB_TOKEN → fallback público (solo conteo público)');
-      result = await fetchContributionsPublic(controller.signal);
+      console.warn('[github] SIN GITHUB_TOKEN → fallback público');
+      result = await fetchPublic(range, controller.signal);
     }
 
-    // El CDN de Vercel cachea 1h y sirve "stale" mientras revalida.
     res.setHeader(
       'Cache-Control',
       'public, s-maxage=3600, stale-while-revalidate=86400',
     );
 
-    return res
-      .status(200)
-      .json({ contributions: result.contributions, totalContributions: result.total });
+    return res.status(200).json({
+      weeks: result.weeks,
+      totalContributions: result.total,
+      year: range?.year ?? null,
+      years: result.years,
+    });
   } catch (err) {
     console.error('[github] handler falló:', err);
-    return res.status(200).json({ contributions: [], totalContributions: 0 });
+    return res
+      .status(200)
+      .json({ weeks: [], totalContributions: 0, year: null, years: [] });
   } finally {
     clearTimeout(timeout);
   }

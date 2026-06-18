@@ -9,11 +9,15 @@ import GitHub from './GitHub.jsx';
 import { useGitHub } from '../../hooks/useGitHub.js';
 
 const DATA = {
-  contributions: [
-    { date: '2026-06-01', count: 2, level: 1 },
-    { date: '2026-06-02', count: 0, level: 0 },
+  weeks: [
+    [
+      { date: '2026-06-01', count: 0, level: 0, weekday: 1 },
+      { date: '2026-06-02', count: 3, level: 2, weekday: 2 },
+    ],
   ],
-  totalContributions: 42,
+  totalContributions: 720,
+  year: null,
+  years: [2026, 2025, 2024],
 };
 
 describe('GitHub (sección)', () => {
@@ -21,27 +25,29 @@ describe('GitHub (sección)', () => {
     useGitHub.mockReset();
   });
 
-  test('dev: muestra aviso de que se ve en producción', () => {
+  test('dev sin data: muestra aviso de vercel dev', () => {
     useGitHub.mockReturnValue({ data: null, loading: false, error: null, isLocalDev: true });
     render(<GitHub />);
     expect(screen.getByText(/vercel dev/i)).toBeInTheDocument();
   });
 
-  test('loading: muestra skeletons', () => {
+  test('loading inicial: muestra skeleton', () => {
     useGitHub.mockReturnValue({ data: null, loading: true, error: null, isLocalDev: false });
     const { container } = render(<GitHub />);
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
-  test('data: renderiza el total de contribuciones', () => {
+  test('data: muestra total y tabs de años', () => {
     useGitHub.mockReturnValue({ data: DATA, loading: false, error: null, isLocalDev: false });
     render(<GitHub />);
-    expect(screen.getByText(/42 contribuciones/i)).toBeInTheDocument();
+    expect(screen.getByText(/720 contribuciones en el último año/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /último año/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2025' })).toBeInTheDocument();
   });
 
-  test('prod sin data: esconde la sección (no renderiza)', () => {
+  test('prod sin data: esconde la sección', () => {
     useGitHub.mockReturnValue({
-      data: { contributions: [], totalContributions: 0 },
+      data: { weeks: [], totalContributions: 0, year: null, years: [] },
       loading: false,
       error: null,
       isLocalDev: false,

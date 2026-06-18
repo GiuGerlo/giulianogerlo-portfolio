@@ -63,6 +63,16 @@ Tres mejoras post deploy del dashboard + chatbot logging:
 
 - Pinned repos (GraphQL+token). Clustering semántico de preguntas. Stats extra de lenguajes.
 
+## Log de cambios (extra)
+
+- **2026-06-18 — GitHub mejoras (pedido owner)**: conteo de privados arreglado vía GraphQL
+  `viewer` autenticado (necesita `GITHUB_TOKEN` en Vercel, scope `read:user`; el calendario
+  público nunca cuenta privados). Selector de **años** (último año rolling + tabs por año
+  calendario vía `?year=`, lista de años desde `contributionYears`). Grid estilo GitHub con
+  **etiquetas de mes** (arriba) y de día (Lun/Mié/Vie), columnas por semana. `api/github.js`
+  devuelve `{weeks, totalContributions, year, years}`; helpers `calendarToWeeks`/`daysToWeeks`.
+  Tests reescritos. Suite 228/228.
+
 ## Log de cambios
 
 - **2026-06-18 — T1**: `Footer.jsx` — removido el `<p>Hecho con React + Tailwind</p>`; la

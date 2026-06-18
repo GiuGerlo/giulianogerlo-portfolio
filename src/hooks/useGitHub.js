@@ -1,18 +1,18 @@
 // Hook que trae los datos de GitHub desde el proxy serverless /api/github.
 import { useState, useEffect } from 'react';
 
-// `import.meta.env.DEV` es true en `pnpm dev` Y en `vercel dev` (ambos usan
-// Vite en modo dev). NO lo usamos para saltear el fetch — la función
-// /api/github SÍ corre bajo `vercel dev`. Solo lo exponemos para que, si el
-// fetch falla en local (plain `pnpm dev`, que no sirve /api/*), la sección
-// muestre un aviso explicativo en vez de esconderse en silencio.
+// `import.meta.env.DEV` es true en `pnpm dev` y `vercel dev`. NO saltea el
+// fetch (la función /api/github SÍ corre bajo `vercel dev`). Solo se expone
+// para mostrar un aviso si el fetch falla en local (plain `pnpm dev`).
 const IS_LOCAL_DEV = import.meta.env.DEV;
 
 /**
- * useGitHub — { data, loading, error, isLocalDev }
- *  data: { repos, contributions, totalContributions } | null
+ * useGitHub — trae las contribuciones. Refetchea cuando cambia `year`.
+ * @param {number|null} year - año calendario, o null para "último año".
+ * @returns {{ data, loading, error, isLocalDev }}
+ *   data: { weeks, totalContributions, year, years } | null
  */
-export function useGitHub() {
+export function useGitHub(year = null) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,12 +21,15 @@ export function useGitHub() {
     let cancelled = false;
 
     (async () => {
+      setLoading(true);
       try {
-        const res = await fetch('/api/github');
+        const url = year ? `/api/github?year=${year}` : '/api/github';
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`/api/github respondió ${res.status}`);
         const json = await res.json();
         if (cancelled) return;
         setData(json);
+        setError(null);
         setLoading(false);
       } catch (err) {
         if (cancelled) return;
@@ -39,7 +42,7 @@ export function useGitHub() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [year]);
 
   return { data, loading, error, isLocalDev: IS_LOCAL_DEV };
 }
