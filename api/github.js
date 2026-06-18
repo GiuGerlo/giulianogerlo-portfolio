@@ -2,26 +2,92 @@
 //
 // GET /api/github → { contributions, totalContributions }
 //
-// Por qué un proxy y no fetch directo desde el browser:
-//   - El CDN de Vercel cachea la respuesta (Cache-Control abajo) → no se pega
-//     a la API externa en cada visita.
-//   - Centraliza el origen de datos (si mañana cambia la fuente, se toca acá).
+// Dos fuentes:
+//   1. GraphQL de GitHub autenticado (si hay GITHUB_TOKEN): el
+//      contributionsCollection del DUEÑO del token incluye las contribuciones
+//      PRIVADAS → el total coincide con el del perfil (ej. 717). Es la única
+//      forma de contar lo privado.
+//   2. Fallback público (API de jogruber, sin token): solo cuenta lo PÚBLICO
+//      (número más bajo). Se usa si no hay token o si GraphQL falla.
 //
-// Fuente: API pública de jogruber, que lee el calendario de contribuciones
-// PÚBLICO de GitHub. Para que incluya las contribuciones privadas (y el total
-// coincida con el del perfil), hay que activar en GitHub:
-//   Settings → Profile → "Include private contributions on my profile".
-// No usa token.
-//
-// Corre en Node (usa el fetch global de Node 18+).
+// El CDN de Vercel cachea la respuesta (Cache-Control abajo). Corre en Node.
 
 const GITHUB_USER = 'GiuGerlo';
 
+// Enum de nivel de GitHub GraphQL → nuestro 0-4.
+const LEVEL_MAP = {
+  NONE: 0,
+  FIRST_QUARTILE: 1,
+  SECOND_QUARTILE: 2,
+  THIRD_QUARTILE: 3,
+  FOURTH_QUARTILE: 4,
+};
+
 /**
- * fetchContributions — calendario de contribuciones del último año.
- * Fail-soft: si falla, devuelve { contributions: [], total: 0 }.
+ * calendarToContributions — aplana el contributionCalendar de GraphQL
+ * (weeks → days) a [{ date, count, level }]. Helper puro, exportado para test.
  */
-async function fetchContributions(signal) {
+export function calendarToContributions(calendar) {
+  const days = [];
+  for (const week of calendar?.weeks ?? []) {
+    for (const d of week.contributionDays ?? []) {
+      days.push({
+        date: d.date,
+        count: d.contributionCount ?? 0,
+        level: LEVEL_MAP[d.contributionLevel] ?? 0,
+      });
+    }
+  }
+  return days;
+}
+
+/**
+ * fetchContributionsGraphQL — total + calendario INCLUYENDO privados, vía la
+ * API GraphQL autenticada. Lanza si falla (el handler cae al fallback público).
+ */
+async function fetchContributionsGraphQL(token, signal) {
+  const query = `
+    query($login: String!) {
+      user(login: $login) {
+        contributionsCollection {
+          contributionCalendar {
+            totalContributions
+            weeks { contributionDays { date contributionCount contributionLevel } }
+          }
+        }
+      }
+    }`;
+
+  const res = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    signal,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'giulianogerlo-portfolio',
+    },
+    body: JSON.stringify({ query, variables: { login: GITHUB_USER } }),
+  });
+
+  if (!res.ok) throw new Error(`GitHub GraphQL respondió ${res.status}`);
+  const json = await res.json();
+  if (json.errors?.length) {
+    throw new Error(`GitHub GraphQL: ${json.errors[0].message}`);
+  }
+
+  const calendar =
+    json.data?.user?.contributionsCollection?.contributionCalendar;
+  return {
+    contributions: calendarToContributions(calendar),
+    total: calendar?.totalContributions ?? 0,
+  };
+}
+
+/**
+ * fetchContributionsPublic — fallback sin token (API de jogruber). Solo cuenta
+ * contribuciones públicas. Fail-soft: si falla, { contributions: [], total: 0 }.
+ */
+async function fetchContributionsPublic(signal) {
   try {
     const res = await fetch(
       `https://github-contributions-api.jogruber.de/v4/${GITHUB_USER}?y=last`,
@@ -30,13 +96,12 @@ async function fetchContributions(signal) {
     if (!res.ok) throw new Error(`Contribuciones respondió ${res.status}`);
     const data = await res.json();
     const contributions = data.contributions ?? [];
-    // `total` puede venir como { lastYear: N } o por año; si no, sumamos.
     const total =
       data.total?.lastYear ??
       contributions.reduce((acc, d) => acc + (d.count ?? 0), 0);
     return { contributions, total };
   } catch (err) {
-    console.error('[github] fetchContributions falló:', err);
+    console.error('[github] fetchContributionsPublic falló:', err);
     return { contributions: [], total: 0 };
   }
 }
@@ -46,24 +111,36 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido.' });
   }
 
-  // Corta la operación a los 10s para no colgar la función.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const { contributions, total } = await fetchContributions(controller.signal);
+    const token = process.env.GITHUB_TOKEN;
+    let result;
 
-    // El CDN de Vercel cachea 1h y sirve "stale" mientras revalida → sin
-    // impacto aunque haya muchas visitas.
+    if (token) {
+      // Con token: GraphQL (incluye privados). Si falla, caemos al público.
+      try {
+        result = await fetchContributionsGraphQL(token, controller.signal);
+      } catch (err) {
+        console.error('[github] GraphQL falló, uso fallback público:', err);
+        result = await fetchContributionsPublic(controller.signal);
+      }
+    } else {
+      result = await fetchContributionsPublic(controller.signal);
+    }
+
+    // El CDN de Vercel cachea 1h y sirve "stale" mientras revalida.
     res.setHeader(
       'Cache-Control',
       'public, s-maxage=3600, stale-while-revalidate=86400',
     );
 
-    return res.status(200).json({ contributions, totalContributions: total });
+    return res
+      .status(200)
+      .json({ contributions: result.contributions, totalContributions: result.total });
   } catch (err) {
     console.error('[github] handler falló:', err);
-    // Fail-soft total: 200 con data vacía → la sección se esconde sola.
     return res.status(200).json({ contributions: [], totalContributions: 0 });
   } finally {
     clearTimeout(timeout);

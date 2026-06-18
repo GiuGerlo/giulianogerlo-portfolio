@@ -89,11 +89,17 @@ Si alguno no lo tenés en PDF y solo tenés URL externa (ej. CoderHouse a veces 
 - [ ] Auth Settings: Site URL + Redirect URLs para magic link callback — se configura en Task 12.2
 
 ### 8. GitHub (sección "Actividad en GitHub")
-- [ ] **Para que el total coincida con tu perfil** (incluir repos privados): GitHub →
-  Settings → Public profile → activar **"Include private contributions on my profile"**.
-  Sin esto, la sección muestra solo las contribuciones PÚBLICAS (número más bajo). Activado,
-  muestra el total real (anonimizado: solo el número/verde, sin nombres de repos privados).
-  No requiere token ni nada en el código.
+- [x] Activado **"Include private contributions on my profile"** (GitHub → Settings).
+- [ ] **`GITHUB_TOKEN` para mostrar el total CON privados (ej. 717).** El calendario público
+  NO cuenta lo privado aunque actives el setting; la única forma es la API GraphQL con tu
+  token. Pasos:
+  1. GitHub → Settings → Developer settings → Personal access tokens → **Tokens (classic)** →
+     Generate new token (classic). Scope: **`read:user`**. (No expira o el plazo que quieras.)
+  2. Copiá el token (empieza con `ghp_…`).
+  3. Vercel → tu proyecto → Settings → Environment Variables → agregá `GITHUB_TOKEN` con ese
+     valor, scope **Production + Preview**. Redeploy.
+  4. (Opcional, para `vercel dev` local) ponelo también en `.env.local`.
+  - Sin el token, la sección anda igual pero muestra solo lo PÚBLICO (número más bajo).
 
 ## 🔐 Seguridad — rotar keys
 
