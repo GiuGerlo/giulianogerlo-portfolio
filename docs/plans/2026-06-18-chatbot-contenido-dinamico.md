@@ -1,6 +1,6 @@
 # Plan — Chatbot lee contenido dinámico de Supabase
 
-Fecha: 2026-06-18 · Estado: **en curso**
+Fecha: 2026-06-18 · Estado: **código completo** (pendiente: commit + push + verificación en prod por el owner)
 
 ## Context
 
@@ -77,3 +77,11 @@ rate-limit de Redis.
   sección "Contexto del chatbot" con `<textarea>` nativo (texto plano, sin WYSIWYG) y nota
   de privacidad. `Site.test.jsx`: fixture + asserts del textarea (populate + payload
   `chatbot_context` en el UPDATE). Tests 4/4, lint limpio.
+- **2026-06-18 — T4 (QA)**: verificado vía MCP que las 6 tablas tienen data (6 proyectos
+  publicados, 6 exp, 5 skills, 6 ai, 4 edu, contexto 267→ editado por el owner). Verificado
+  con la **anon key** contra el REST de Supabase que RLS deja leer projects (filtro
+  `published`+orden), `chatbot_context` y experience → el path del serverless funciona en
+  runtime. El owner ya editó el contexto desde `/admin/sitio` (flujo T3 confirmado contra
+  DB real). `bio.js`: marcado como SOLO FALLBACK (la fuente de verdad es
+  `site_settings.chatbot_context`). Pendiente owner: commit + push + probar el chat real en
+  prod (Gemini+Turnstile no automatizable desde acá).

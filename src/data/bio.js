@@ -1,18 +1,15 @@
 /**
- * bio.js — datos extra de Giuliano SOLO para el chatbot IA.
+ * bio.js — datos extra de Giuliano para el chatbot IA. SOLO FALLBACK.
  *
- * IMPORTANTE: este archivo NO se importa en ningún componente del
- * frontend. No se renderiza en ninguna página. Su único consumidor es
- * `api/chat.js` (función buildContext), que lo inyecta en el contexto
- * que recibe Gemini.
+ * DESDE 2026-06-18 esto NO es la fuente de verdad. El contexto extra del
+ * chatbot ahora se edita desde /admin/sitio (columna
+ * `site_settings.chatbot_context`) y `api/chat.js` lo lee de la DB en cada
+ * request. Editar este archivo NO cambia lo que dice el bot en producción:
+ * solo se usa si la DB falla o no está configurada (fail-open en
+ * `fetchContent`). Para cambiar la bio del bot, editá /admin/sitio.
  *
- * Para qué sirve: hay datos personales/profesionales que no van en la
- * UI pública (edad, disponibilidad, preferencias) pero que ayudan al
- * asistente a responder mejor preguntas de visitantes/reclutadores.
- *
- * Cómo extenderlo: agregá pares clave-valor al objeto. La clave es la
- * etiqueta del dato, el valor es el texto. buildContext los serializa
- * automáticamente — no hay que tocar api/chat.js al sumar un campo.
+ * Este archivo NO se importa en ningún componente del frontend; no se
+ * renderiza en ninguna página. Su único consumidor es `api/chat.js`.
  *
  * Recordá: lo que pongas acá el chatbot lo va a poder decir a cualquier
  * visitante. No cargues nada que no quieras que sea público.
