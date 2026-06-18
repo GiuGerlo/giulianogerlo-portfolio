@@ -43,8 +43,14 @@ un **registro de chats** del chatbot, agrupado por conversación, para ver qué 
   `/admin/chats` en `App.jsx` + item "Chats" en `AdminLayout`. `Chats.test.jsx` (5 tests).
   Suite 216/216 (el fallo intermitente de `App.test "renders Home"` es flaky por su fetch
   real a Supabase, no relacionado).
-- **T4**: Dashboard home (stats/accesos/estado/últimos chats) + mover proyectos a
-  `/admin/proyectos` + `useDashboardStats` + rutas/nav.
+- **T4** ✅: gestión de proyectos movida a `src/pages/admin/Projects.jsx` (`/admin/proyectos`,
+  + `Projects.test.jsx`; borrado `Dashboard.test.jsx` viejo). `Dashboard.jsx` reescrito como
+  HOME (`/admin`): stat cards (proyectos pub/total, experiencias, skills, AI, educación,
+  chats + 7d), accesos rápidos (grid a cada sección + nuevo proyecto + ver sitio), estado
+  del sitio (CV/foto cargados, borradores sin publicar, link a Vercel Analytics), preview de
+  últimos 5 chats. `src/hooks/useDashboardStats.js` (counts en paralelo, head:true).
+  `App.jsx` ruta `/admin/proyectos`. `AdminLayout` nav: "Inicio" + "Proyectos" separados.
+  `Dashboard.test.jsx` nuevo (home, 5 tests). Suite 221/221, lint limpio.
 - **T5**: QA + cierre.
 
 ## Verificación end-to-end

@@ -31,7 +31,8 @@ import { useAuth } from '../../hooks/useAuth.js';
 // Links de la nav del panel. `end` solo en /admin (sino prefija las hijas).
 // Se va completando a medida que se suman secciones editables (Phase 13 cont.).
 const NAV_ITEMS = [
-  { to: '/admin', label: 'Proyectos', end: true },
+  { to: '/admin', label: 'Inicio', end: true },
+  { to: '/admin/proyectos', label: 'Proyectos' },
   { to: '/admin/perfil', label: 'Perfil' },
   { to: '/admin/sitio', label: 'Sitio' },
   { to: '/admin/skills', label: 'Skills' },
@@ -51,23 +52,46 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-bg">
       {/* Topbar — sticky para que esté siempre visible durante el scroll.
-          backdrop-blur + bg semi-transparente le da look "elevated". */}
+          backdrop-blur + bg semi-transparente le da look "elevated".
+          Dos filas: (1) brand + usuario/logout, (2) el nav a todo el ancho.
+          Separarlo en filas evita que los ~9 links se amontonen y wrapeen
+          feo al lado del email/logout. */}
       <header className="sticky top-0 z-10 border-b border-border bg-bg-elevated/80 backdrop-blur">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-4 py-3 md:px-8">
-          {/* Brand + link al sitio público. */}
-          <Link
-            to="/"
-            className="flex items-center gap-2 font-mono text-sm text-text-muted transition-colors hover:text-accent"
-          >
-            <HomeIcon size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">Volver al sitio</span>
-          </Link>
+        <div className="mx-auto max-w-[1200px] px-4 md:px-8">
+          {/* Fila 1: brand (izq) + usuario/logout (der). */}
+          <div className="flex items-center justify-between gap-4 py-3">
+            <Link
+              to="/"
+              className="flex items-center gap-2 font-mono text-sm text-text-muted transition-colors hover:text-accent"
+            >
+              <HomeIcon size={16} aria-hidden="true" />
+              <span className="hidden sm:inline">Volver al sitio</span>
+            </Link>
 
-          {/* Nav interna del panel: links a cada sección editable. NavLink
-              agrega `isActive` solo → resaltamos la sección actual en accent.
-              `end` en Proyectos (/admin) evita que matchee las rutas hijas.
-              flex-wrap porque son varios links (entran en 1-2 filas). */}
-          <nav className="flex flex-wrap items-center gap-1 font-mono text-xs">
+            <div className="flex items-center gap-3">
+              <span
+                className="hidden max-w-[200px] truncate font-mono text-xs text-text-muted md:inline"
+                title={session?.user?.email ?? ''}
+              >
+                {session?.user?.email ?? ''}
+              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs text-text-muted transition-colors hover:border-accent hover:text-accent"
+                aria-label="Cerrar sesión"
+              >
+                <LogOut size={14} aria-hidden="true" />
+                <span className="hidden sm:inline">Cerrar sesión</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Fila 2: nav interna. NavLink marca la sección activa en accent.
+              `end` en Inicio (/admin) evita que matchee las rutas hijas.
+              overflow-x-auto → en pantallas angostas scrollea horizontal en
+              vez de wrapear (scroll-slim oculta la barra fea). */}
+          <nav className="scroll-slim -mb-px flex items-center justify-around gap-1 overflow-x-auto border-t border-border py-2 font-mono text-xs">
             {NAV_ITEMS.map(({ to, label, end }) => (
               <NavLink
                 key={to}
@@ -75,7 +99,7 @@ export default function AdminLayout() {
                 end={end}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-md px-3 py-1.5 transition-colors',
+                    'shrink-0 rounded-md px-3 py-1.5 transition-colors',
                     isActive
                       ? 'bg-accent/10 text-accent'
                       : 'text-text-muted hover:text-accent',
@@ -86,25 +110,6 @@ export default function AdminLayout() {
               </NavLink>
             ))}
           </nav>
-
-          {/* User info + logout. El email se trunca en pantallas chicas. */}
-          <div className="flex items-center gap-3">
-            <span
-              className="hidden max-w-[180px] truncate font-mono text-xs text-text-muted md:inline"
-              title={session?.user?.email ?? ''}
-            >
-              {session?.user?.email ?? ''}
-            </span>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs text-text-muted transition-colors hover:border-accent hover:text-accent"
-              aria-label="Cerrar sesión"
-            >
-              <LogOut size={14} aria-hidden="true" />
-              <span className="hidden sm:inline">Cerrar sesión</span>
-            </button>
-          </div>
         </div>
       </header>
 

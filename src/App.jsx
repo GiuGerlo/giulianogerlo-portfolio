@@ -28,6 +28,7 @@ const AdminLayout = lazy(() => import('./components/admin/AdminLayout.jsx'));
 const Login = lazy(() => import('./pages/admin/Login.jsx'));
 const AuthCallback = lazy(() => import('./pages/admin/AuthCallback.jsx'));
 const Dashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
+const ProjectsAdmin = lazy(() => import('./pages/admin/Projects.jsx'));
 const ProjectForm = lazy(() => import('./pages/admin/ProjectForm.jsx'));
 const Profile = lazy(() => import('./pages/admin/Profile.jsx'));
 const Site = lazy(() => import('./pages/admin/Site.jsx'));
@@ -110,6 +111,7 @@ function App() {
             }
           >
             <Route path="/admin" element={<Dashboard />} />
+            <Route path="/admin/proyectos" element={<ProjectsAdmin />} />
             <Route path="/admin/projects/new" element={<ProjectForm />} />
             <Route path="/admin/projects/:id" element={<ProjectForm />} />
             <Route path="/admin/perfil" element={<Profile />} />
