@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import SectionHeading from '../ui/SectionHeading.jsx';
 import Reveal from '../ui/Reveal.jsx';
+import Skeleton from '../ui/Skeleton.jsx';
 import { useExperience } from '../../hooks/useExperience.js';
 // Fallback (= seed de experience) si la DB falla/no cargó.
 import { experience as FALLBACK } from '../../data/experience.js';
@@ -32,9 +33,10 @@ import { experience as FALLBACK } from '../../data/experience.js';
  *     posición absoluta, no forma parte del área clickeable útil.
  */
 export default function Experience() {
-  // Timeline editable desde /admin/experiencia. Fallback al data file.
-  const { data, error } = useExperience();
-  const items = data && !error ? data : FALLBACK;
+  // Timeline editable desde /admin/experiencia. Skeletons mientras carga
+  // (sin flash del fallback); el FALLBACK estático queda solo para error real.
+  const { data, loading } = useExperience();
+  const items = data ?? FALLBACK;
 
   return (
     <section
@@ -58,7 +60,19 @@ export default function Experience() {
             className="absolute left-2 top-2 bottom-2 w-0.5 bg-border"
           />
 
-          {items.map((item, index) => {
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="relative pb-10">
+                  <span
+                    aria-hidden="true"
+                    className="absolute -left-8 top-1.5 h-[18px] w-[18px] rounded-full border-2 border-border bg-bg"
+                  />
+                  <Skeleton className="mb-2 h-3 w-24" />
+                  <Skeleton className="mb-2 h-5 w-2/3" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ))
+            : items.map((item, index) => {
             // Contenido de la card — idéntico linkee o no. Lo definimos
             // una vez y abajo decidimos en qué contenedor lo metemos.
             // group-hover en el <h3>: cuando el item es link, al pasar

@@ -6,6 +6,7 @@ import { useSiteSettings } from '../../hooks/useSiteSettings.js';
 import Button from '../ui/Button.jsx';
 import Plasma from '../ui/Plasma.jsx';
 import AnimatedName from '../ui/AnimatedName.jsx';
+import Skeleton from '../ui/Skeleton.jsx';
 
 // Fallback hardcodeado (= seed de site_settings) para degradación elegante
 // si la DB falla/no cargó. Mismo patrón que About.
@@ -48,9 +49,10 @@ export default function Hero() {
 
   const overlayClass = isDark ? 'bg-bg/55' : 'bg-bg/80';
 
-  // Contenido editable desde /admin/sitio. Si la DB falla/no cargó → FALLBACK.
-  const { data, error } = useSiteSettings();
-  const site = data && !error ? data : FALLBACK;
+  // Contenido editable desde /admin/sitio. Skeleton mientras carga (sin flash
+  // del fallback); el FALLBACK estático queda solo para el caso de error real.
+  const { data, loading } = useSiteSettings();
+  const site = data ?? FALLBACK;
 
   return (
     <section
@@ -96,24 +98,40 @@ export default function Hero() {
       <div className="relative z-20 mx-auto max-w-[900px]">
         <div className="mb-6 font-mono text-sm text-accent">$ whoami</div>
 
-        {/* clamp(min, vw, max) para escalado fluido entre mobile y
-            desktop sin breakpoints intermedios. El nombre entra con
-            animación de chars en cascada (AnimatedName). */}
-        <h1 className="mb-5 text-[clamp(2.5rem,8vw,4.5rem)] font-semibold leading-[1.05] tracking-tight">
-          <AnimatedName text={site.heroName} />
-        </h1>
+        {loading ? (
+          // Placeholders centrados con el mismo alto/ancho aproximado que
+          // el nombre/tagline/ubicación → sin flash ni salto de layout.
+          <div
+            aria-busy="true"
+            aria-label="Cargando"
+            className="flex flex-col items-center"
+          >
+            <Skeleton className="mb-5 h-[clamp(2.5rem,8vw,4.5rem)] w-[min(90%,520px)]" />
+            <Skeleton className="mb-3 h-7 w-[min(80%,380px)]" />
+            <Skeleton className="mb-10 h-5 w-[min(60%,240px)]" />
+          </div>
+        ) : (
+          <div>
+            {/* clamp(min, vw, max) para escalado fluido entre mobile y
+                desktop sin breakpoints intermedios. El nombre entra con
+                animación de chars en cascada (AnimatedName). */}
+            <h1 className="mb-5 text-[clamp(2.5rem,8vw,4.5rem)] font-semibold leading-[1.05] tracking-tight">
+              <AnimatedName text={site.heroName} />
+            </h1>
 
-        <p className="mb-3 text-lg text-text-muted md:text-2xl">
-          {site.heroTagline}
-        </p>
+            <p className="mb-3 text-lg text-text-muted md:text-2xl">
+              {site.heroTagline}
+            </p>
 
-        <p className="mb-10 inline-flex items-center gap-1.5 font-mono text-sm text-text-muted">
-          {/* MapPin de lucide-react. aria-hidden porque el texto ya
-              describe la ubicación; el ícono es decoración semántica
-              redundante para screen readers. */}
-          <MapPin size={14} aria-hidden="true" />
-          {site.heroLocation}
-        </p>
+            <p className="mb-10 inline-flex items-center gap-1.5 font-mono text-sm text-text-muted">
+              {/* MapPin de lucide-react. aria-hidden porque el texto ya
+                  describe la ubicación; el ícono es decoración semántica
+                  redundante para screen readers. */}
+              <MapPin size={14} aria-hidden="true" />
+              {site.heroLocation}
+            </p>
+          </div>
+        )}
 
         {/* CTAs. flex-wrap para que en mobile bajen una abajo de la
             otra sin romper el centrado. */}

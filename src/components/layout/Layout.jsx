@@ -30,19 +30,24 @@ export default function Layout() {
       {/* Resetea el scroll al tope en cada cambio de ruta. */}
       <ScrollToTop />
 
-      <Navbar />
+      {/* blur-in: toda la página entra difuminada y se aclara una vez (al
+          montar). El Chat queda FUERA: es position:fixed y el filter del
+          blur le rompería el anclaje durante la animación. */}
+      <div className="blur-in">
+        <Navbar />
 
-      <main className="min-h-screen">
-        {/* Suspense: mientras se baja el chunk de una página lazy (ver
-            App.jsx — ProjectDetail/NotFound), muestra este fallback. El
-            div vacío con min-h-screen sostiene el alto para que el
-            Footer no salte hacia arriba. */}
-        <Suspense fallback={<div className="min-h-screen" />}>
-          <Outlet />
-        </Suspense>
-      </main>
+        <main className="min-h-screen">
+          {/* Suspense: mientras se baja el chunk de una página lazy (ver
+              App.jsx — ProjectDetail/NotFound), muestra este fallback. El
+              div vacío con min-h-screen sostiene el alto para que el
+              Footer no salte hacia arriba. */}
+          <Suspense fallback={<div className="min-h-screen" />}>
+            <Outlet />
+          </Suspense>
+        </main>
 
-      <Footer />
+        <Footer />
+      </div>
 
       {/* Chatbot flotante — visible en todas las páginas. */}
       <Chat />

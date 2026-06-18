@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import SectionHeading from '../ui/SectionHeading.jsx';
 import Reveal from '../ui/Reveal.jsx';
 import Chip from '../ui/Chip.jsx';
+import Skeleton from '../ui/Skeleton.jsx';
 import { useProfile } from '../../hooks/useProfile.js';
 
 /**
@@ -46,11 +47,11 @@ const FALLBACK = {
  */
 export default function About() {
   // Hook custom: trae la fila id=1 de Supabase. { data, loading, error }.
-  const { data, error } = useProfile();
+  const { data, loading } = useProfile();
 
-  // Si el fetch terminó OK y trajo fila, usamos la DB; en cualquier otro caso
-  // (cargando, error, null) caemos al FALLBACK. Así no hay flash de vacío.
-  const profile = data && !error ? data : FALLBACK;
+  // Skeleton mientras carga (sin flash del contenido viejo). El FALLBACK
+  // estático queda solo para el caso de error real o sin fila.
+  const profile = data ?? FALLBACK;
 
   return (
     <section
@@ -64,6 +65,29 @@ export default function About() {
             estire de alto si el texto es más largo. Envuelto en
             <Reveal> → aparece con fade-up al scrollear. */}
         <Reveal>
+        {loading ? (
+          <div
+            aria-busy="true"
+            aria-label="Cargando sobre mí"
+            className="grid gap-12 md:grid-cols-[1fr_280px] md:gap-16 md:items-start"
+          >
+            {/* Columna texto: líneas + chips placeholder. */}
+            <div>
+              <Skeleton className="mb-3 h-4 w-full" />
+              <Skeleton className="mb-3 h-4 w-11/12" />
+              <Skeleton className="mb-6 h-4 w-4/5" />
+              <Skeleton className="mb-3 h-4 w-full" />
+              <Skeleton className="mb-8 h-4 w-3/4" />
+              <div className="mt-6 flex flex-wrap gap-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-7 w-28 rounded-full" />
+                ))}
+              </div>
+            </div>
+            {/* Columna foto: cuadrado placeholder. */}
+            <Skeleton className="aspect-square w-full rounded-xl md:max-w-[280px]" />
+          </div>
+        ) : (
         <div className="grid gap-12 md:grid-cols-[1fr_280px] md:gap-16 md:items-start">
           {/* Columna texto + chips. */}
           <div>
@@ -145,6 +169,7 @@ export default function About() {
             )}
           </div>
         </div>
+        )}
         </Reveal>
       </div>
     </section>

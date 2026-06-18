@@ -3,6 +3,7 @@ import { ExternalLink } from 'lucide-react';
 import SectionHeading from '../ui/SectionHeading.jsx';
 import BorderGlow from '../ui/BorderGlow.jsx';
 import Reveal from '../ui/Reveal.jsx';
+import Skeleton from '../ui/Skeleton.jsx';
 import { useEducation } from '../../hooks/useEducation.js';
 // Fallback (= seed de education) si la DB falla/no cargó.
 import { education as FALLBACK } from '../../data/education.js';
@@ -31,9 +32,10 @@ import { education as FALLBACK } from '../../data/education.js';
  * Grid: `auto-fit minmax(280px,1fr)` — replica mockup.
  */
 export default function Education() {
-  // Educación editable desde /admin/educacion. Fallback al data file.
-  const { data, error } = useEducation();
-  const items = data && !error ? data : FALLBACK;
+  // Educación editable desde /admin/educacion. Skeletons mientras carga (sin
+  // flash del fallback); el FALLBACK estático queda solo para error real.
+  const { data, loading } = useEducation();
+  const items = data ?? FALLBACK;
 
   return (
     <section
@@ -47,6 +49,17 @@ export default function Education() {
         />
 
         {/* Grid auto-fit. gap-4 (16px) matchea mockup. */}
+        {loading ? (
+          <div
+            aria-busy="true"
+            aria-label="Cargando educación"
+            className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4"
+          >
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-32 rounded-[14px]" />
+            ))}
+          </div>
+        ) : (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
           {items.map((item, index) => {
             // Flags de los 3 casos. Se calculan una vez acá arriba para
@@ -110,6 +123,7 @@ export default function Education() {
             );
           })}
         </div>
+        )}
       </div>
     </section>
   );

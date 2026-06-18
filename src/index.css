@@ -127,3 +127,29 @@ body {
 .scroll-slim::-webkit-scrollbar-thumb:hover {
   background-color: var(--text-muted);
 }
+
+/* Entrada de la página: difuminada → nítida.
+ *
+ * Toda la página (Navbar + contenido + Footer) entra una vez con un blur que
+ * se va aclarando. Da una transición suave al cargar en vez de aparecer "de
+ * golpe" mientras Supabase trae la data (las secciones muestran skeletons
+ * debajo del blur).
+ *
+ * IMPORTANTE — NO usar `forwards`/`both`: un `filter` aplicado (aunque sea
+ * `blur(0)`) crea un containing block que rompe `position: sticky`/`fixed`
+ * de los hijos (Navbar sticky, botón flotante del chat). Sin fill-mode, al
+ * terminar la animación el `filter` se quita y sticky/fixed vuelven a andar.
+ * El blur solo "molesta" durante los ~600ms de la animación (la página está
+ * arriba de todo al cargar, así que no se nota).
+ *
+ * Respeta prefers-reduced-motion: si el usuario pidió menos movimiento, no
+ * anima (la página aparece directa).
+ */
+@keyframes blur-in {
+  from { opacity: 0; filter: blur(10px); }
+  to   { opacity: 1; filter: blur(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .blur-in { animation: blur-in 0.7s ease-out; }
+}

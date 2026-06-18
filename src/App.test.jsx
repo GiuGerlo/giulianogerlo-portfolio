@@ -8,15 +8,18 @@ import App from './App.jsx';
 // browser real (no hay window.location en jsdom). `initialEntries` es
 // el historial inicial — el último elemento es la URL "actual".
 
-test('renders Home on /', () => {
+test('renders Home on /', async () => {
   render(
     <MemoryRouter initialEntries={['/']}>
       <App />
     </MemoryRouter>
   );
-  // Home ahora compone <Hero /> — chequeamos el h1 con el nombre.
+  // Home compone <Hero />. Hero ahora muestra un skeleton mientras carga
+  // site_settings de la DB y recién después pinta el h1 con el nombre (de la
+  // DB, o del fallback si falla). findBy* espera esa resolución async — con
+  // getBy* sería null durante el loading inicial.
   expect(
-    screen.getByRole('heading', { level: 1, name: /Giuliano Gerlo/i }),
+    await screen.findByRole('heading', { level: 1, name: /Giuliano Gerlo/i }),
   ).toBeInTheDocument();
 });
 

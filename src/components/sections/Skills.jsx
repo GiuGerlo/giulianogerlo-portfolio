@@ -1,6 +1,7 @@
 import SectionHeading from '../ui/SectionHeading.jsx';
 import BorderGlow from '../ui/BorderGlow.jsx';
 import Reveal from '../ui/Reveal.jsx';
+import Skeleton from '../ui/Skeleton.jsx';
 import { useSkillGroups } from '../../hooks/useSkillGroups.js';
 import { SKILL_ICONS } from '../../lib/skill-icons.js';
 // Fallback hardcodeado (= seed de skill_groups) por si la DB falla/no cargó.
@@ -38,10 +39,11 @@ import { skillGroups as FALLBACK } from '../../data/skills.js';
  */
 
 export default function Skills() {
-  // Grupos editables desde /admin/skills. Fallback al data file si la DB
-  // falla/no cargó (degradación elegante, mismo patrón que About).
-  const { data, error } = useSkillGroups();
-  const groups = data && !error ? data : FALLBACK;
+  // Grupos editables desde /admin/skills. Mientras carga la DB mostramos
+  // skeletons (no el fallback → evita el flash de contenido viejo); el
+  // FALLBACK estático queda solo para el caso de error real.
+  const { data, loading } = useSkillGroups();
+  const groups = data ?? FALLBACK;
 
   return (
     <section
@@ -57,6 +59,17 @@ export default function Skills() {
 
         {/* Grid: 1 col mobile · 2 cols tablet · 5 cols desktop (una
             fila con los 5 grupos). gap-5 (20px) matchea mockup. */}
+        {loading ? (
+          <div
+            aria-busy="true"
+            aria-label="Cargando skills"
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5"
+          >
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-44 rounded-[14px]" />
+            ))}
+          </div>
+        ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
           {groups.map((group, index) => {
             // Resolver ícono por nombre con el set curado compartido. Si el
@@ -113,6 +126,7 @@ export default function Skills() {
             );
           })}
         </div>
+        )}
       </div>
     </section>
   );

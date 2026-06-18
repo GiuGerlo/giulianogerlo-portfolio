@@ -15,10 +15,39 @@ describe('About', () => {
     useProfile.mockReset();
   });
 
-  // ── Fallback: loading / error / sin fila → contenido hardcodeado ──
-  describe('fallback (sin data de DB)', () => {
+  // ── Loading: muestra skeleton, NO el contenido viejo (evita el flash) ──
+  describe('loading', () => {
     beforeEach(() => {
       useProfile.mockReturnValue({ data: null, loading: true, error: null });
+    });
+
+    test('muestra placeholder con aria-busy, sin chips de contenido', () => {
+      render(<About />);
+      expect(
+        screen.getByLabelText(/cargando sobre mí/i),
+      ).toHaveAttribute('aria-busy', 'true');
+      // Durante el loading NO se pinta el contenido (ni fallback ni DB).
+      expect(
+        screen.queryByText(/Disponible para proyectos/i),
+      ).not.toBeInTheDocument();
+    });
+
+    test('renderiza heading "Sobre mí" (es estático)', () => {
+      render(<About />);
+      expect(
+        screen.getByRole('heading', { name: /sobre mí/i, level: 2 }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  // ── Fallback: error / sin fila (ya no loading) → contenido hardcodeado ──
+  describe('fallback (error / sin data de DB)', () => {
+    beforeEach(() => {
+      useProfile.mockReturnValue({
+        data: null,
+        loading: false,
+        error: { message: 'fail' },
+      });
     });
 
     test('renderiza heading "Sobre mí"', () => {

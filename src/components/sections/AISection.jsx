@@ -1,5 +1,6 @@
 import BorderGlow from '../ui/BorderGlow.jsx';
 import Reveal from '../ui/Reveal.jsx';
+import Skeleton from '../ui/Skeleton.jsx';
 import { useAiSkills } from '../../hooks/useAiSkills.js';
 // Fallback (= seed de ai_skills) si la DB falla/no cargó.
 import { aiSkills as FALLBACK } from '../../data/skills.js';
@@ -33,10 +34,10 @@ import { aiSkills as FALLBACK } from '../../data/skills.js';
  *  - Si NO tiene items, solo se renderiza la descripción.
  */
 export default function AISection() {
-  // Skills de IA editables desde /admin/ai. Fallback al data file si la DB
-  // falla/no cargó (degradación elegante).
-  const { data, error } = useAiSkills();
-  const skills = data && !error ? data : FALLBACK;
+  // Skills de IA editables desde /admin/ai. Skeletons mientras carga (sin
+  // flash del fallback); el FALLBACK estático queda solo para error real.
+  const { data, loading } = useAiSkills();
+  const skills = data ?? FALLBACK;
 
   return (
     <section
@@ -65,6 +66,17 @@ export default function AISection() {
             </p>
 
             {/* Grid de features. mt-10 (40px) matchea mockup. */}
+            {loading ? (
+              <div
+                aria-busy="true"
+                aria-label="Cargando skills de IA"
+                className="mt-10 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6"
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20" />
+                ))}
+              </div>
+            ) : (
             <div className="mt-10 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
               {skills.map((skill) => (
                 <div
@@ -100,6 +112,7 @@ export default function AISection() {
                 </div>
               ))}
             </div>
+            )}
           </div>
         </BorderGlow>
         </Reveal>
