@@ -46,9 +46,12 @@ export function calendarToContributions(calendar) {
  * API GraphQL autenticada. Lanza si falla (el handler cae al fallback público).
  */
 async function fetchContributionsGraphQL(token, signal) {
+  // `viewer` = el dueño del token. Es la forma confiable de incluir las
+  // contribuciones PRIVADAS (querying `user(login)` a veces solo trae públicas
+  // aunque seas vos). El token tiene que ser de GITHUB_USER.
   const query = `
-    query($login: String!) {
-      user(login: $login) {
+    query {
+      viewer {
         contributionsCollection {
           contributionCalendar {
             totalContributions
@@ -66,7 +69,7 @@ async function fetchContributionsGraphQL(token, signal) {
       'Content-Type': 'application/json',
       'User-Agent': 'giulianogerlo-portfolio',
     },
-    body: JSON.stringify({ query, variables: { login: GITHUB_USER } }),
+    body: JSON.stringify({ query }),
   });
 
   if (!res.ok) throw new Error(`GitHub GraphQL respondió ${res.status}`);
@@ -76,7 +79,7 @@ async function fetchContributionsGraphQL(token, signal) {
   }
 
   const calendar =
-    json.data?.user?.contributionsCollection?.contributionCalendar;
+    json.data?.viewer?.contributionsCollection?.contributionCalendar;
   return {
     contributions: calendarToContributions(calendar),
     total: calendar?.totalContributions ?? 0,
@@ -122,11 +125,13 @@ export default async function handler(req, res) {
       // Con token: GraphQL (incluye privados). Si falla, caemos al público.
       try {
         result = await fetchContributionsGraphQL(token, controller.signal);
+        console.log('[github] vía GraphQL (con token) → total', result.total);
       } catch (err) {
         console.error('[github] GraphQL falló, uso fallback público:', err);
         result = await fetchContributionsPublic(controller.signal);
       }
     } else {
+      console.warn('[github] SIN GITHUB_TOKEN → fallback público (solo conteo público)');
       result = await fetchContributionsPublic(controller.signal);
     }
 
