@@ -1,6 +1,6 @@
 # Plan — Dashboard admin + registro de chats del chatbot
 
-Fecha: 2026-06-18 · Estado: **en curso**
+Fecha: 2026-06-18 · Estado: **cerrada y deployada** (pendiente solo: smoke test manual del logging chateando en prod)
 
 ## Context
 
@@ -51,7 +51,14 @@ un **registro de chats** del chatbot, agrupado por conversación, para ver qué 
   últimos 5 chats. `src/hooks/useDashboardStats.js` (counts en paralelo, head:true).
   `App.jsx` ruta `/admin/proyectos`. `AdminLayout` nav: "Inicio" + "Proyectos" separados.
   `Dashboard.test.jsx` nuevo (home, 5 tests). Suite 221/221, lint limpio.
-- **T5**: QA + cierre.
+- **T5** ✅ (QA + cierre): suite 221/221 + lint limpio. RLS `chat_logs` verificada como anon
+  vía REST → **HTTP 401 permission denied** (privado total). Migraciones 0008/0009 aplicadas.
+  Deploy prod READY (último commit = dashboard home). Prod verificado con Playwright: `/admin`
+  redirige a `/admin/login` (gate OK); home pública sana (3 errores de consola, todos de
+  Turnstile/3rd-party, ninguno de app). Pendiente manual del owner: chatear en prod y
+  confirmar que la conversación aparece en `/admin/chats` (no automatizable por Turnstile).
+  Reorg nav del admin a 2 filas (post-T4) por UX. Nota: scope de `chat_logs` en Vercel es
+  Production+Preview (no Development) → para probar logging con `vercel dev` sumar Development.
 
 ## Verificación end-to-end
 

@@ -291,52 +291,78 @@ function normalizeHistory(history) {
     }));
 }
 
+// Status HTTP transitorios de Gemini que vale la pena reintentar. El 503
+// (modelo sobrecargado / UNAVAILABLE) es MUY común en el free tier de
+// gemini-flash; 429 (rate limit del lado de Google) y 5xx también son
+// temporales. El resto (400/401/403…) son errores reales → no se reintentan.
+const GEMINI_RETRYABLE = new Set([429, 500, 502, 503, 504]);
+const GEMINI_MAX_ATTEMPTS = 3;
+
 /**
- * callGemini — llama a la API REST de Gemini. AbortController corta la
- * espera a los 20s para que la función no se quede colgada.
+ * callGemini — llama a la API REST de Gemini con reintentos. AbortController
+ * corta TODA la operación (incluidos reintentos) a los 20s para que la función
+ * no se quede colgada.
+ *
+ * Reintenta hasta 3 veces ante errores transitorios (503 overloaded, 429, 5xx)
+ * con backoff corto (600ms, 1200ms). Así un 503 momentáneo de Gemini no se
+ * traduce en un 500 al visitante.
  */
 async function callGemini(systemPrompt, contents) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
 
+  // `vercel env pull` escribe los valores entre comillas en .env.local y
+  // `vercel dev` a veces las deja literales dentro de la variable. Limpiamos
+  // comillas y espacios para que la key entre limpia en la URL.
+  const apiKey = (process.env.GEMINI_API_KEY ?? '')
+    .trim()
+    .replace(/^["']|["']$/g, '');
+
+  const url =
+    `https://generativelanguage.googleapis.com/v1beta/models/` +
+    `${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents,
+    // temperature baja → respuestas conservadoras, menos invención.
+    generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
+  });
+
   try {
-    // `vercel env pull` escribe los valores entre comillas en .env.local
-    // y `vercel dev` a veces las deja literales dentro de la variable.
-    // Limpiamos comillas y espacios para que la key entre limpia en la URL.
-    const apiKey = (process.env.GEMINI_API_KEY ?? '')
-      .trim()
-      .replace(/^["']|["']$/g, '');
+    let lastError;
+    for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        signal: controller.signal,
+        body,
+      });
 
-    const url =
-      `https://generativelanguage.googleapis.com/v1beta/models/` +
-      `${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+      if (res.ok) {
+        const data = await res.json();
+        // Si el contenido fue bloqueado por filtros de seguridad, no hay
+        // candidates con texto utilizable (no es transitorio → no reintenta).
+        const texto = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!texto) throw new Error('Gemini no devolvió texto utilizable.');
+        return texto.trim();
+      }
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents,
-        // temperature baja → respuestas conservadoras, menos invención.
-        generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
-      }),
-    });
-
-    if (!res.ok) {
       const detalle = await res.text();
-      throw new Error(`Gemini respondió ${res.status}: ${detalle}`);
-    }
+      lastError = new Error(`Gemini respondió ${res.status}: ${detalle}`);
 
-    const data = await res.json();
+      // Error no transitorio o se acabaron los intentos → tirar.
+      if (!GEMINI_RETRYABLE.has(res.status) || attempt === GEMINI_MAX_ATTEMPTS) {
+        throw lastError;
+      }
 
-    // Si el contenido fue bloqueado por filtros de seguridad, no hay
-    // candidates con texto utilizable.
-    const texto = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!texto) {
-      throw new Error('Gemini no devolvió texto utilizable.');
+      console.warn(
+        `[chat] Gemini ${res.status} (intento ${attempt}/${GEMINI_MAX_ATTEMPTS}), reintentando…`,
+      );
+      // Backoff lineal: 600ms, 1200ms.
+      await new Promise((r) => setTimeout(r, 600 * attempt));
     }
-    return texto.trim();
+    throw lastError;
   } finally {
     clearTimeout(timeout);
   }
