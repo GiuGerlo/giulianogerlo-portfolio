@@ -30,6 +30,7 @@ const navLinks = [
   { to: '/#about',      label: 'Sobre mí' },
   { to: '/#skills',     label: 'Skills' },
   { to: '/#projects',   label: 'Proyectos' },
+  { to: '/#github',     label: 'GitHub' },
   { to: '/#experience', label: 'Experiencia' },
   { to: '/#contact',    label: 'Contacto' },
 ];
@@ -122,7 +123,7 @@ export default function Footer() {
                 href={github}
                 target="_blank"
                 rel="noreferrer noopener"
-                aria-label="GitHub"
+                aria-label="Perfil de GitHub"
                 className="inline-flex size-9 items-center justify-center rounded-md border border-border text-text-muted transition-colors hover:border-accent hover:text-accent"
               >
                 <Icon id="github-icon" />
@@ -152,13 +153,9 @@ export default function Footer() {
 
         {/* Línea separadora antes del copyright. */}
         <div className="mt-10 border-t border-border pt-6">
-          <div className="flex flex-col items-center justify-between gap-2 text-xs text-text-muted sm:flex-row">
-            <p>© {year} Giuliano Gerlo. Todos los derechos reservados.</p>
-            <p>
-              Hecho con <span className="text-accent">React</span> +{' '}
-              <span className="text-accent">Tailwind</span>.
-            </p>
-          </div>
+          <p className="text-center text-xs text-text-muted">
+            © {year} Giuliano Gerlo. Todos los derechos reservados.
+          </p>
         </div>
       </div>
     </footer>

@@ -38,7 +38,7 @@ test('muestra el año actual en el copyright', () => {
 
 test('renderiza links GitHub, LinkedIn y Email accesibles', () => {
   renderFooter();
-  expect(screen.getByRole('link', { name: /github/i })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: /perfil de github/i })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /linkedin/i })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /email/i })).toBeInTheDocument();
 });

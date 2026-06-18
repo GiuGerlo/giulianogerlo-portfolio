@@ -54,7 +54,7 @@ test('renderiza los 5 links del menú desktop', () => {
 
 test('incluye links a GitHub y LinkedIn con target=_blank y rel anti-tabnabbing', () => {
   renderNavbar();
-  const github   = screen.getByRole('link', { name: /github/i });
+  const github   = screen.getByRole('link', { name: /perfil de github/i });
   const linkedin = screen.getByRole('link', { name: /linkedin/i });
   expect(github).toHaveAttribute('target', '_blank');
   expect(linkedin).toHaveAttribute('target', '_blank');

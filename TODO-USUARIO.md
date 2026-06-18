@@ -88,6 +88,13 @@ Si alguno no lo tenés en PDF y solo tenés URL externa (ej. CoderHouse a veces 
 - [ ] Auth Settings: allowlist de email (solo tu mail puede pedir magic link) — se configura en Task 12.2 vía MCP
 - [ ] Auth Settings: Site URL + Redirect URLs para magic link callback — se configura en Task 12.2
 
+### 8. GitHub (sección "Actividad en GitHub")
+- [ ] **(Opcional)** `GITHUB_TOKEN` en Vercel (scope Production + Preview) — un Personal
+  Access Token *classic* sin permisos (solo lectura pública alcanza) o fine-grained con
+  acceso público. Sube el límite de la API de GitHub de 60 a 5000 req/h. **No es
+  obligatorio**: sin el token la sección anda igual (60 req/h, mitigado por el cache del
+  CDN). La API de contribuciones no necesita token.
+
 ## 🔐 Seguridad — rotar keys
 
 - [ ] **Rotar las keys secretas** — `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY` y la API key de Gemini se pegaron en texto plano en el chat en algún momento. Antes/después de deployar, generá nuevas desde los dashboards correspondientes y actualizá el `.env` + las env vars de Vercel. (La `VITE_TURNSTILE_SITE_KEY` es pública, esa no hace falta rotarla.)

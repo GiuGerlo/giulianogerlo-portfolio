@@ -7,6 +7,7 @@ import About from '../components/sections/About.jsx';
 import Skills from '../components/sections/Skills.jsx';
 import AISection from '../components/sections/AISection.jsx';
 import Projects from '../components/sections/Projects.jsx';
+import GitHub from '../components/sections/GitHub.jsx';
 import Experience from '../components/sections/Experience.jsx';
 import Education from '../components/sections/Education.jsx';
 import Contact from '../components/sections/Contact.jsx';
@@ -30,6 +31,7 @@ export default function Home() {
       <Skills />
       <AISection />
       <Projects />
+      <GitHub />
       <Experience />
       <Education />
       <Contact />
