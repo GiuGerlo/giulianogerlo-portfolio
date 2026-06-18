@@ -23,14 +23,28 @@
 
 import { Redis } from '@upstash/redis';
 
-// Data del portfolio — fuente única de verdad. Editar el contenido ahí
-// actualiza lo que el chatbot sabe, sin tocar este archivo.
+// Cliente Supabase server-side (anon key, RLS de lectura pública). Es la
+// FUENTE PRIMARIA del contenido del chatbot: lee lo mismo que muestra la web,
+// así editar en /admin actualiza al bot sin tocar este archivo ni redeployar.
+import { supabaseServer } from '../src/lib/supabase-server.js';
+
+// Mappers snake↔camel (reusados del front) para serializar las filas DB igual
+// que los componentes.
+import { dbToProject } from '../src/lib/projects-mapper.js';
+import { dbToExperience } from '../src/lib/experience-mapper.js';
+import { dbToSkillGroup } from '../src/lib/skill-groups-mapper.js';
+import { dbToAiSkill } from '../src/lib/ai-skills-mapper.js';
+import { dbToEducation } from '../src/lib/education-mapper.js';
+
+// Data estática del portfolio — ahora SOLO FALLBACK. Si la DB falla o no está
+// configurada, buildContext cae a estos arrays (degradación elegante, mismo
+// criterio fail-open que el rate-limit de Redis).
 import { projects } from '../src/data/projects.js';
 import { experience } from '../src/data/experience.js';
 import { skillGroups, aiSkills } from '../src/data/skills.js';
 import { education } from '../src/data/education.js';
-// bio.js — datos extra que NO se renderizan en el frontend, existen
-// solo para que el chatbot tenga más contexto (edad, disponibilidad…).
+// bio.js — datos extra que NO se renderizan en el frontend. En la DB esto vive
+// como texto libre (site_settings.chatbot_context); acá queda como fallback.
 import { bio } from '../src/data/bio.js';
 
 // Cliente de Upstash Redis (rate limiting). Mismas vars que usa
@@ -104,12 +118,80 @@ async function verifyTurnstile(token, ip) {
 }
 
 /**
- * buildContext — serializa toda la data del portfolio a un bloque de
- * texto plano que se inyecta en el system prompt. Esto ES el "knowledge
- * base" del chatbot (context-stuffing).
+ * bioToText — serializa el objeto bio (fallback) a una línea de prosa, mismo
+ * formato que el seed de site_settings.chatbot_context.
  */
-function buildContext() {
-  const proyectos = projects
+function bioToText(bioObj) {
+  return Object.entries(bioObj)
+    .map(([clave, valor]) => `${clave}: ${valor}`)
+    .join(' ');
+}
+
+/**
+ * fetchContent — trae el contenido del portfolio desde Supabase (fuente
+ * primaria). Hace las 6 lecturas en paralelo y las mapea al shape camelCase.
+ *
+ * Fail-open: si Supabase no está configurado o CUALQUIER query falla, logueamos
+ * y devolvemos el bundle ESTÁTICO (src/data/*.js + bio). El bot nunca tira 500
+ * por un problema de DB; en el peor caso responde con data un poco vieja.
+ *
+ * Exportada para tests.
+ */
+export async function fetchContent() {
+  try {
+    if (!supabaseServer) {
+      throw new Error('Supabase no configurado (faltan env vars).');
+    }
+
+    // Promise.all: las 6 lecturas viajan juntas (~el tiempo de la más lenta).
+    // projects: solo publicados, para igualar lo que ve la web pública.
+    const [proj, exp, groups, ai, edu, site] = await Promise.all([
+      supabaseServer.from('projects').select('*').eq('published', true).order('order_index'),
+      supabaseServer.from('experience').select('*').order('order_index'),
+      supabaseServer.from('skill_groups').select('*').order('order_index'),
+      supabaseServer.from('ai_skills').select('*').order('order_index'),
+      supabaseServer.from('education').select('*').order('order_index'),
+      supabaseServer.from('site_settings').select('chatbot_context').eq('id', 1).single(),
+    ]);
+
+    // supabase-js no lanza en error de query: lo devuelve en `.error`. Si
+    // alguna falló, tiramos para caer al fallback de una.
+    const fallaron = [proj, exp, groups, ai, edu, site].filter((r) => r.error);
+    if (fallaron.length) {
+      throw new Error(fallaron.map((r) => r.error.message).join('; '));
+    }
+
+    return {
+      projects: proj.data.map(dbToProject),
+      experience: exp.data.map(dbToExperience),
+      skillGroups: groups.data.map(dbToSkillGroup),
+      aiSkills: ai.data.map(dbToAiSkill),
+      education: edu.data.map(dbToEducation),
+      chatbotContext: site.data?.chatbot_context ?? '',
+    };
+  } catch (err) {
+    console.error('[chat] fetch de contenido falló, uso fallback estático:', err);
+    return {
+      projects,
+      experience,
+      skillGroups,
+      aiSkills,
+      education,
+      chatbotContext: bioToText(bio),
+    };
+  }
+}
+
+/**
+ * buildContext — serializa el contenido (venga de la DB o del fallback) a un
+ * bloque de texto plano que se inyecta en el system prompt. Esto ES el
+ * "knowledge base" del chatbot (context-stuffing).
+ *
+ * Tolerante al shape: los mappers DB usan `description`, los .js estáticos usan
+ * `desc` → leemos `description ?? desc` para que ambos funcionen.
+ */
+export function buildContext(content) {
+  const proyectos = content.projects
     .map((p) => {
       const fin = p.dateEnd ?? 'actualidad';
       const challenges = p.challenges?.length
@@ -124,32 +206,26 @@ function buildContext() {
     })
     .join('\n');
 
-  const trabajo = experience
+  const trabajo = content.experience
     .map(
       (e) =>
-        `- ${e.role} en ${e.company} (${e.dateLabel}): ${e.desc}`,
+        `- ${e.role} en ${e.company} (${e.dateLabel}): ${e.description ?? e.desc}`,
     )
     .join('\n');
 
-  const tecnicas = skillGroups
+  const tecnicas = content.skillGroups
     .map((g) => `- ${g.title}: ${g.items.join(', ')}`)
     .join('\n');
 
-  const ia = aiSkills
+  const ia = content.aiSkills
     .map((s) => {
       const items = s.items?.length ? ` (${s.items.join(', ')})` : '';
-      return `- ${s.title}: ${s.desc}${items}`;
+      return `- ${s.title}: ${s.description ?? s.desc}${items}`;
     })
     .join('\n');
 
-  const estudios = education
+  const estudios = content.education
     .map((ed) => `- ${ed.title} — ${ed.org} (${ed.dateLabel})`)
-    .join('\n');
-
-  // Object.entries recorre el objeto bio como pares [clave, valor], así
-  // sumar un campo nuevo en bio.js aparece acá sin tocar nada.
-  const datosExtra = Object.entries(bio)
-    .map(([clave, valor]) => `- ${clave}: ${valor}`)
     .join('\n');
 
   return (
@@ -158,7 +234,7 @@ function buildContext() {
     `## Skills técnicas\n${tecnicas}\n\n` +
     `## Skills de IA\n${ia}\n\n` +
     `## Educación\n${estudios}\n\n` +
-    `## Datos personales\n${datosExtra}`
+    `## Datos personales\n${content.chatbotContext}`
   );
 }
 
@@ -167,7 +243,9 @@ function buildContext() {
  * reglas anti-alucinación (no inventar) y anti-inyección (ignorar
  * órdenes que vengan dentro del mensaje del usuario).
  */
-function buildSystemPrompt() {
+async function buildSystemPrompt() {
+  // El contexto (knowledge base) se trae de la DB en cada request.
+  const content = await fetchContent();
   return (
     'Sos el asistente virtual del portfolio de Giuliano Gerlo, ' +
     'desarrollador Full-Stack de Rosario, Argentina. Tu tarea es ' +
@@ -186,7 +264,7 @@ function buildSystemPrompt() {
     '4. Respondé en español rioplatense, en tono profesional y cordial, ' +
     'breve (2-4 oraciones salvo que pidan detalle).\n' +
     '5. Hablá de Giuliano en tercera persona.\n\n' +
-    `## DATOS\n${buildContext()}`
+    `## DATOS\n${buildContext(content)}`
   );
 }
 
@@ -322,7 +400,7 @@ export default async function handler(req, res) {
       { role: 'user', parts: [{ text: message.trim() }] },
     ];
 
-    const reply = await callGemini(buildSystemPrompt(), contents);
+    const reply = await callGemini(await buildSystemPrompt(), contents);
     return res.status(200).json({ reply });
   } catch (err) {
     // No filtramos el detalle al cliente; lo logueamos para Vercel.

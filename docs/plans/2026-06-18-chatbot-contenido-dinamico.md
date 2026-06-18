@@ -63,4 +63,13 @@ rate-limit de Redis.
 
 - **2026-06-18 — T1**: `supabase/migrations/0008_chatbot_context.sql` (columna additiva +
   seed con la prosa de bio.js, aplicada vía MCP). `site-settings-mapper.js`: agregado
-  `chatbotContext` ↔ `chatbot_context`. Site.test.jsx sigue verde (4/4).
+  `chatbotContext` ↔ `chatbot_context`. Site.test.jsx sigue verde (4/4). Fix: la migración
+  se había registrado como `chatbot_context` en la DB → renombrada a `0008_chatbot_context`
+  para seguir el patrón `0001`–`0007`.
+- **2026-06-18 — T2**: `src/lib/supabase-server.js` (cliente Node anon key,
+  `persistSession:false`, guard a `null` si faltan env vars → no rompe fail-open).
+  `api/chat.js`: nuevo `fetchContent()` (6 lecturas en paralelo + mapeo + fallback estático
+  total), `buildContext(content)` ahora recibe el contenido y tolera shape `desc`/
+  `description`, `buildSystemPrompt`/handler pasan a async. `api/chat.test.js` (nuevo, 2
+  tests: serialización + fallback sin Supabase). `eslint.config.js`: supabase-server.js al
+  bloque de globals Node. Suite 206/206 verde, lint limpio.
