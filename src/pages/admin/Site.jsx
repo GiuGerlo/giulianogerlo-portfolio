@@ -32,6 +32,7 @@ const schema = z.object({
   socialEmail: z.string().optional().default(''),
   socialWhatsapp: z.string().optional().default(''),
   socialLocation: z.string().optional().default(''),
+  chatbotContext: z.string().optional().default(''),
 });
 
 const EMPTY_DEFAULTS = {
@@ -45,6 +46,7 @@ const EMPTY_DEFAULTS = {
   socialEmail: '',
   socialWhatsapp: '',
   socialLocation: '',
+  chatbotContext: '',
 };
 
 export default function Site() {
@@ -73,6 +75,7 @@ export default function Site() {
       socialEmail: site.socialEmail ?? '',
       socialWhatsapp: site.socialWhatsapp ?? '',
       socialLocation: site.socialLocation ?? '',
+      chatbotContext: site.chatbotContext ?? '',
     });
   }, [site, reset]);
 
@@ -180,6 +183,34 @@ export default function Site() {
           <Input label="Email" placeholder="mail@ejemplo.com" {...register('socialEmail')} />
           <Input label="WhatsApp (internacional sin +)" placeholder="5493468536422" {...register('socialWhatsapp')} />
           <Input label="Ubicación (footer/contacto)" placeholder="Rosario, Santa Fe — Argentina" {...register('socialLocation')} />
+        </section>
+
+        {/* ── Contexto del chatbot ── */}
+        <section className="rounded-xl border border-border bg-bg-elevated p-6">
+          <h2 className="mb-4 font-mono text-xs uppercase tracking-wider text-text-muted">
+            Contexto del chatbot
+          </h2>
+          <p className="mb-3 text-xs text-text-muted">
+            Datos extra que el asistente IA puede usar para responder (edad,
+            disponibilidad, idiomas, modalidad…). No se muestra en ninguna
+            sección pública, pero el chatbot lo puede decir a cualquier
+            visitante: no pongas nada privado.
+          </p>
+          <label
+            htmlFor="chatbotContext"
+            className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-muted"
+          >
+            Contexto (texto libre)
+          </label>
+          {/* textarea nativo: el bot consume texto plano, no necesita el editor
+              WYSIWYG (TipTap) que usa el About. Mismas clases que <Input>. */}
+          <textarea
+            id="chatbotContext"
+            rows={5}
+            placeholder="Edad: 22 años. Disponibilidad: abierto a propuestas. Modalidad: remoto o presencial en Rosario…"
+            {...register('chatbotContext')}
+            className="w-full resize-y rounded-md border border-border bg-bg px-3.5 py-2.5 text-sm text-text-primary transition-colors focus:border-accent focus:outline-none"
+          />
         </section>
 
         {serverError && (

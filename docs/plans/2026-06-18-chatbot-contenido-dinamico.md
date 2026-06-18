@@ -73,3 +73,7 @@ rate-limit de Redis.
   `description`, `buildSystemPrompt`/handler pasan a async. `api/chat.test.js` (nuevo, 2
   tests: serialización + fallback sin Supabase). `eslint.config.js`: supabase-server.js al
   bloque de globals Node. Suite 206/206 verde, lint limpio.
+- **2026-06-18 — T3**: `Site.jsx`: campo `chatbotContext` en schema/defaults/reset +
+  sección "Contexto del chatbot" con `<textarea>` nativo (texto plano, sin WYSIWYG) y nota
+  de privacidad. `Site.test.jsx`: fixture + asserts del textarea (populate + payload
+  `chatbot_context` en el UPDATE). Tests 4/4, lint limpio.

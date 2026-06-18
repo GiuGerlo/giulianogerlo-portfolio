@@ -39,6 +39,7 @@ const fixture = {
   socialEmail: 'mail@x.com',
   socialWhatsapp: '549',
   socialLocation: 'Rosario, AR',
+  chatbotContext: 'Edad: 22 años. Disponibilidad: abierto.',
 };
 
 function renderSite() {
@@ -74,6 +75,9 @@ describe('Site (admin)', () => {
       expect(screen.getByLabelText(/nombre/i)).toHaveValue('Giuliano Gerlo');
     });
     expect(screen.getByLabelText(/whatsapp/i)).toHaveValue('549');
+    expect(screen.getByLabelText(/contexto \(texto libre\)/i)).toHaveValue(
+      'Edad: 22 años. Disponibilidad: abierto.',
+    );
   });
 
   test('submit: UPDATE con eq(id, 1) y payload snake_case', async () => {
@@ -99,6 +103,7 @@ describe('Site (admin)', () => {
       expect.objectContaining({
         hero_name: 'Giuliano Gerlo',
         social_whatsapp: '549',
+        chatbot_context: 'Edad: 22 años. Disponibilidad: abierto.',
       }),
     );
     expect(await screen.findByText(/cambios guardados/i)).toBeInTheDocument();
